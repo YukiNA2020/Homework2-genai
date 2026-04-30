@@ -148,3 +148,36 @@ CREATE TABLE IF NOT EXISTS kol_analysis_runs (
     errors INTEGER NOT NULL,
     notes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS linkedin_content_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    primary_category TEXT NOT NULL UNIQUE,
+    target_audience TEXT NOT NULL,
+    tone_positioning TEXT NOT NULL,
+    source_news_ids TEXT NOT NULL,
+    source_titles TEXT NOT NULL,
+    evidence_basis TEXT NOT NULL,
+    linkedin_post TEXT NOT NULL,
+    visual_prompt TEXT NOT NULL,
+    quality_score_self_check TEXT NOT NULL,
+    output_path TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_linkedin_content_primary_category
+ON linkedin_content_results(primary_category);
+
+CREATE TABLE IF NOT EXISTS linkedin_content_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL UNIQUE,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    categories_seen INTEGER NOT NULL,
+    posts_generated INTEGER NOT NULL,
+    outputs_written INTEGER NOT NULL,
+    errors INTEGER NOT NULL,
+    notes TEXT
+);

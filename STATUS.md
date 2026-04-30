@@ -17,8 +17,8 @@
 | 阶段二 | MVP信息监控管道 | ✅ 已完成，已测试通过 |
 | 阶段三 | 双层路由与分类引擎 | ✅ 已完成，AI本地验证通过 |
 | 阶段四 | KOL分析与风格指南 | ✅ 已完成，通过 |
-| 阶段五 | LinkedIn决策简报生成 | 🔄 待启动 |
-| 阶段六 | 最终文档与交付整理 | 🔄 待启动 |
+| 阶段五 | LinkedIn决策简报生成 | ✅ 已完成，AI本地验证通过 |
+| 阶段六 | 最终文档与交付整理 | ✅ 已完成，待用户测试 |
 
 ---
 
@@ -73,6 +73,8 @@
 - LLM模型与具体API接入方式由用户后续自行决定，本项目代码层面只保留清晰接口。
 - 阶段三已采用离线可复现实现：默认全量重跑并覆盖结果表，`--only-new` 可用于只处理新增记录。
 - 阶段四已采用离线可复现KOL画像拆解：生成风格清单、KOL分析Prompt、内容生成约束Prompt，并写入SQLite审计表。
+- 阶段五已采用离线可复现内容生成：从SQLite分类结果中按两条主线各生成1篇LinkedIn决策简报、配图Prompt、目标受众与语气定位，并写入SQLite审计表。
+- 阶段六已完成交付收口：新增一键总控脚本、工作流架构说明、Prompt优化记录与最终进度报告，并提供全流程测试入口。
 
 ---
 
@@ -113,14 +115,34 @@
 - [x] 已输出后续内容生成约束Prompt：`2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt`。
 - [x] 已完成本地验证：4位KOL画像写入SQLite，3个文件输出成功，错误0条。
 
-### 5. 核心定位（已收窄）
+### 5. 阶段五：LinkedIn决策简报生成
+- [x] 已编写 `1-Workflow_Files/5_linkedin_content_generation.py`。
+- [x] 已扩展SQLite schema，新增 `linkedin_content_results`、`linkedin_content_runs`。
+- [x] 已生成两篇最终LinkedIn内容：
+  - `3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md`
+  - `3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md`
+- [x] 每篇内容均包含正文、目标受众、语气定位、来源证据、配图Prompt与质量自检。
+- [x] 已输出阶段五Prompt样例：
+  - `2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt`
+  - `2-Prompt_Design_Samples/image_generation_prompt.txt`
+- [x] 已完成本地验证：2个分类、2篇帖子、4个输出文件、错误0条。
+
+### 6. 阶段六：最终文档与交付整理
+- [x] 已编写 `1-Workflow_Files/0_main_workflow.py`，可一键运行阶段二到阶段五。
+- [x] 已输出工作流架构说明：`1-Workflow_Files/workflow_architecture.md`。
+- [x] 已输出最终进度报告：`4-Progress_Report/Progress_Report_Final.md`。
+- [x] 已输出Prompt优化记录：`4-Progress_Report/prompt_optimization_records.md`。
+- [x] 总控脚本包含主控日志、阶段状态汇总与数据库健康检查。
+- [x] 已完成AI本地验证：阶段二到阶段五全部OK，数据库健康检查全部PASS。
+
+### 7. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 6. 相关性打分标准
+### 8. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -137,7 +159,7 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 7. 信息源体系
+### 9. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
@@ -152,56 +174,86 @@ LLM评分权重：
 
 ## 下一步行动
 
-### 立即执行（用户测试阶段四）
-1. 如需从头确认阶段二、阶段三数据仍在，可先运行：
+### 立即执行（用户测试阶段六/全流程）
+1. 运行阶段六总控脚本：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+   ```
+   预期结果：
+   - `Overall success: True`
+   - 阶段二到阶段五均显示 `OK`
+   - 数据库健康检查全部 `PASS`
+   - `workflow_running_logs/` 中新增 `main_workflow` 主控日志
+
+2. 可选单独确认阶段二数据：
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py
    ```
    如果看到 `Inserted: 0`、`Duplicates skipped: 6`，这是正常去重结果。
 
-2. 可选重新运行阶段三A：双层相关性路由。
+3. 可选重新运行阶段三A：双层相关性路由。
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py
    ```
    预期结果：`Items seen: 6`、`Routed: 6`、`Kept: 4`、`Filtered: 2`、`Errors: 0`。
 
-3. 可选重新运行阶段三B：信息分类。
+4. 可选重新运行阶段三B：信息分类。
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
    ```
    预期结果：`Items seen: 4`、`Classified: 4`、`Errors: 0`。
 
-4. 运行阶段四：KOL分析与风格指南。
+5. 可选运行阶段四：KOL分析与风格指南。
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py
    ```
    预期结果：`Profiles analyzed: 4`、`Outputs written: 3`、`Errors: 0`。
 
-5. 检查SQLite数据库：
+6. 可选运行阶段五：LinkedIn决策简报生成。
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+   ```
+   预期结果：`Categories seen: 2`、`Posts generated: 2`、`Outputs written: 4`、`Errors: 0`。
+
+7. 检查SQLite数据库：
    - 数据库路径：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3`
    - 阶段二核心表：`news_items`、`source_registry`、`ingestion_runs`
    - 阶段三核心表：`relevance_routing_results`、`routing_runs`、`classification_results`、`classification_runs`
    - 阶段四核心表：`kol_analysis_results`、`kol_analysis_runs`
-6. 检查阶段四输出文件：
+   - 阶段五核心表：`linkedin_content_results`、`linkedin_content_runs`
+
+8. 检查阶段五输出文件：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt`
+
+9. 检查阶段六输出文件：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/workflow_architecture.md`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/Progress_Report_Final.md`
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/prompt_optimization_records.md`
+
+10. 阶段四输出文件仍可检查：
    - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md`
    - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt`
    - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt`
-7. 检查运行日志：
+
+11. 检查运行日志：
    - 日志目录：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/`
 
-### 阶段四测试交接注意
-- 阶段四脚本已经由AI运行过，数据库中已有4条KOL拆解结果。
-- 默认直接运行脚本会重新生成风格清单与Prompt文件，并覆盖同路径输出，便于用户反复测试。
-- 判断阶段四是否正常时，请同时检查：
+### 阶段六测试交接注意
+- 阶段六总控脚本会依次运行阶段二、阶段三A、阶段三B、阶段四和阶段五。
+- 因为阶段二使用 `content_hash` 去重，重复运行时 `Inserted: 0`、`Duplicates skipped: 6` 属于正常结果。
+- 阶段三到阶段五默认会覆盖对应结果表或输出文件，便于反复测试。
+- 判断阶段六是否正常时，请同时检查：
   - 命令是否成功退出；
-  - 脚本输出中的 `Errors` 是否为0；
-  - `kol_analysis_results` 中应有4条结果；
-  - `kol_analysis_runs` 应新增运行记录；
-  - 三个输出文件应存在且内容非空。
-
-### 测试通过后执行
-8. 生成LinkedIn决策简报 → `5_linkedin_content_generation.py`
-9. 整理最终文档 → `0_main_workflow.py` + `Progress_Report_Final.md`
+  - `Overall success` 是否为 `True`；
+  - 每个阶段是否为 `OK`；
+  - 数据库健康检查是否全部 `PASS`；
+  - 主控日志是否新增；
+  - `linkedin_content_results` 中应有2条结果；
+  - 两篇最终帖子与两个阶段五Prompt文件应存在且内容非空。
 
 ---
 
@@ -212,19 +264,28 @@ LLM评分权重：
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
 | `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段四记录 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段六记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
 | `1_news_monitoring.py` | 阶段二MVP信息监控脚本 | ✅ 已完成，已测试通过 |
 | `2_relevance_router.py` | 阶段三A双层相关性路由脚本 | ✅ 已完成，AI本地验证通过 |
 | `3_information_classification.py` | 阶段三B信息分类脚本 | ✅ 已完成，AI本地验证通过 |
-| `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，待用户测试 |
+| `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，通过 |
+| `5_linkedin_content_generation.py` | 阶段五LinkedIn决策简报生成脚本 | ✅ 已完成，AI本地验证通过 |
+| `0_main_workflow.py` | 阶段六全流程总控脚本 | ✅ 已完成，AI本地验证通过 |
+| `workflow_architecture.md` | 工作流架构说明 | ✅ 已完成 |
+| `Progress_Report_Final.md` | 最终进度报告 | ✅ 已完成 |
+| `prompt_optimization_records.md` | Prompt优化记录 | ✅ 已完成 |
 | `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
 | `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |
 | `kol_style_analysis_prompt.txt` | 阶段四KOL拆解Prompt样例 | ✅ 已完成 |
 | `linkedin_content_constraints_prompt.txt` | 阶段四输出的内容生成约束Prompt | ✅ 已完成 |
+| `linkedin_post_generation_prompt.txt` | 阶段五LinkedIn正文生成Prompt样例 | ✅ 已完成 |
+| `image_generation_prompt.txt` | 阶段五配图Prompt样例 | ✅ 已完成 |
 | `LinkedIn_Post_Style_Anatomy_Checklist.md` | 阶段四风格与结构清单 | ✅ 已完成 |
+| `Category_1_AI_Infrastructure_Risk_Post.md` | 分类1最终LinkedIn帖子 | ✅ 已完成 |
+| `Category_2_AI_Mineral_SupplyChain_Post.md` | 分类2最终LinkedIn帖子 | ✅ 已完成 |
 
 ---
 

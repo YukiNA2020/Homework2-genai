@@ -20,7 +20,11 @@ RELEVANCE_ROUTING_PROMPT_PATH = PROMPT_DIR / "relevance_routing_prompt.txt"
 INFORMATION_CLASSIFICATION_PROMPT_PATH = PROMPT_DIR / "information_classification_prompt.txt"
 KOL_STYLE_ANALYSIS_PROMPT_PATH = PROMPT_DIR / "kol_style_analysis_prompt.txt"
 LINKEDIN_CONTENT_CONSTRAINTS_PROMPT_PATH = PROMPT_DIR / "linkedin_content_constraints_prompt.txt"
+LINKEDIN_POST_GENERATION_PROMPT_PATH = PROMPT_DIR / "linkedin_post_generation_prompt.txt"
+IMAGE_GENERATION_PROMPT_PATH = PROMPT_DIR / "image_generation_prompt.txt"
 KOL_STYLE_CHECKLIST_PATH = LINKEDIN_CONTENT_DIR / "LinkedIn_Post_Style_Anatomy_Checklist.md"
+CATEGORY_1_POST_PATH = LINKEDIN_CONTENT_DIR / "Category_1_AI_Infrastructure_Risk_Post.md"
+CATEGORY_2_POST_PATH = LINKEDIN_CONTENT_DIR / "Category_2_AI_Mineral_SupplyChain_Post.md"
 
 MINIMAX_M27_CONFIG = {
     "provider": "Minimax M2.7",

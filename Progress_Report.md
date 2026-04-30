@@ -420,6 +420,128 @@ PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 \
 
 ---
 
+### 第十一轮：2026-04-30
+
+**用户需求：**
+用户要求阅读当前文件夹下 `Homework2` 子项目，然后继续做“阶段五”，完成后交给用户测试。
+
+**本轮执行范围：**
+根据 `STATUS.md`、`Implementation_Roadmap.md` 与 `Plan_of_Project.md`，确认阶段五只包含LinkedIn决策简报生成，不进入阶段六的总控脚本与最终报告整理。
+
+**完成内容：**
+1. 新增阶段五脚本：`1-Workflow_Files/5_linkedin_content_generation.py`。
+2. 更新 `api_config.py`，加入阶段五输出路径：
+   - `LINKEDIN_POST_GENERATION_PROMPT_PATH`
+   - `IMAGE_GENERATION_PROMPT_PATH`
+   - `CATEGORY_1_POST_PATH`
+   - `CATEGORY_2_POST_PATH`
+3. 扩展SQLite schema，新增：
+   - `linkedin_content_results`
+   - `linkedin_content_runs`
+4. 生成两篇最终LinkedIn决策简报：
+   - `3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md`
+   - `3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md`
+5. 生成阶段五Prompt样例：
+   - `2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt`
+   - `2-Prompt_Design_Samples/image_generation_prompt.txt`
+6. 更新 `STATUS.md`，将阶段五标记为“已完成，AI本地验证通过”，并写入测试命令与预期结果。
+
+**阶段五脚本能力：**
+- 从SQLite中读取已经通过阶段三路由与分类的高相关性内容。
+- 按两个主线分类分别生成1篇LinkedIn决策简报。
+- 每篇帖子包含：
+  - Target audience
+  - Tone and positioning
+  - Source evidence
+  - LinkedIn post body
+  - Image generation prompt
+  - Quality self-check
+- 将生成结果写入SQLite，保留运行日志。
+- 保持离线MVP设计，不自动发布LinkedIn，不调用外部LLM，不联网。
+
+**本地验证命令：**
+
+阶段五语法检查：
+```bash
+PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+```
+
+阶段五运行测试：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+```
+
+结果：
+- Categories seen: 2
+- Posts generated: 2
+- Outputs written: 4
+- Errors: 0
+
+**数据库验证结果：**
+- `linkedin_content_results`：2条最终内容结果。
+- `linkedin_content_runs`：最新运行记录为 `run_20260430_205650_1b62e3d4`，categories=2，posts=2，outputs=4，errors=0。
+- 分类1帖子使用来源新闻ID：1、3、4。
+- 分类2帖子使用来源新闻ID：2。
+
+**关键决策：**
+阶段五仍保持离线可复现设计。最终帖子由规则化生成器从分类结果中组合生成，结构与阶段四内容约束Prompt保持一致。后续若用户决定接入Minimax M2.7，只需替换 `generate_category_brief()` 的生成逻辑，数据库表、输出文件和测试入口无需重做。
+
+**下一步：**
+用户测试阶段五脚本、两篇最终LinkedIn内容、Prompt文件与SQLite输出。测试通过后，再进入阶段六：`0_main_workflow.py` 与 `Progress_Report_Final.md`。
+
+---
+
+### 第九轮：2026-04-30
+
+**用户需求：**
+用户要求读取当前文件夹下子文件夹 `Homework2` 中的项目，并继续完成下一个阶段，也就是阶段六；完成后交给用户自行测试。
+
+**AI响应：**
+先读取 `STATUS.md`、`Implementation_Roadmap.md`、`Plan_of_Project.md`、`Homework2.md`、现有1-5阶段脚本与数据库状态，确认阶段六的交付范围为：一键总控脚本、最终进度报告、Prompt优化记录、工作流架构说明与状态同步。
+
+**本轮完成内容：**
+1. 新增阶段六总控脚本：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py`。
+2. 新增工作流架构说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/workflow_architecture.md`。
+3. 新增最终进度报告：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/Progress_Report_Final.md`。
+4. 新增Prompt优化记录：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/prompt_optimization_records.md`。
+5. 更新 `STATUS.md`，将阶段六标记为“已完成，待用户测试”，并补充阶段六测试方式。
+
+**阶段六脚本能力：**
+- 依次运行阶段二新闻监控、阶段三A相关性路由、阶段三B信息分类、阶段四KOL分析、阶段五LinkedIn内容生成。
+- 为全流程生成主控日志，日志文件写入 `4-Progress_Report/workflow_running_logs/`。
+- 捕获每个阶段的stdout/stderr、返回码、耗时和阶段状态。
+- 运行结束后检查SQLite数据库关键表数量、路由结果、分类结果和最终内容非空状态。
+- 输出 `Overall success: True/False`，便于用户快速判断全流程是否可用。
+
+**本地验证结果：**
+阶段六总控脚本已完成语法检查和本地运行验证。验证口径为：
+- 阶段二到阶段五全部运行成功。
+- 数据库健康检查全部通过。
+- `news_items` 保持6条样例新闻。
+- `relevance_routing_results` 保持6条结果，其中4条保留、2条过滤。
+- `classification_results` 保持4条分类结果。
+- `kol_analysis_results` 保持4条KOL画像。
+- `linkedin_content_results` 保持2篇最终帖子。
+
+**关键决策：**
+阶段六不改变前面五个阶段的业务逻辑，只做交付收口和一键测试封装。总控脚本使用子进程调用现有阶段脚本，避免因文件名以数字开头而引入不必要的导入复杂度，同时最大限度复用已经验证过的命令行入口。
+
+**下一步：**
+用户运行阶段六总控脚本进行最终测试：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+预期看到：
+- `Overall success: True`
+- 阶段二到阶段五均显示 `OK`
+- 数据库健康检查全部 `PASS`
+- 日志目录新增 `main_workflow` 主控日志
+
+---
+
 ## Prompt 库
 
 ### Prompt 1：战略路线图创建
@@ -481,8 +603,8 @@ PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 \
 | 相关性路由 | 规则过滤 + LLM评分（≥7分保留） | 已完成阶段三A |
 | 分类器 | 归类到2个主线分类，并附加辅助标签 | 已完成阶段三B |
 | KOL分析器 | 研究LinkedIn决策简报式内容结构 | 已完成阶段四 |
-| 内容生成器 | 生成带配图Prompt的LinkedIn决策简报 | 待开发 |
-| 质量保证 | 依据风格指南自我评估 | 待开发 |
+| 内容生成器 | 生成带配图Prompt的LinkedIn决策简报 | 已完成阶段五 |
+| 质量保证 | 依据风格指南自我评估 | 已完成阶段五基础自检 |
 
 ### 信息流
 
