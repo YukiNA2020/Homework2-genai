@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0，已从“AI全产业链全自动内容系统”收窄为“AI基建地缘风险MVP工作流”
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线从阶段七开始，目标是接入真实新闻、真实LLM与图片生成能力。
 
 ---
 
@@ -18,7 +18,14 @@
 | 阶段三 | 双层路由与分类引擎 | ✅ 已完成，AI本地验证通过 |
 | 阶段四 | KOL分析与风格指南 | ✅ 已完成，通过 |
 | 阶段五 | LinkedIn决策简报生成 | ✅ 已完成，AI本地验证通过 |
-| 阶段六 | 最终文档与交付整理 | ✅ 已完成，待用户测试 |
+| 阶段六 | 最终文档与交付整理 | ✅ 已完成，AI本地验证通过 |
+| 阶段七 | 稳定MVP冻结与升级保护 | 🔜 下一步 |
+| 阶段八 | 真实新闻/RSS接入 | ⏳ 待启动 |
+| 阶段九 | LLM客户端与API配置 | ⏳ 待启动 |
+| 阶段十 | LLM替换摘要、评分、分类与生成 | ⏳ 待启动 |
+| 阶段十一 | 图片生成与内容归档 | ⏳ 待启动 |
+| 阶段十二 | 每日定时运行与人工审核 | ⏳ 待启动 |
+| 阶段十三 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选 |
 
 ---
 
@@ -81,7 +88,7 @@
 ## 已完成
 
 ### 1. 架构文件
-- [x] `Implementation_Roadmap.md` - 已更新为v3.0战略路线图。
+- [x] `Implementation_Roadmap.md` - 已更新为v3.0稳定MVP路线图，并追加v4.0阶段七以后升级路线。
 - [x] `Plan_of_Project.md` - 已更新为AI基建地缘风险MVP执行方案。
 - [x] `Progress_Report.md` - 对话记录 + Prompt库，需持续追加。
 - [x] `STATUS.md` - 本文件，作为每次重新打开项目时的快速同步入口。
@@ -174,8 +181,13 @@ LLM评分权重：
 
 ## 下一步行动
 
-### 立即执行（用户测试阶段六/全流程）
-1. 运行阶段六总控脚本：
+### 阶段七：稳定MVP冻结与升级保护
+
+阶段七的目标不是新增复杂功能，而是先把已经跑通的离线MVP保护好，确保后续接真实RSS、真实LLM和图片生成时不会破坏当前作业交付版本。
+
+阶段七具体要做：
+
+1. 再运行一次阶段六总控脚本，确认当前稳定基线：
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
    ```
@@ -185,75 +197,28 @@ LLM评分权重：
    - 数据库健康检查全部 `PASS`
    - `workflow_running_logs/` 中新增 `main_workflow` 主控日志
 
-2. 可选单独确认阶段二数据：
-   ```bash
-   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py
-   ```
-   如果看到 `Inserted: 0`、`Duplicates skipped: 6`，这是正常去重结果。
+2. 在项目文档中明确：阶段一到阶段六是作业稳定交付版，阶段七以后是升级路线。
 
-3. 可选重新运行阶段三A：双层相关性路由。
-   ```bash
-   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py
-   ```
-   预期结果：`Items seen: 6`、`Routed: 6`、`Kept: 4`、`Filtered: 2`、`Errors: 0`。
+3. 后续新增联网或API功能时必须保留离线fallback，保证没有网络、没有API key时仍能运行当前MVP。
 
-4. 可选重新运行阶段三B：信息分类。
-   ```bash
-   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
-   ```
-   预期结果：`Items seen: 4`、`Classified: 4`、`Errors: 0`。
+4. 阶段七完成后，进入阶段八：真实新闻/RSS接入。
 
-5. 可选运行阶段四：KOL分析与风格指南。
-   ```bash
-   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py
-   ```
-   预期结果：`Profiles analyzed: 4`、`Outputs written: 3`、`Errors: 0`。
+### 阶段八预告：真实新闻/RSS接入
 
-6. 可选运行阶段五：LinkedIn决策简报生成。
-   ```bash
-   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
-   ```
-   预期结果：`Categories seen: 2`、`Posts generated: 2`、`Outputs written: 4`、`Errors: 0`。
+阶段八要做的第一批具体任务：
 
-7. 检查SQLite数据库：
-   - 数据库路径：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3`
-   - 阶段二核心表：`news_items`、`source_registry`、`ingestion_runs`
-   - 阶段三核心表：`relevance_routing_results`、`routing_runs`、`classification_results`、`classification_runs`
-   - 阶段四核心表：`kol_analysis_results`、`kol_analysis_runs`
-   - 阶段五核心表：`linkedin_content_results`、`linkedin_content_runs`
+1. 扩展 `sample_data/rss_sources.json`，加入3-5个真实、稳定、公开可访问的RSS源。
+2. 升级 `1_news_monitoring.py`，新增 `--input-mode rss`。
+3. 抓取真实RSS后写入现有 `news_items` 表，不改变下游数据库结构。
+4. 保留 `--input-mode local_sample`，作为无网络环境下的演示和测试入口。
 
-8. 检查阶段五输出文件：
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt`
+### 阶段九预告：LLM客户端与API配置
 
-9. 检查阶段六输出文件：
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/workflow_architecture.md`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/Progress_Report_Final.md`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/prompt_optimization_records.md`
+阶段九要做的第一批具体任务：
 
-10. 阶段四输出文件仍可检查：
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt`
-   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt`
-
-11. 检查运行日志：
-   - 日志目录：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/`
-
-### 阶段六测试交接注意
-- 阶段六总控脚本会依次运行阶段二、阶段三A、阶段三B、阶段四和阶段五。
-- 因为阶段二使用 `content_hash` 去重，重复运行时 `Inserted: 0`、`Duplicates skipped: 6` 属于正常结果。
-- 阶段三到阶段五默认会覆盖对应结果表或输出文件，便于反复测试。
-- 判断阶段六是否正常时，请同时检查：
-  - 命令是否成功退出；
-  - `Overall success` 是否为 `True`；
-  - 每个阶段是否为 `OK`；
-  - 数据库健康检查是否全部 `PASS`；
-  - 主控日志是否新增；
-  - `linkedin_content_results` 中应有2条结果；
-  - 两篇最终帖子与两个阶段五Prompt文件应存在且内容非空。
+1. 新增 `1-Workflow_Files/llm_client.py`，统一封装Minimax M2.7或其他LLM调用。
+2. 新增 `.env.example`，列出 `MINIMAX_API_KEY`、`MINIMAX_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL` 等配置。
+3. 先用一个最小Prompt测试API是否能返回结构化JSON，再替换摘要、评分、分类和内容生成逻辑。
 
 ---
 
@@ -263,8 +228,8 @@ LLM评分权重：
 |--------|------|------|
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
-| `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段六记录 |
+| `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0/v4.0 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段七升级路线记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
@@ -302,4 +267,4 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 ---
 
 *最后更新：2026-04-30*  
-*依据：Implementation_Roadmap.md v3.0 与 Plan_of_Project.md v3.0*
+*依据：Implementation_Roadmap.md v3.0/v4.0 与 Plan_of_Project.md v3.0*
