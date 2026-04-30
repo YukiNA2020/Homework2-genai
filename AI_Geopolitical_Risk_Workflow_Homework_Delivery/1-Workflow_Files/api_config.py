@@ -14,6 +14,9 @@ SQLITE_SCHEMA_PATH = WORKFLOW_DIR / "database_config" / "sqlite_db_init.sql"
 SAMPLE_DATA_PATH = WORKFLOW_DIR / "sample_data" / "sample_news.json"
 RSS_CONFIG_PATH = WORKFLOW_DIR / "sample_data" / "rss_sources.json"
 LOG_DIR = DELIVERY_DIR / "4-Progress_Report" / "workflow_running_logs"
+PROMPT_DIR = DELIVERY_DIR / "2-Prompt_Design_Samples"
+RELEVANCE_ROUTING_PROMPT_PATH = PROMPT_DIR / "relevance_routing_prompt.txt"
+INFORMATION_CLASSIFICATION_PROMPT_PATH = PROMPT_DIR / "information_classification_prompt.txt"
 
 MINIMAX_M27_CONFIG = {
     "provider": "Minimax M2.7",

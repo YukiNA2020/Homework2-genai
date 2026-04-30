@@ -1,0 +1,4 @@
+2026-04-30 20:20:00,484 | INFO | Starting Stage 3A relevance routing run: run_20260430_202000_35bfc40f
+2026-04-30 20:20:00,484 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-04-30 20:20:00,484 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-04-30 20:20:00,488 | INFO | Completed routing. seen=0 routed=0 kept=0 filtered=0 errors=0

@@ -14,8 +14,8 @@
 | 阶段 | 名称 | 状态 |
 |------|------|------|
 | 阶段一 | 核心定位收窄 | ✅ 已完成 |
-| 阶段二 | MVP信息监控管道 | ✅ 已完成，已测试通过,可以进行下一阶段 |
-| 阶段三 | 双层路由与分类引擎 | 🔄 待启动 |
+| 阶段二 | MVP信息监控管道 | ✅ 已完成，已测试通过 |
+| 阶段三 | 双层路由与分类引擎 | ✅ 已完成，待用户测试 |
 | 阶段四 | KOL分析与风格指南 | 🔄 待启动 |
 | 阶段五 | LinkedIn决策简报生成 | 🔄 待启动 |
 | 阶段六 | 最终文档与交付整理 | 🔄 待启动 |
@@ -71,6 +71,7 @@
 - 已确认采用更工程化的规则过滤配置：`keywords`、`required_terms`、`exclude_terms`。
 - 已确认本次作业不做自动LinkedIn发布，只生成LinkedIn内容正文、目标受众、语气定位和配图Prompt。
 - LLM模型与具体API接入方式由用户后续自行决定，本项目代码层面只保留清晰接口。
+- 阶段三已采用离线可复现实现：默认全量重跑并覆盖结果表，`--only-new` 可用于只处理新增记录。
 
 ---
 
@@ -91,14 +92,25 @@
 - [x] 已提供阶段二新闻摘要Prompt样例：`2-Prompt_Design_Samples/news_summarization_prompt.txt`。
 - [x] **已通过用户测试**（2026-04-30 20:04）：读取6条样例，写入SQLite 6条，去重逻辑正常，错误0条。
 
-### 3. 核心定位（已收窄）
+### 3. 阶段三：双层路由与分类引擎
+- [x] 已编写 `1-Workflow_Files/2_relevance_router.py`。
+- [x] 已编写 `1-Workflow_Files/3_information_classification.py`。
+- [x] 已扩展SQLite schema，新增 `relevance_routing_results`、`routing_runs`、`classification_results`、`classification_runs`。
+- [x] 已提供阶段三Prompt样例：
+  - `2-Prompt_Design_Samples/relevance_routing_prompt.txt`
+  - `2-Prompt_Design_Samples/information_classification_prompt.txt`
+- [x] 已实现工程化规则配置：`keywords`、`required_terms`、`exclude_terms`。
+- [x] 已实现离线语义评分占位逻辑，保持后续接入Minimax M2.7的接口边界。
+- [x] 已完成本地验证：6条样例中4条保留、2条过滤；4条保留内容全部完成主线分类与辅助标签分配。
+
+### 4. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 4. 相关性打分标准
+### 5. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -115,7 +127,7 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 5. 信息源体系
+### 6. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
@@ -130,30 +142,44 @@ LLM评分权重：
 
 ## 下一步行动
 
-### 立即执行（用户测试阶段二）
-1. 运行阶段二脚本：
+### 立即执行（用户测试阶段三）
+1. 如需从头确认阶段二数据仍在，可先运行：
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py
    ```
-2. 检查SQLite数据库：
+   如果看到 `Inserted: 0`、`Duplicates skipped: 6`，这是正常去重结果。
+
+2. 运行阶段三A：双层相关性路由。
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py
+   ```
+   预期结果：`Items seen: 6`、`Routed: 6`、`Kept: 4`、`Filtered: 2`、`Errors: 0`。
+
+3. 运行阶段三B：信息分类。
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
+   ```
+   预期结果：`Items seen: 4`、`Classified: 4`、`Errors: 0`。
+
+4. 检查SQLite数据库：
    - 数据库路径：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3`
-   - 核心表：`news_items`、`source_registry`、`ingestion_runs`
-3. 检查运行日志：
+   - 阶段二核心表：`news_items`、`source_registry`、`ingestion_runs`
+   - 阶段三核心表：`relevance_routing_results`、`routing_runs`、`classification_results`、`classification_runs`
+5. 检查运行日志：
    - 日志目录：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/`
 
-### 阶段二测试交接注意
-- 当前脚本已经由AI运行过一次，数据库中已有6条样例新闻记录。
-- 如果用户或下一个AI再次运行脚本，可能看到 `Inserted: 0`、`Duplicates skipped: 6`。
-- 这不是运行失败，而是 `content_hash` 去重逻辑正常生效，说明脚本识别到了已导入的相同样例数据。
-- 判断阶段二是否正常时，请同时检查：
+### 阶段三测试交接注意
+- 阶段三脚本已经由AI运行过，数据库中已有路由与分类结果。
+- 默认直接运行脚本会全量重算并覆盖结果表，因此仍会看到6条路由、4条分类，便于用户测试。
+- 如果只想处理新增记录，可追加 `--only-new`；在当前数据库状态下会看到0条新增处理。
+- 判断阶段三是否正常时，请同时检查：
   - 命令是否成功退出；
-  - `Errors` 是否为0；
-  - `news_items` 表是否保留6条样例记录；
-  - `ingestion_runs` 表是否新增一条运行记录。
+  - 两个脚本的 `Errors` 是否都为0；
+  - `relevance_routing_results` 中应有6条结果，其中4条 `decision='keep'`、2条 `decision='filter'`；
+  - `classification_results` 中应有4条结果；
+  - `routing_runs` 与 `classification_runs` 应新增运行记录。
 
 ### 测试通过后执行
-4. 开发双层相关性路由 → `2_relevance_router.py`
-5. 开发信息分类系统 → `3_information_classification.py`
 6. KOL内容拆解 → `4_linkedin_analysis.py` + `LinkedIn_Post_Style_Anatomy_Checklist.md`
 7. 生成LinkedIn决策简报 → `5_linkedin_content_generation.py`
 8. 整理最终文档 → `0_main_workflow.py` + `Progress_Report_Final.md`
@@ -171,7 +197,11 @@ LLM评分权重：
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
-| `1_news_monitoring.py` | 阶段二MVP信息监控脚本 | ✅ 已完成，待用户测试 |
+| `1_news_monitoring.py` | 阶段二MVP信息监控脚本 | ✅ 已完成，已测试通过 |
+| `2_relevance_router.py` | 阶段三A双层相关性路由脚本 | ✅ 已完成，待用户测试 |
+| `3_information_classification.py` | 阶段三B信息分类脚本 | ✅ 已完成，待用户测试 |
+| `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
+| `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |
 
 ---
 

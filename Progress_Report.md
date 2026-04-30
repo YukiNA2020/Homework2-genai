@@ -270,6 +270,78 @@ Errors: 0
 
 ---
 
+### 第八轮：2026-04-30
+
+**用户需求：**
+用户要求先阅读当前文件夹、完整理解项目，然后继续完成“下一阶段”，完成后交给用户测试。
+
+**AI响应：**
+根据 `STATUS.md` 的最新状态，确认阶段二已经测试通过，因此本轮推进阶段三：双层相关性路由与信息分类引擎。实现范围严格停留在阶段三，不进入KOL分析、LinkedIn内容生成或最终文档阶段。
+
+**本轮完成内容：**
+1. 新增阶段三A脚本：`1-Workflow_Files/2_relevance_router.py`。
+2. 新增阶段三B脚本：`1-Workflow_Files/3_information_classification.py`。
+3. 扩展SQLite初始化脚本：新增 `relevance_routing_results`、`routing_runs`、`classification_results`、`classification_runs`。
+4. 更新 `api_config.py`，加入阶段三Prompt目录常量。
+5. 新增Prompt样例：
+   - `2-Prompt_Design_Samples/relevance_routing_prompt.txt`
+   - `2-Prompt_Design_Samples/information_classification_prompt.txt`
+6. 更新 `STATUS.md`，将阶段三标记为“已完成，待用户测试”，并写入测试命令与预期结果。
+
+**阶段三脚本能力：**
+- `2_relevance_router.py` 使用 `keywords`、`required_terms`、`exclude_terms` 进行第一层规则过滤。
+- 对通过规则过滤的内容进行离线可复现的0-10分语义评分，占位未来Minimax M2.7接口。
+- 评分阈值为7分：≥7分保留，<7分过滤。
+- `3_information_classification.py` 只处理保留内容，分配一个主线分类与0-2个辅助标签。
+- 默认直接运行会全量重算并覆盖结果表，方便用户重复测试；如需只处理新增数据，可加 `--only-new`。
+
+**本地测试结果：**
+语法检查：
+```bash
+PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
+```
+
+阶段三A路由测试：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py
+```
+
+结果：
+- Items seen: 6
+- Routed: 6
+- Kept: 4
+- Filtered: 2
+- Errors: 0
+
+阶段三B分类测试：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
+```
+
+结果：
+- Items seen: 4
+- Classified: 4
+- Errors: 0
+
+**数据库验证结果：**
+- `relevance_routing_results`：6条路由结果，4条 `keep`，2条 `filter`。
+- `classification_results`：4条分类结果。
+- 分类结果摘要：
+  - 数据中心电力与电网风险 -> `AI算力基础设施地缘风险`，辅助标签 `全球AI治理`
+  - 铜供应集中与成本风险 -> `AI关键矿产供应链与地缘政治`
+  - 云厂商出口管制与算力部署调整 -> `AI算力基础设施地缘风险`，辅助标签 `AI芯片出口管制`、`全球AI治理`
+  - 区域冲突、航运与能源安全风险 -> `AI算力基础设施地缘风险`，辅助标签 `区域冲突影响`
+
+**关键决策：**
+阶段三仍保持离线MVP设计，不联网、不调用外部LLM。代码层面保留清晰Prompt与数据库契约，后续若用户决定接入Minimax M2.7，只需替换评分/分类函数，不需要重做数据结构。
+
+**下一步：**
+用户测试阶段三脚本与SQLite输出。测试通过后，再进入阶段四：`4_linkedin_analysis.py` 与 `LinkedIn_Post_Style_Anatomy_Checklist.md`。
+
+---
+
 ## Prompt 库
 
 ### Prompt 1：战略路线图创建

@@ -1,0 +1,4 @@
+2026-04-30 20:20:00,530 | INFO | Starting Stage 3B information classification run: run_20260430_202000_54b15dde
+2026-04-30 20:20:00,531 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-04-30 20:20:00,531 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-04-30 20:20:00,533 | INFO | Completed classification. seen=0 classified=0 errors=0

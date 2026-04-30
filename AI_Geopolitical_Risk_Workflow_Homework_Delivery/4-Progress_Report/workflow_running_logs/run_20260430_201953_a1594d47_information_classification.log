@@ -1,0 +1,8 @@
+2026-04-30 20:19:53,312 | INFO | Starting Stage 3B information classification run: run_20260430_201953_a1594d47
+2026-04-30 20:19:53,312 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-04-30 20:19:53,312 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-04-30 20:19:53,315 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | AI data center expansion raises electricity demand and grid planning risk
+2026-04-30 20:19:53,316 | INFO | CLASSIFIED | AI关键矿产供应链与地缘政治 | confidence=0.95 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-04-30 20:19:53,316 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-04-30 20:19:53,316 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-04-30 20:19:53,317 | INFO | Completed classification. seen=4 classified=4 errors=0
