@@ -1,0 +1,68 @@
+[
+  {
+    "source_id": "iea_sample",
+    "source_name": "IEA sample brief",
+    "source_type": "institution_report",
+    "title": "AI data center expansion raises electricity demand and grid planning risk",
+    "url": "local://sample/iea-ai-data-center-electricity",
+    "published_at": "2026-04-20",
+    "author": "Sample research note",
+    "language": "en",
+    "content": "A sample energy-sector brief says rapid AI data center buildout is increasing electricity demand in several markets. Grid connection delays, power purchase agreement competition, and local permitting constraints may affect cloud infrastructure expansion. The note highlights that investors should monitor power availability, regional regulation, and cross-border energy supply resilience when evaluating AI compute capacity projects."
+  },
+  {
+    "source_id": "usgs_sample",
+    "source_name": "USGS-style sample mineral note",
+    "source_type": "institution_report",
+    "title": "Copper supply concentration creates cost risk for AI infrastructure buildout",
+    "url": "local://sample/copper-ai-infrastructure-risk",
+    "published_at": "2026-04-18",
+    "author": "Sample mineral analyst",
+    "language": "en",
+    "content": "A sample minerals note links rising copper demand from data centers, power transmission, and semiconductor manufacturing to growing political risk in key producing regions. Mine disruptions, permitting delays, resource nationalism, and shipping constraints could raise the cost of AI infrastructure expansion. The note argues that copper availability should be treated as a strategic input for AI compute investment."
+  },
+  {
+    "source_id": "cloud_operator_sample",
+    "source_name": "Cloud operator sample announcement",
+    "source_type": "company_announcement",
+    "title": "Cloud provider reassesses regional AI compute deployment after new export-control guidance",
+    "url": "local://sample/cloud-provider-export-control",
+    "published_at": "2026-04-16",
+    "author": "Sample company affairs team",
+    "language": "en",
+    "content": "A sample cloud provider announcement says the company is reviewing GPU procurement and AI compute deployment plans after new export-control guidance affecting advanced accelerators. The review may change where certain data center clusters are built and how cross-border customers access high-end compute. The company says it will adjust supply chain planning, compliance controls, and customer allocation policies."
+  },
+  {
+    "source_id": "geopolitical_media_sample",
+    "source_name": "Geopolitical media sample",
+    "source_type": "media",
+    "title": "Regional conflict increases shipping and energy-security concerns for data center operators",
+    "url": "local://sample/conflict-shipping-energy-data-centers",
+    "published_at": "2026-04-14",
+    "author": "Sample geopolitical correspondent",
+    "language": "en",
+    "content": "A sample media report says a regional conflict is increasing shipping insurance costs and raising questions about energy security for hyperscale data center operators. Although no major AI facility has been disrupted, executives are reviewing backup fuel contracts, network redundancy, and supplier concentration. Analysts warn that compute availability can be affected indirectly through power, logistics, and component delivery."
+  },
+  {
+    "source_id": "ai_product_sample",
+    "source_name": "AI product sample blog",
+    "source_type": "company_blog",
+    "title": "New multimodal model feature improves creative workflows",
+    "url": "local://sample/multimodal-feature",
+    "published_at": "2026-04-13",
+    "author": "Sample product team",
+    "language": "en",
+    "content": "A sample AI product blog introduces a new multimodal feature for creative teams. The update improves image understanding and document drafting. The post focuses on user experience, model capability, and product adoption, without discussing infrastructure investment, supply chains, cross-border risk, or geopolitics."
+  },
+  {
+    "source_id": "macro_policy_sample",
+    "source_name": "Macro policy sample",
+    "source_type": "policy_brief",
+    "title": "General trade talks continue without direct AI infrastructure implications",
+    "url": "local://sample/general-trade-talks",
+    "published_at": "2026-04-12",
+    "author": "Sample policy desk",
+    "language": "en",
+    "content": "A sample policy brief summarizes general trade talks between major economies. The brief mentions tariff language and diplomatic signals, but it does not connect the event to AI data centers, chips, cloud infrastructure, critical minerals, electricity supply, or business continuity for AI companies."
+  }
+]

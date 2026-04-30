@@ -1,0 +1,27 @@
+{
+  "status": "reserved_for_future_extension",
+  "notes": "Stage 2 runs offline from sample_news.json. These RSS/API entries document the future daily monitoring interface.",
+  "rss_sources": [
+    {
+      "source_id": "mit_technology_review_ai",
+      "source_name": "MIT Technology Review - AI",
+      "source_type": "rss",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
+      "priority": "medium"
+    },
+    {
+      "source_id": "csis_technology_policy",
+      "source_name": "CSIS Technology and National Security",
+      "source_type": "rss_or_page",
+      "url": "https://www.csis.org/programs/strategic-technologies-program",
+      "priority": "high"
+    },
+    {
+      "source_id": "iea_reports",
+      "source_name": "International Energy Agency Reports",
+      "source_type": "api_or_page",
+      "url": "https://www.iea.org/reports",
+      "priority": "high"
+    }
+  ]
+}
