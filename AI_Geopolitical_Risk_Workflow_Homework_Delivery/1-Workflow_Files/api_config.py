@@ -15,8 +15,12 @@ SAMPLE_DATA_PATH = WORKFLOW_DIR / "sample_data" / "sample_news.json"
 RSS_CONFIG_PATH = WORKFLOW_DIR / "sample_data" / "rss_sources.json"
 LOG_DIR = DELIVERY_DIR / "4-Progress_Report" / "workflow_running_logs"
 PROMPT_DIR = DELIVERY_DIR / "2-Prompt_Design_Samples"
+LINKEDIN_CONTENT_DIR = DELIVERY_DIR / "3-Final_LinkedIn_Content"
 RELEVANCE_ROUTING_PROMPT_PATH = PROMPT_DIR / "relevance_routing_prompt.txt"
 INFORMATION_CLASSIFICATION_PROMPT_PATH = PROMPT_DIR / "information_classification_prompt.txt"
+KOL_STYLE_ANALYSIS_PROMPT_PATH = PROMPT_DIR / "kol_style_analysis_prompt.txt"
+LINKEDIN_CONTENT_CONSTRAINTS_PROMPT_PATH = PROMPT_DIR / "linkedin_content_constraints_prompt.txt"
+KOL_STYLE_CHECKLIST_PATH = LINKEDIN_CONTENT_DIR / "LinkedIn_Post_Style_Anatomy_Checklist.md"
 
 MINIMAX_M27_CONFIG = {
     "provider": "Minimax M2.7",

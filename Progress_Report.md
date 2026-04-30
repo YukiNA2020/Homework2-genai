@@ -342,6 +342,84 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_infor
 
 ---
 
+### 第十轮：2026-04-30
+
+**用户需求：**
+用户要求阅读当前文件夹下 `Homework2` 子项目，然后继续做“阶段四”，完成后交给用户测试。
+
+**本轮执行范围：**
+根据 `STATUS.md`、`Implementation_Roadmap.md` 与 `Plan_of_Project.md`，确认阶段四只包含KOL内容拆解、风格清单与内容生成约束Prompt，不进入阶段五的正式LinkedIn帖子生成。
+
+**完成内容：**
+1. 新增阶段四脚本：`1-Workflow_Files/4_linkedin_analysis.py`。
+2. 更新 `api_config.py`，加入阶段四输出路径：
+   - `KOL_STYLE_ANALYSIS_PROMPT_PATH`
+   - `LINKEDIN_CONTENT_CONSTRAINTS_PROMPT_PATH`
+   - `KOL_STYLE_CHECKLIST_PATH`
+3. 扩展SQLite schema，新增：
+   - `kol_analysis_results`
+   - `kol_analysis_runs`
+4. 生成阶段四风格清单：
+   - `3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md`
+5. 生成阶段四Prompt文件：
+   - `2-Prompt_Design_Samples/kol_style_analysis_prompt.txt`
+   - `2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt`
+6. 更新 `STATUS.md`，将阶段四标记为“已完成，待用户测试”，并写入测试命令与预期结果。
+
+**阶段四脚本能力：**
+- 内置4位对标KOL的离线可复现画像：
+  - Chris Miller
+  - Paul Triolo
+  - Gregory C. Allen
+  - Jordan Schneider
+- 拆解维度包括：
+  - 开篇钩子
+  - 内容结构
+  - 公信力搭建
+  - 互动引导
+  - 内容风格
+  - 可迁移规则与边界
+- 输出“决策简报式LinkedIn帖子”固定结构：
+  - Hook
+  - What happened
+  - Why it matters for AI infrastructure
+  - Business implications
+  - Signals to watch
+  - Closing question
+- 生成后续阶段五使用的内容生成约束Prompt。
+- 将KOL拆解结果写入SQLite，保留运行日志。
+
+**本地验证命令：**
+
+阶段四语法检查：
+```bash
+PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py
+```
+
+阶段四运行测试：
+```bash
+PYTHONPYCACHEPREFIX=/private/tmp/codex_pycache python3 \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py
+```
+
+结果：
+- Profiles analyzed: 4
+- Outputs written: 3
+- Errors: 0
+
+**数据库验证结果：**
+- `kol_analysis_results`：4条KOL拆解结果。
+- `kol_analysis_runs`：最新运行记录为 `run_20260430_203503_0fbbf3bc`，profiles=4，outputs=3，errors=0。
+
+**关键决策：**
+阶段四仍保持离线MVP设计，不联网、不抓取LinkedIn、不调用外部LLM。KOL画像作为可复现的“手动整理样本/代表性风格规则”，用于满足作业对KOL拆解与风格规范的要求；后续如果用户接入真实公开样本或Minimax M2.7，只需替换 `analyze_profile()` 的输入与生成逻辑。
+
+**下一步：**
+用户测试阶段四脚本、风格清单、Prompt文件与SQLite输出。测试通过后，再进入阶段五：`5_linkedin_content_generation.py`，按两个主线分类各生成1篇LinkedIn决策简报。
+
+---
+
 ## Prompt 库
 
 ### Prompt 1：战略路线图创建
@@ -399,10 +477,10 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_infor
 
 | 组件 | 功能 | 状态 |
 |------|------|------|
-| 新闻监控器 | 样例数据输入 + RSS/API预留接口 + LLM摘要 | 待开发 |
-| 相关性路由 | 规则过滤 + LLM评分（≥7分保留） | 待开发 |
-| 分类器 | 归类到2个主线分类，并附加辅助标签 | 待开发 |
-| KOL分析器 | 研究LinkedIn决策简报式内容结构 | 待开发 |
+| 新闻监控器 | 样例数据输入 + RSS/API预留接口 + LLM摘要 | 已完成阶段二 |
+| 相关性路由 | 规则过滤 + LLM评分（≥7分保留） | 已完成阶段三A |
+| 分类器 | 归类到2个主线分类，并附加辅助标签 | 已完成阶段三B |
+| KOL分析器 | 研究LinkedIn决策简报式内容结构 | 已完成阶段四 |
 | 内容生成器 | 生成带配图Prompt的LinkedIn决策简报 | 待开发 |
 | 质量保证 | 依据风格指南自我评估 | 待开发 |
 

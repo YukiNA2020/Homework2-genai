@@ -116,3 +116,35 @@ CREATE TABLE IF NOT EXISTS classification_runs (
     errors INTEGER NOT NULL,
     notes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS kol_analysis_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kol_name TEXT NOT NULL UNIQUE,
+    focus_area TEXT NOT NULL,
+    sample_basis TEXT NOT NULL,
+    hook_pattern TEXT NOT NULL,
+    structure_pattern TEXT NOT NULL,
+    credibility_pattern TEXT NOT NULL,
+    interaction_pattern TEXT NOT NULL,
+    style_pattern TEXT NOT NULL,
+    transferable_rules TEXT NOT NULL,
+    limitations TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_kol_analysis_name
+ON kol_analysis_results(kol_name);
+
+CREATE TABLE IF NOT EXISTS kol_analysis_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL UNIQUE,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    profiles_analyzed INTEGER NOT NULL,
+    outputs_written INTEGER NOT NULL,
+    errors INTEGER NOT NULL,
+    notes TEXT
+);
