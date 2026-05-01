@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线从阶段七开始，目标是接入真实新闻、真实LLM与图片生成能力。
+**当前战略版本：** v3.0稳定MVP已完成，并已完成阶段七冻结验证；v4.0升级路线下一步进入真实新闻/RSS接入。
 
 ---
 
@@ -19,8 +19,8 @@
 | 阶段四 | KOL分析与风格指南 | ✅ 已完成，通过 |
 | 阶段五 | LinkedIn决策简报生成 | ✅ 已完成，AI本地验证通过 |
 | 阶段六 | 最终文档与交付整理 | ✅ 已完成，AI本地验证通过 |
-| 阶段七 | 稳定MVP冻结与升级保护 | 🔜 下一步 |
-| 阶段八 | 真实新闻/RSS接入 | ⏳ 待启动 |
+| 阶段七 | 稳定MVP冻结与升级保护 | ✅ 已完成，冻结基线已验证 |
+| 阶段八 | 真实新闻/RSS接入 | 🔜 下一步 |
 | 阶段九 | LLM客户端与API配置 | ⏳ 待启动 |
 | 阶段十 | LLM替换摘要、评分、分类与生成 | ⏳ 待启动 |
 | 阶段十一 | 图片生成与内容归档 | ⏳ 待启动 |
@@ -82,6 +82,8 @@
 - 阶段四已采用离线可复现KOL画像拆解：生成风格清单、KOL分析Prompt、内容生成约束Prompt，并写入SQLite审计表。
 - 阶段五已采用离线可复现内容生成：从SQLite分类结果中按两条主线各生成1篇LinkedIn决策简报、配图Prompt、目标受众与语气定位，并写入SQLite审计表。
 - 阶段六已完成交付收口：新增一键总控脚本、工作流架构说明、Prompt优化记录与最终进度报告，并提供全流程测试入口。
+- 阶段七已完成稳定MVP冻结验证：2026-05-01重新运行总控脚本，`Overall success: True`，阶段二到阶段五全部OK，数据库健康检查全部PASS。
+- 后续阶段八以后新增联网、LLM或图片生成能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 
 ---
 
@@ -142,14 +144,22 @@
 - [x] 总控脚本包含主控日志、阶段状态汇总与数据库健康检查。
 - [x] 已完成AI本地验证：阶段二到阶段五全部OK，数据库健康检查全部PASS。
 
-### 7. 核心定位（已收窄）
+### 7. 阶段七：稳定MVP冻结与升级保护
+- [x] 已重新运行阶段六总控脚本，确认当前稳定基线。
+- [x] 本次冻结基线Run ID：`run_20260501_221718_d3a32586`。
+- [x] 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260501_221718_d3a32586_main_workflow.log`。
+- [x] 验证结果：`Overall success: True`；阶段二到阶段五均为`OK`；数据库健康检查全部`PASS`。
+- [x] 已记录阶段七冻结说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_7_mvp_freeze_baseline.md`。
+- [x] 已明确升级保护规则：后续新增RSS、LLM或图片生成能力时，必须保留本地样例/离线逻辑作为fallback。
+
+### 8. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 8. 相关性打分标准
+### 9. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -166,7 +176,7 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 9. 信息源体系
+### 10. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
@@ -181,31 +191,25 @@ LLM评分权重：
 
 ## 下一步行动
 
-### 阶段七：稳定MVP冻结与升级保护
+### 阶段七完成记录：稳定MVP冻结与升级保护
 
-阶段七的目标不是新增复杂功能，而是先把已经跑通的离线MVP保护好，确保后续接真实RSS、真实LLM和图片生成时不会破坏当前作业交付版本。
+阶段七已完成。当前离线MVP已经作为稳定基线冻结，后续阶段不得破坏以下能力：
 
-阶段七具体要做：
-
-1. 再运行一次阶段六总控脚本，确认当前稳定基线：
+1. 在不配置API key、不联网的情况下，仍可运行：
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
    ```
-   预期结果：
+2. 阶段七冻结验证结果：
+   - Run ID：`run_20260501_221718_d3a32586`
    - `Overall success: True`
    - 阶段二到阶段五均显示 `OK`
    - 数据库健康检查全部 `PASS`
-   - `workflow_running_logs/` 中新增 `main_workflow` 主控日志
-
-2. 在项目文档中明确：阶段一到阶段六是作业稳定交付版，阶段七以后是升级路线。
-
-3. 后续新增联网或API功能时必须保留离线fallback，保证没有网络、没有API key时仍能运行当前MVP。
-
-4. 阶段七完成后，进入阶段八：真实新闻/RSS接入。
+   - 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260501_221718_d3a32586_main_workflow.log`
+3. 后续新增联网、LLM或图片生成能力时，必须保留离线fallback，保证没有网络、没有API key时仍能运行当前MVP。
 
 ### 阶段八预告：真实新闻/RSS接入
 
-阶段八要做的第一批具体任务：
+阶段八是下一步。第一批具体任务：
 
 1. 扩展 `sample_data/rss_sources.json`，加入3-5个真实、稳定、公开可访问的RSS源。
 2. 升级 `1_news_monitoring.py`，新增 `--input-mode rss`。
@@ -242,6 +246,7 @@ LLM评分权重：
 | `workflow_architecture.md` | 工作流架构说明 | ✅ 已完成 |
 | `Progress_Report_Final.md` | 最终进度报告 | ✅ 已完成 |
 | `prompt_optimization_records.md` | Prompt优化记录 | ✅ 已完成 |
+| `stage_7_mvp_freeze_baseline.md` | 阶段七冻结基线记录 | ✅ 已完成 |
 | `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
 | `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |
 | `kol_style_analysis_prompt.txt` | 阶段四KOL拆解Prompt样例 | ✅ 已完成 |
@@ -266,5 +271,5 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 ---
 
-*最后更新：2026-04-30*  
+*最后更新：2026-05-01*
 *依据：Implementation_Roadmap.md v3.0/v4.0 与 Plan_of_Project.md v3.0*

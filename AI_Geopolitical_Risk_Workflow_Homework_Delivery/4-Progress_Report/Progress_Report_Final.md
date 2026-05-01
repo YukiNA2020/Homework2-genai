@@ -58,7 +58,8 @@
 | 阶段三B | Information Classification | `3_information_classification.py`、分类Prompt、分类结果表 | 已完成 |
 | 阶段四 | LinkedIn Content Research | `4_linkedin_analysis.py`、KOL风格清单、约束Prompt | 已完成 |
 | 阶段五 | LinkedIn Content Generation | `5_linkedin_content_generation.py`、两篇最终帖子、配图Prompt | 已完成 |
-| 阶段六 | Workflow, Prompt Optimization and Progress Report | `0_main_workflow.py`、最终报告、优化记录、架构说明 | 已完成，待用户测试 |
+| 阶段六 | Workflow, Prompt Optimization and Progress Report | `0_main_workflow.py`、最终报告、优化记录、架构说明 | 已完成，已通过阶段七冻结验证 |
+| 阶段七 | 稳定MVP冻结与升级保护 | `stage_7_mvp_freeze_baseline.md`、主控运行日志、离线fallback保护规则 | 已完成，交给用户测试 |
 
 ## 5. 数据库与运行结果
 
@@ -209,6 +210,16 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/prompt_optimiz
 
 ## 12. 用户测试方式
 
+阶段七已重新运行总控脚本并完成冻结验证：
+
+- Run ID：`run_20260501_221718_d3a32586`
+- `Overall success: True`
+- 阶段二到阶段五均显示OK
+- 数据库健康检查全部PASS
+- 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260501_221718_d3a32586_main_workflow.log`
+
+用户可继续用同一入口复测当前稳定MVP。
+
 在项目根目录 `Homework2` 下运行：
 
 ```bash
@@ -261,4 +272,4 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 本项目完成了从信息监控、相关性路由、分类、KOL分析到LinkedIn内容生成的完整MVP闭环。相比原始设想，最终版本更聚焦、更可运行、更容易解释，也更符合课程作业对工作流设计、Prompt优化和进度复盘的要求。
 
-当前阶段六已完成，进入用户最终测试阶段。
+当前阶段七已完成，离线MVP已作为稳定基线冻结，进入用户测试阶段。后续阶段八开始接入真实新闻/RSS时，必须保留当前离线fallback能力。

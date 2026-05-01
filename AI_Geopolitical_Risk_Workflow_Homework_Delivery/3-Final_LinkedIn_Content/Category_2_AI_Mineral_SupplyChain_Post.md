@@ -1,8 +1,8 @@
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。  
-> Run ID: `run_20260430_213054_3407ddce`  
-> Generated at: `2026-04-30T13:30:54Z`
+> Run ID: `run_20260501_223154_a619f6aa`  
+> Generated at: `2026-05-01T14:31:54Z`
 
 ## Metadata
 

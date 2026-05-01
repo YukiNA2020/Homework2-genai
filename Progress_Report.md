@@ -687,3 +687,46 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 
 **下一步：**
 进入阶段七：冻结当前稳定MVP与升级保护。阶段七完成后，再进入阶段八：真实新闻/RSS接入。
+
+---
+
+### 第九轮：2026-05-01
+
+**用户需求：**
+用户要求继续读取 `Homework2` 子文件夹中的项目，并接着完成下一个阶段，也就是阶段七；完成后交给用户测试。如果需要用户填写API信息，则先中断并告知。
+
+**AI响应：**
+阶段七不需要接入新的API，也不需要用户填写API key。根据 `STATUS.md` 的下一步行动，本轮只做稳定MVP冻结与升级保护，不新增复杂功能。
+
+**本轮完成内容：**
+1. 重新运行阶段六总控脚本，验证当前离线MVP稳定基线。
+2. 确认阶段二到阶段五全部运行成功。
+3. 确认SQLite数据库健康检查全部通过。
+4. 新增阶段七冻结基线记录：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_7_mvp_freeze_baseline.md`。
+5. 更新 `STATUS.md`，将阶段七标记为已完成，并将阶段八设为下一步。
+6. 明确后续升级保护规则：真实RSS、真实LLM与图片生成都必须保留离线fallback。
+
+**本地测试结果：**
+运行命令：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+结果摘要：
+
+- Run ID：`run_20260501_221718_d3a32586`
+- `Overall success: True`
+- Stage 2 news monitoring：OK
+- Stage 3A relevance routing：OK
+- Stage 3B information classification：OK
+- Stage 4 LinkedIn KOL analysis：OK
+- Stage 5 LinkedIn content generation：OK
+- 数据库健康检查：全部PASS
+- 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260501_221718_d3a32586_main_workflow.log`
+
+**关键决策：**
+阶段七的重点不是做新功能，而是保护当前已经可以作为作业交付的稳定MVP。后续从阶段八开始接真实RSS、阶段九接LLM客户端、阶段十一接图片生成时，都不能破坏当前离线可复现能力。
+
+**下一步：**
+交给用户测试当前阶段七冻结后的版本。用户测试通过后，可以进入阶段八：真实新闻/RSS接入。
