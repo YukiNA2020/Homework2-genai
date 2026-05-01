@@ -1,0 +1,19 @@
+2026-05-01 22:43:20,594 | INFO | Starting Stage 2 news monitoring run: run_20260501_224320_018d2e09
+2026-05-01 22:43:20,594 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-05-01 22:43:20,597 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-01 22:43:21,397 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=0.80s
+2026-05-01 22:43:23,241 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=1.84s
+2026-05-01 22:43:24,783 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=1.54s
+2026-05-01 22:43:26,463 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.68s
+2026-05-01 22:43:29,920 | INFO | Fetched RSS source 'USGS News': parsed=30 selected=2 url=https://www.usgs.gov/news/national-news-release/feed duration=3.46s
+2026-05-01 22:43:29,924 | INFO | Duplicate skipped: A new US phone network for Christians aims to block porn and gender-related content
+2026-05-01 22:43:29,924 | INFO | Duplicate skipped: This startup’s new mechanistic interpretability tool lets you debug LLMs
+2026-05-01 22:43:29,924 | INFO | Duplicate skipped: Introducing Advanced Account Security
+2026-05-01 22:43:29,924 | INFO | Duplicate skipped: Where the goblins came from
+2026-05-01 22:43:29,926 | INFO | Duplicate skipped: Unlocking human ambition to drive business growth with AI
+2026-05-01 22:43:29,926 | INFO | Duplicate skipped: Microsoft Sovereign Private Cloud scales to thousands of nodes with Azure Local
+2026-05-01 22:43:29,927 | INFO | Duplicate skipped: Nemotron Labs: What OpenClaw Agents Mean for Every Organization
+2026-05-01 22:43:29,928 | INFO | Duplicate skipped: It’s Gonna Be May: 16 Games Hit the Cloud This Month, With More NVIDIA GeForce RTX 5080 Power
+2026-05-01 22:43:29,928 | INFO | Inserted: Lithium in Eastern States Could Replace Imports for a Century or More
+2026-05-01 22:43:29,928 | INFO | Inserted: New Nationwide Tool Helps Answer: Do We Have Enough Water?
+2026-05-01 22:43:29,929 | INFO | Completed run. seen=10 inserted=2 duplicates=8 errors=0

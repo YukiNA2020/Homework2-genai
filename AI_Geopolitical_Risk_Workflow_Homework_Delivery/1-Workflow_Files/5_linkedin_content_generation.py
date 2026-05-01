@@ -3,7 +3,7 @@
 This stage reads the classified high-relevance records from SQLite and turns
 the two project categories into final LinkedIn-ready decision briefs. The MVP
 keeps generation deterministic and offline, while preserving the same output
-contract expected from a later Minimax M2.7 content-generation call.
+contract expected from a later DeepSeek V4 content-generation call.
 """
 
 from __future__ import annotations
@@ -23,10 +23,10 @@ from api_config import (
     CATEGORY_1_POST_PATH,
     CATEGORY_2_POST_PATH,
     DATABASE_PATH,
+    DEFAULT_LLM_CONFIG,
     IMAGE_GENERATION_PROMPT_PATH,
     LINKEDIN_POST_GENERATION_PROMPT_PATH,
     LOG_DIR,
-    MINIMAX_M27_CONFIG,
     SQLITE_SCHEMA_PATH,
 )
 
@@ -336,7 +336,7 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
             f"- Tone and positioning: {brief['tone_positioning']}",
             f"- Source news IDs: {', '.join(str(item) for item in brief['source_news_ids'])}",
             f"- Prompt version: {PROMPT_VERSION}",
-            f"- Model provider placeholder: {MINIMAX_M27_CONFIG['provider']}",
+            f"- Model provider placeholder: {DEFAULT_LLM_CONFIG['provider']}",
             "",
             "## Source Evidence",
             "",
@@ -363,7 +363,7 @@ def render_post_generation_prompt() -> str:
         """
         Prompt name: Stage 5 LinkedIn post generation prompt
         Workflow step: Final LinkedIn decision-brief content generation
-        Target model: Minimax M2.7 or equivalent reasoning model
+        Target model: DeepSeek V4 (`deepseek-v4-pro`) or equivalent reasoning model
 
         System role:
         You are an AI infrastructure geopolitical risk analyst writing concise
@@ -499,7 +499,7 @@ def upsert_content_result(connection: sqlite3.Connection, brief: dict[str, Any])
             json.dumps(brief["quality_score_self_check"], ensure_ascii=False),
             brief["output_path"],
             PROMPT_VERSION,
-            MINIMAX_M27_CONFIG["provider"],
+            DEFAULT_LLM_CONFIG["provider"],
             now,
             now,
         ),
@@ -544,8 +544,8 @@ def run_linkedin_content_generation(
     logger.info("Target categories configured: %s", list(TARGET_CATEGORIES.keys()))
     logger.info(
         "LLM provider placeholder: %s | enabled=%s",
-        MINIMAX_M27_CONFIG["provider"],
-        MINIMAX_M27_CONFIG["enabled"],
+        DEFAULT_LLM_CONFIG["provider"],
+        DEFAULT_LLM_CONFIG["enabled"],
     )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
@@ -592,7 +592,7 @@ def run_linkedin_content_generation(
         stats.notes = (
             "Offline Stage 5 content generation completed. The output uses "
             "classified SQLite records and the Stage 4 decision-brief constraints; "
-            "Minimax M2.7 can later replace the deterministic generator."
+            "DeepSeek V4 can later replace the deterministic generator."
         )
         record_run(connection, stats)
 

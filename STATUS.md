@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成，并已完成阶段七冻结验证；v4.0升级路线下一步进入真实新闻/RSS接入。
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段九LLM客户端与API配置，下一步进入阶段十LLM替换。
 
 ---
 
@@ -20,9 +20,9 @@
 | 阶段五 | LinkedIn决策简报生成 | ✅ 已完成，AI本地验证通过 |
 | 阶段六 | 最终文档与交付整理 | ✅ 已完成，AI本地验证通过 |
 | 阶段七 | 稳定MVP冻结与升级保护 | ✅ 已完成，冻结基线已验证 |
-| 阶段八 | 真实新闻/RSS接入 | 🔜 下一步 |
-| 阶段九 | LLM客户端与API配置 | ⏳ 待启动 |
-| 阶段十 | LLM替换摘要、评分、分类与生成 | ⏳ 待启动 |
+| 阶段八 | 真实新闻/RSS接入 | ✅ 已完成，AI联网验证通过 |
+| 阶段九 | LLM客户端与API配置 | ✅ 已完成，离线fallback已验证 |
+| 阶段十 | LLM替换摘要、评分、分类与生成 | 🔜 下一步 |
 | 阶段十一 | 图片生成与内容归档 | ⏳ 待启动 |
 | 阶段十二 | 每日定时运行与人工审核 | ⏳ 待启动 |
 | 阶段十三 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选 |
@@ -67,6 +67,7 @@
 5. 模型供应商和具体LLM调用方式由用户后续决定；代码设计时保留清晰接口即可。
 6. SQLite作为MVP信息仓库，Chroma只作为未来扩展方向，不要在MVP阶段强行加入。
 7. 每完成一个阶段，必须更新STATUS.md中的阶段状态、已完成事项和下一步行动，并把关键Prompt或优化记录追加到Progress_Report.md。
+8. API密钥安全红线：不要读取、打印、复制、总结或上传 `1-Workflow_Files/.env` 的内容；不要运行 `cat .env`、`sed ... .env`、`grep/rg ... .env` 等会暴露密钥的命令；不要要求用户把API key发到对话里。测试真实LLM时只能运行脱敏命令，例如 `llm_client.py --print-config --require-online`，因为它只显示 key 是否已配置，不显示真实 key。
 
 请先告诉我你读完后理解到的当前状态，再根据STATUS.md里的“下一步行动”继续工作。
 ```
@@ -83,7 +84,10 @@
 - 阶段五已采用离线可复现内容生成：从SQLite分类结果中按两条主线各生成1篇LinkedIn决策简报、配图Prompt、目标受众与语气定位，并写入SQLite审计表。
 - 阶段六已完成交付收口：新增一键总控脚本、工作流架构说明、Prompt优化记录与最终进度报告，并提供全流程测试入口。
 - 阶段七已完成稳定MVP冻结验证：2026-05-01重新运行总控脚本，`Overall success: True`，阶段二到阶段五全部OK，数据库健康检查全部PASS。
-- 后续阶段八以后新增联网、LLM或图片生成能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 阶段八已完成真实RSS接入：`1_news_monitoring.py` 新增 `--input-mode rss`，`rss_sources.json` 已配置5个公开RSS源，联网验证可抓取并写入 `news_items` 表。
+- 阶段九已完成统一LLM客户端：新增 `llm_client.py` 与 `.env.example`，无API key时自动使用结构化离线fallback；默认真实LLM已切换为DeepSeek V4（`deepseek-v4-pro`）。
+- 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
+- 后续阶段十以后替换业务逻辑或新增图片生成能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 
 ---
 
@@ -112,7 +116,7 @@
   - `2-Prompt_Design_Samples/relevance_routing_prompt.txt`
   - `2-Prompt_Design_Samples/information_classification_prompt.txt`
 - [x] 已实现工程化规则配置：`keywords`、`required_terms`、`exclude_terms`。
-- [x] 已实现离线语义评分占位逻辑，保持后续接入Minimax M2.7的接口边界。
+- [x] 已实现离线语义评分占位逻辑，保持后续接入DeepSeek V4的接口边界。
 - [x] 已完成本地验证：6条样例中4条保留、2条过滤；4条保留内容全部完成主线分类与辅助标签分配。
 
 ### 4. 阶段四：KOL分析与风格指南
@@ -152,14 +156,36 @@
 - [x] 已记录阶段七冻结说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_7_mvp_freeze_baseline.md`。
 - [x] 已明确升级保护规则：后续新增RSS、LLM或图片生成能力时，必须保留本地样例/离线逻辑作为fallback。
 
-### 8. 核心定位（已收窄）
+### 8. 阶段八：真实新闻/RSS接入
+- [x] 已扩展 `1-Workflow_Files/sample_data/rss_sources.json`，配置5个公开RSS源：
+  - MIT Technology Review - Artificial Intelligence
+  - OpenAI News
+  - Microsoft Official Blog
+  - NVIDIA Blog
+  - USGS News
+- [x] 已升级 `1-Workflow_Files/1_news_monitoring.py`，新增 `--input-mode rss` 与 `--rss-limit`。
+- [x] 已保留 `--input-mode local_sample` 作为无网络、无API key环境下的稳定fallback。
+- [x] 已实现RSS/Atom解析、HTML清洗、发布时间标准化、每源独立失败处理与重复去重。
+- [x] 已升级 `1-Workflow_Files/0_main_workflow.py`，新增 `--stage2-input-mode` 与 `--rss-limit`，默认仍为 `local_sample`。
+- [x] 已完成联网验证：5个RSS源均可解析；最终重复抓取验证结果为 `seen=10 inserted=0 duplicates=10 errors=0`，数据库当前包含 `local_sample=6` 与 `rss=10` 条新闻记录。
+
+### 9. 阶段九：LLM客户端与API配置
+- [x] 已新增 `1-Workflow_Files/llm_client.py`，统一封装后续LLM调用入口。
+- [x] 已新增 `1-Workflow_Files/.env.example`，列出 `DEEPSEEK_API_KEY`、`DEEPSEEK_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL`、`LLM_API_STYLE` 等配置。
+- [x] 已实现 `.env` 读取、API key/endpoint检测、请求发送、JSON解析、重试、超时和错误日志。
+- [x] 已实现无API key或endpoint时自动结构化离线fallback，不中断本地MVP。
+- [x] 已提供最小LLM连通性自测命令：`python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config`。
+- [x] 已完成总控脚本回归：Run ID `run_20260501_230740_6af9ab82`，`Overall success: True`，数据库健康检查全部 `PASS`。
+- [x] 已记录阶段九说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_9_llm_client_notes.md`。
+
+### 10. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 9. 相关性打分标准
+### 11. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -176,13 +202,13 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 10. 信息源体系
+### 12. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
 |------|------|
 | 手动样例数据 | 保证无网络环境下可运行、可演示、可复现 |
-| RSS/API预留接口 | 展示未来每日自动化监控能力 |
+| 真实RSS输入 | 已接入公开RSS源，支持联网抓取真实新闻 |
 | 公开报告/企业公告 | 提供高可信背景材料 |
 
 优先来源包括：Microsoft、Google、NVIDIA、OpenAI、IEA、USGS、CSIS、RAND、Reuters、FT、MIT Technology Review、a16z、Sequoia、Goldman Sachs、McKinsey、BCG。
@@ -207,22 +233,49 @@ LLM评分权重：
    - 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260501_221718_d3a32586_main_workflow.log`
 3. 后续新增联网、LLM或图片生成能力时，必须保留离线fallback，保证没有网络、没有API key时仍能运行当前MVP。
 
-### 阶段八预告：真实新闻/RSS接入
+### 阶段八完成记录：真实新闻/RSS接入
 
-阶段八是下一步。第一批具体任务：
+阶段八已完成。当前阶段二新闻监控脚本已经从“本地样例输入”升级为“本地样例 + 真实RSS输入”双模式。
 
-1. 扩展 `sample_data/rss_sources.json`，加入3-5个真实、稳定、公开可访问的RSS源。
-2. 升级 `1_news_monitoring.py`，新增 `--input-mode rss`。
-3. 抓取真实RSS后写入现有 `news_items` 表，不改变下游数据库结构。
-4. 保留 `--input-mode local_sample`，作为无网络环境下的演示和测试入口。
+1. 离线回归命令：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode local_sample
+   ```
+   验证结果：读取6条本地样例，重复运行跳过6条重复记录，错误0条。
+2. RSS验证命令：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode rss --rss-limit 2
+   ```
+   验证结果：5个RSS源均可解析；最终重复抓取运行 `seen=10 inserted=0 duplicates=10 errors=0`。
+3. 总控脚本仍默认保持离线模式；如需联网抓取，可运行：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --stage2-input-mode rss --rss-limit 2
+   ```
+4. 阶段八没有接入LLM或图片生成API，因此不需要用户填写API key。
 
-### 阶段九预告：LLM客户端与API配置
+### 阶段九完成记录：LLM客户端与API配置
 
-阶段九要做的第一批具体任务：
+阶段九已完成。当前新增统一LLM客户端，默认真实LLM为DeepSeek V4（推荐 `deepseek-v4-pro`），但不提前替换阶段二到阶段五的业务逻辑。
 
-1. 新增 `1-Workflow_Files/llm_client.py`，统一封装Minimax M2.7或其他LLM调用。
-2. 新增 `.env.example`，列出 `MINIMAX_API_KEY`、`MINIMAX_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL` 等配置。
-3. 先用一个最小Prompt测试API是否能返回结构化JSON，再替换摘要、评分、分类和内容生成逻辑。
+1. 新增统一客户端：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config
+   ```
+   无API key时验证结果：`available=false`、`Used fallback=True`、输出结构化JSON。
+2. 新增配置模板：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/.env.example`，默认配置如下：
+   ```env
+   LLM_PROVIDER=deepseek
+   LLM_MODEL=deepseek-v4-pro
+   LLM_API_STYLE=openai_compatible
+   DEEPSEEK_API_KEY=
+   DEEPSEEK_API_ENDPOINT=https://api.deepseek.com/chat/completions
+   ```
+3. 密钥安全规则：`.env` 是用户本地私密文件，后续AI开发或测试时不得读取、打印、复制或总结 `.env` 内容；不得把API key写入任何Markdown、日志或对话。需要测试时只运行脱敏命令。
+4. 用户后续填写 `.env` 后，可运行真实API连通性测试：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
+   ```
+5. 阶段十再从新闻摘要开始逐步接入真实LLM，当前离线MVP不受影响。
 
 ---
 
@@ -233,20 +286,25 @@ LLM评分权重：
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
 | `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0/v4.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段七升级路线记录 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段九实现记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
-| `1_news_monitoring.py` | 阶段二MVP信息监控脚本 | ✅ 已完成，已测试通过 |
+| `1_news_monitoring.py` | 阶段二/八信息监控脚本 | ✅ 已完成，支持本地样例与真实RSS |
 | `2_relevance_router.py` | 阶段三A双层相关性路由脚本 | ✅ 已完成，AI本地验证通过 |
 | `3_information_classification.py` | 阶段三B信息分类脚本 | ✅ 已完成，AI本地验证通过 |
 | `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，通过 |
 | `5_linkedin_content_generation.py` | 阶段五LinkedIn决策简报生成脚本 | ✅ 已完成，AI本地验证通过 |
-| `0_main_workflow.py` | 阶段六全流程总控脚本 | ✅ 已完成，AI本地验证通过 |
+| `0_main_workflow.py` | 阶段六全流程总控脚本 | ✅ 已完成，支持选择阶段二输入模式 |
+| `llm_client.py` | 阶段九统一LLM客户端 | ✅ 已完成，离线fallback已验证 |
+| `.env.example` | 阶段九LLM环境变量模板 | ✅ 已切换为DeepSeek V4默认配置，等待用户后续填写 `.env` |
 | `workflow_architecture.md` | 工作流架构说明 | ✅ 已完成 |
 | `Progress_Report_Final.md` | 最终进度报告 | ✅ 已完成 |
 | `prompt_optimization_records.md` | Prompt优化记录 | ✅ 已完成 |
 | `stage_7_mvp_freeze_baseline.md` | 阶段七冻结基线记录 | ✅ 已完成 |
+| `stage_8_rss_ingestion_notes.md` | 阶段八RSS接入记录 | ✅ 已完成 |
+| `stage_9_llm_client_notes.md` | 阶段九LLM客户端记录 | ✅ 已完成 |
+| `rss_sources.json` | 阶段八真实RSS源配置 | ✅ 已配置5个公开RSS源 |
 | `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
 | `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |
 | `kol_style_analysis_prompt.txt` | 阶段四KOL拆解Prompt样例 | ✅ 已完成 |
@@ -263,7 +321,7 @@ LLM评分权重：
 
 ```text
 AI_Geopolitical_Risk_Workflow_Homework_Delivery
-├── 1-Workflow_Files/        # 6个Python脚本 + 配置
+├── 1-Workflow_Files/        # Python脚本 + 配置
 ├── 2-Prompt_Design_Samples/ # 各环节Prompt
 ├── 3-Final_LinkedIn_Content/ # 2篇帖子 + 风格清单
 └── 4-Progress_Report/        # 最终进度报告

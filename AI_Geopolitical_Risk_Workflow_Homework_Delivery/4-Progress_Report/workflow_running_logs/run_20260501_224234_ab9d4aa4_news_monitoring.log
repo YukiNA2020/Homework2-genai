@@ -1,0 +1,17 @@
+2026-05-01 22:42:34,634 | INFO | Starting Stage 2 news monitoring run: run_20260501_224234_ab9d4aa4
+2026-05-01 22:42:34,634 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-05-01 22:42:34,638 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-01 22:42:37,059 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=2.42s
+2026-05-01 22:42:41,713 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=4.65s
+2026-05-01 22:42:43,384 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=1.67s
+2026-05-01 22:42:44,893 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.51s
+2026-05-01 22:42:48,230 | WARNING | RSS source failed but run will continue: source=USGS News url=https://www.usgs.gov/rss/news/national-news-release.xml error=HTTP Error 404: Not Found
+2026-05-01 22:42:48,239 | INFO | Inserted: A new US phone network for Christians aims to block porn and gender-related content
+2026-05-01 22:42:48,241 | INFO | Inserted: This startup’s new mechanistic interpretability tool lets you debug LLMs
+2026-05-01 22:42:48,242 | INFO | Inserted: Introducing Advanced Account Security
+2026-05-01 22:42:48,242 | INFO | Inserted: Where the goblins came from
+2026-05-01 22:42:48,245 | INFO | Inserted: Unlocking human ambition to drive business growth with AI
+2026-05-01 22:42:48,246 | INFO | Inserted: Microsoft Sovereign Private Cloud scales to thousands of nodes with Azure Local
+2026-05-01 22:42:48,248 | INFO | Inserted: Nemotron Labs: What OpenClaw Agents Mean for Every Organization
+2026-05-01 22:42:48,249 | INFO | Inserted: It’s Gonna Be May: 16 Games Hit the Cloud This Month, With More NVIDIA GeForce RTX 5080 Power
+2026-05-01 22:42:48,250 | INFO | Completed run. seen=8 inserted=8 duplicates=0 errors=0

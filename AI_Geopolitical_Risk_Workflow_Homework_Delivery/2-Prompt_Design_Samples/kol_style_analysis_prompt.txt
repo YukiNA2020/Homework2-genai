@@ -1,6 +1,6 @@
 Prompt name: Stage 4 KOL style analysis prompt
 Workflow step: LinkedIn KOL content structure research
-Target model: Minimax M2.7 or equivalent reasoning model
+Target model: DeepSeek V4 (`deepseek-v4-pro`) or equivalent reasoning model
 
 System role:
 You are a content strategist for AI infrastructure geopolitical risk analysis.

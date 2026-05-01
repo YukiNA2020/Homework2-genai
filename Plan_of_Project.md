@@ -2,7 +2,7 @@
 
 > 文档用途：本文件为《Homework 2 AI Content Monitoring and Generation Workflow》的专属落地执行方案，用于指导全链路工作流的代码实现、Prompt设计与交付物生成。
 > 核心背景：信息管理与信息系统专业背景，结合地缘政治研究兴趣与AI课程要求，构建一个范围清晰、可运行、可复盘的AI内容工作流。
-> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ Minimax M2.7（工作流核心LLM引擎）+ SQLite（MVP信息仓库，可扩展到Chroma）。
+> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ DeepSeek V4（工作流核心LLM引擎，默认使用 `deepseek-v4-pro`）+ SQLite（MVP信息仓库，可扩展到Chroma）。
 > 战略调整：从“AI全产业链全自动内容系统”收窄为“面向AI基建投资与供应链决策的地缘风险洞察MVP工作流”。
 
 ---
@@ -73,12 +73,12 @@ AI基建地缘风险洞察分析师 | 信息管理与信息系统专业背景 | 
 #### 核心功能要求
 1. 支持读取本地样例新闻数据，确保无网络环境下也能运行。
 2. 预留RSS/API抓取接口，体现每日自动化监控的可扩展设计。
-3. 调用Minimax M2.7完成新闻清洗、摘要、关键词提取、发布时间/来源标准化。
+3. 调用DeepSeek V4完成新闻清洗、摘要、关键词提取、发布时间/来源标准化。
 4. 使用SQLite作为MVP信息仓库，保存原始新闻、摘要、关键词、来源、链接与处理状态。
 5. 支持去重处理，避免重复导入同一条内容。
 
 #### 输入输出规范
-- 输入：样例新闻数据、RSS/API配置、关键词过滤规则、Minimax M2.7 API配置。
+- 输入：样例新闻数据、RSS/API配置、关键词过滤规则、DeepSeek V4 API配置。
 - 输出：结构化新闻数据集、SQLite数据库、运行日志。
 - 对应可运行脚本：`1_news_monitoring.py`
 
@@ -99,7 +99,7 @@ AI、data center、compute、GPU、chip、semiconductor、cloud、power、electr
 export control、sanctions、conflict、regulation、trade restriction、China、US、EU、Taiwan、Middle East、resource nationalism、shipping disruption。
 
 #### 第二层：LLM语义评分
-通过第一层过滤后，调用Minimax M2.7进行0-10分相关性评分。
+通过第一层过滤后，调用DeepSeek V4进行0-10分相关性评分。
 
 #### 固定打分规则
 | 权重 | 标准 |
@@ -121,7 +121,7 @@ export control、sanctions、conflict、regulation、trade restriction、China�
 | 某地区发生军事冲突，但没有涉及AI基础设施、能源、芯片或供应链 | 0 | 过滤 | 纯地缘新闻，不满足AI基建/供应链门槛 |
 
 #### 输入输出规范
-- 输入：任务1输出的结构化新闻数据、规则关键词表、相关性打分Prompt、Minimax M2.7 API配置。
+- 输入：任务1输出的结构化新闻数据、规则关键词表、相关性打分Prompt、DeepSeek V4 API配置。
 - 输出：高相关性新闻数据集、过滤日志、LLM评分依据。
 - 对应可运行脚本：`2_relevance_router.py`
 
@@ -146,13 +146,13 @@ export control、sanctions、conflict、regulation、trade restriction、China�
 | 全球AI治理 | AI监管框架、跨境数据规则、国际政策博弈 |
 
 #### 核心功能要求
-1. 调用Minimax M2.7为每条高相关性内容分配1个主线分类。
+1. 调用DeepSeek V4为每条高相关性内容分配1个主线分类。
 2. 可选分配0-2个辅助标签，增强检索与分析能力。
 3. 完成分类后，自动更新标签信息到SQLite数据库。
 4. 支持按分类标签快速检索对应内容。
 
 #### 输入输出规范
-- 输入：任务2输出的高相关性新闻数据集、分类规则Prompt、Minimax M2.7 API配置。
+- 输入：任务2输出的高相关性新闻数据集、分类规则Prompt、DeepSeek V4 API配置。
 - 输出：带主线分类与辅助标签的结构化新闻数据集、数据库标签更新记录。
 - 对应可运行脚本：`3_information_classification.py`
 
@@ -181,7 +181,7 @@ export control、sanctions、conflict、regulation、trade restriction、China�
 2. 将清单转化为内容生成约束Prompt，严格限定后续文案生成规则。
 
 #### 输入输出规范
-- 输入：对标KOL的公开内容样本或手动整理样本、拆解维度Prompt、Minimax M2.7 API配置。
+- 输入：对标KOL的公开内容样本或手动整理样本、拆解维度Prompt、DeepSeek V4 API配置。
 - 输出：`LinkedIn_Post_Style_Anatomy_Checklist.md`、内容生成约束Prompt文件。
 - 对应可运行脚本：`4_linkedin_analysis.py`
 
@@ -221,12 +221,12 @@ Closing question:
 
 #### 核心功能要求
 1. 从SQLite数据库中按主线分类拉取最新高相关性新闻与洞见。
-2. 调用Minimax M2.7，严格遵循内容约束Prompt生成LinkedIn文案。
+2. 调用DeepSeek V4，严格遵循内容约束Prompt生成LinkedIn文案。
 3. 同步生成配图Prompt，支持后续对接绘图API。
 4. 自动为每篇帖子补充目标受众、语气与定位标注。
 
 #### 输入输出规范
-- 输入：对应分类的结构化新闻洞见数据、内容生成约束Prompt、Minimax M2.7 API配置。
+- 输入：对应分类的结构化新闻洞见数据、内容生成约束Prompt、DeepSeek V4 API配置。
 - 输出：最终LinkedIn帖子文案、配图生成Prompt、目标受众与定位标注。
 - 对应可运行脚本：`5_linkedin_content_generation.py`
 
@@ -239,7 +239,7 @@ Closing question:
 
 #### 报告强制包含章节
 1. 工作流架构与设计逻辑：从混合输入到内容生成的完整链路。
-2. 核心技术栈与AI工具应用说明：Claude Code、Minimax M2.7、SQLite在工作流中的角色。
+2. 核心技术栈与AI工具应用说明：Claude Code、DeepSeek V4、SQLite在工作流中的角色。
 3. 核心挑战与解决方案：范围过大、信息源不稳定、LLM判断一致性、内容质量控制。
 4. 工作流与Prompt优化进展：从“全自动全产业链”优化为“MVP可运行的AI基建地缘风险工作流”。
 5. 项目经验与核心收获。

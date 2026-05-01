@@ -1,15 +1,15 @@
 # AI基建地缘风险洞察工作流架构说明
 
-> 使用环节：阶段六 - 工作流、Prompt优化与进度报告。  
-> 版本：v1.0 offline MVP  
-> 更新日期：2026-04-30
+> 使用环节：阶段六/阶段八 - 工作流、Prompt优化、真实RSS接入与进度报告。  
+> 版本：v1.1 RSS-enabled MVP  
+> 更新日期：2026-05-01
 
 ## 1. 设计目标
 
 本工作流面向“AI基础设施地缘风险与供应链决策洞察”这一垂直场景，目标不是搭建泛AI新闻平台，而是完成一个可运行、可解释、可复盘的MVP闭环：
 
 ```text
-样例新闻/RSS配置
+样例新闻/真实RSS配置
     -> 新闻清洗与摘要
     -> 双层相关性路由
     -> 主线分类与辅助标签
@@ -27,7 +27,7 @@
 
 | 阶段 | 脚本 | 输入 | 输出 | 说明 |
 |------|------|------|------|------|
-| 阶段二 | `1_news_monitoring.py` | `sample_news.json`、RSS预留配置 | `news_items`、`source_registry`、`ingestion_runs` | 离线读取样例数据，完成清洗、摘要、关键词抽取与去重入库 |
+| 阶段二/八 | `1_news_monitoring.py` | `sample_news.json`、真实RSS配置 | `news_items`、`source_registry`、`ingestion_runs` | 支持本地样例与真实RSS双模式，完成清洗、摘要、关键词抽取与去重入库 |
 | 阶段三A | `2_relevance_router.py` | `news_items` | `relevance_routing_results`、`routing_runs` | 先规则过滤，再执行离线语义评分占位，保留≥7分内容 |
 | 阶段三B | `3_information_classification.py` | 保留内容 | `classification_results`、`classification_runs` | 分入两条主线分类，并附加辅助标签 |
 | 阶段四 | `4_linkedin_analysis.py` | KOL画像规则 | `kol_analysis_results`、风格清单、约束Prompt | 拆解4位KOL的LinkedIn内容结构 |
@@ -109,12 +109,23 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 - 阶段五生成2篇最终LinkedIn帖子和2个Prompt文件。
 - 阶段六主控日志写入 `4-Progress_Report/workflow_running_logs/`。
 
+阶段八以后如需用真实RSS作为阶段二输入，可运行：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --stage2-input-mode rss --rss-limit 2
+```
+
+如果只测试RSS抓取与入库，可运行：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode rss --rss-limit 2
+```
+
 ## 8. 扩展接口
 
-当前版本为离线MVP，未来可在不重做数据库结构的前提下扩展：
+当前版本为RSS-enabled MVP，未来可在不重做数据库结构的前提下扩展：
 
-- 将RSS/API预留配置接入真实抓取。
-- 将离线摘要、评分、分类和生成函数替换为Minimax M2.7调用。
+- 将离线摘要、评分、分类和生成函数替换为DeepSeek V4调用，默认使用 `deepseek-v4-pro`。
 - 增加定时任务，实现每日监控。
 - 增加Chroma或其他向量库，用于长期检索和相似案例召回。
 - 增加仪表盘，展示分类趋势、风险信号和内容生成记录。

@@ -1,30 +1,37 @@
-"""Stage 2: MVP news monitoring pipeline.
+"""Stage 2/8: MVP news monitoring pipeline.
 
-This script ingests local sample items, cleans and summarizes them with a
-deterministic offline fallback, extracts domain keywords, and stores structured
-records in SQLite. RSS/API and LLM calls are reserved as explicit extension
-points for later stages.
+This script ingests local sample items or configured RSS feeds, cleans and
+summarizes them with a deterministic offline fallback, extracts domain
+keywords, and stores structured records in SQLite. LLM calls are still reserved
+as explicit extension points for later stages.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import logging
 import re
 import sqlite3
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+from xml.etree import ElementTree
 
 from api_config import (
     DATABASE_PATH,
     DEFAULT_INGESTION_MODE,
+    DEFAULT_LLM_CONFIG,
     LOG_DIR,
-    MINIMAX_M27_CONFIG,
     RSS_CONFIG_PATH,
     SAMPLE_DATA_PATH,
     SQLITE_SCHEMA_PATH,
@@ -60,6 +67,10 @@ DOMAIN_KEYWORDS = [
     "business continuity",
 ]
 
+RSS_USER_AGENT = "AI-Geopolitical-Risk-Workflow/1.0 (+student-homework-rss-ingestion)"
+RSS_FETCH_TIMEOUT_SECONDS = 15
+DEFAULT_RSS_ITEMS_PER_SOURCE = 8
+
 
 @dataclass
 class IngestionStats:
@@ -83,8 +94,18 @@ def read_json(path: Path) -> Any:
         return json.load(file)
 
 
+def local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1].lower()
+
+
 def normalize_whitespace(text: str) -> str:
     return re.sub(r"\s+", " ", text or "").strip()
+
+
+def strip_html_markup(text: str) -> str:
+    text = re.sub(r"(?is)<(script|style).*?</\1>", " ", text or "")
+    text = re.sub(r"(?s)<[^>]+>", " ", text)
+    return normalize_whitespace(html.unescape(text))
 
 
 def split_sentences(text: str) -> list[str]:
@@ -153,16 +174,163 @@ def load_local_sample_items(sample_path: Path) -> list[dict[str, Any]]:
     return data
 
 
-def fetch_rss_placeholder(rss_config_path: Path, logger: logging.Logger) -> list[dict[str, Any]]:
+def child_by_name(element: ElementTree.Element, names: set[str]) -> ElementTree.Element | None:
+    for child in list(element):
+        if local_name(child.tag) in names:
+            return child
+    return None
+
+
+def child_text(element: ElementTree.Element, names: set[str]) -> str:
+    child = child_by_name(element, names)
+    if child is None:
+        return ""
+    return normalize_whitespace("".join(child.itertext()))
+
+
+def extract_rss_link(item: ElementTree.Element) -> str:
+    link_text = child_text(item, {"link"})
+    if link_text:
+        return link_text
+
+    for child in list(item):
+        if local_name(child.tag) == "link":
+            href = normalize_whitespace(child.attrib.get("href", ""))
+            rel = child.attrib.get("rel", "alternate")
+            if href and rel in {"alternate", ""}:
+                return href
+    return ""
+
+
+def normalize_published_at(raw_value: str) -> str:
+    raw_value = normalize_whitespace(raw_value)
+    if not raw_value:
+        return ""
+
+    try:
+        parsed = parsedate_to_datetime(raw_value)
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return raw_value
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def fetch_url_text(url: str) -> str:
+    request = Request(url, headers={"User-Agent": RSS_USER_AGENT})
+    with urlopen(request, timeout=RSS_FETCH_TIMEOUT_SECONDS) as response:  # noqa: S310 - configured public RSS URLs only.
+        charset = response.headers.get_content_charset() or "utf-8"
+        return response.read().decode(charset, errors="replace")
+
+
+def parse_feed_entries(feed_text: str, source: dict[str, Any]) -> list[dict[str, Any]]:
+    root = ElementTree.fromstring(feed_text)
+    root_name = local_name(root.tag)
+
+    if root_name == "rss":
+        channel = child_by_name(root, {"channel"})
+        entry_nodes = [
+            child for child in list(channel)
+            if local_name(child.tag) == "item"
+        ] if channel is not None else []
+    elif root_name == "feed":
+        entry_nodes = [child for child in list(root) if local_name(child.tag) == "entry"]
+    else:
+        entry_nodes = [node for node in root.iter() if local_name(node.tag) in {"item", "entry"}]
+
+    entries: list[dict[str, Any]] = []
+    for node in entry_nodes:
+        title = child_text(node, {"title"})
+        url = extract_rss_link(node)
+        published_at = normalize_published_at(
+            child_text(node, {"pubdate", "published", "updated", "date"})
+        )
+        author = child_text(node, {"creator", "author"})
+        if not author:
+            author_node = child_by_name(node, {"author"})
+            author = child_text(author_node, {"name"}) if author_node is not None else ""
+
+        raw_content = (
+            child_text(node, {"encoded"})
+            or child_text(node, {"content"})
+            or child_text(node, {"summary"})
+            or child_text(node, {"description"})
+        )
+        cleaned_content = strip_html_markup(raw_content)
+        if not cleaned_content and title:
+            cleaned_content = title
+
+        if not title or not cleaned_content:
+            continue
+
+        entries.append(
+            {
+                "source_id": source["source_id"],
+                "source_name": source["source_name"],
+                "source_type": source.get("source_type", "rss"),
+                "title": strip_html_markup(title),
+                "url": normalize_whitespace(url),
+                "published_at": published_at,
+                "author": strip_html_markup(author),
+                "language": source.get("language", "en"),
+                "content": cleaned_content,
+            }
+        )
+    return entries
+
+
+def enabled_rss_sources(config: dict[str, Any]) -> list[dict[str, Any]]:
+    sources = config.get("rss_sources", [])
+    if not isinstance(sources, list):
+        raise ValueError("rss_sources.json must contain a list under 'rss_sources'.")
+    return [
+        source for source in sources
+        if source.get("enabled", True) and source.get("url") and source.get("source_id")
+    ]
+
+
+def fetch_rss_items(
+    rss_config_path: Path,
+    logger: logging.Logger,
+    max_items_per_source: int | None = None,
+) -> list[dict[str, Any]]:
     if not rss_config_path.exists():
-        logger.warning("RSS config file not found; skipping placeholder RSS fetch.")
+        logger.warning("RSS config file not found; skipping RSS fetch.")
         return []
 
     config = read_json(rss_config_path)
-    sources = config.get("rss_sources", [])
-    logger.info("RSS/API extension point loaded with %s configured sources.", len(sources))
-    logger.info("Network fetching is intentionally disabled in the Stage 2 offline MVP.")
-    return []
+    sources = enabled_rss_sources(config)
+    logger.info("Loaded %s enabled RSS sources from %s.", len(sources), rss_config_path)
+
+    all_items: list[dict[str, Any]] = []
+    for source in sources:
+        source_limit = int(source.get("max_items", max_items_per_source or DEFAULT_RSS_ITEMS_PER_SOURCE))
+        if max_items_per_source is not None:
+            source_limit = min(source_limit, max_items_per_source)
+
+        started = time.monotonic()
+        try:
+            feed_text = fetch_url_text(source["url"])
+            parsed_items = parse_feed_entries(feed_text, source)
+            selected_items = parsed_items[:source_limit]
+            all_items.extend(selected_items)
+            logger.info(
+                "Fetched RSS source '%s': parsed=%s selected=%s url=%s duration=%.2fs",
+                source["source_name"],
+                len(parsed_items),
+                len(selected_items),
+                source["url"],
+                time.monotonic() - started,
+            )
+        except (HTTPError, URLError, TimeoutError, ElementTree.ParseError, ValueError) as exc:
+            logger.warning(
+                "RSS source failed but run will continue: source=%s url=%s error=%s",
+                source.get("source_name", source.get("source_id", "unknown")),
+                source.get("url", ""),
+                exc,
+            )
+    return all_items
 
 
 def normalize_item(item: dict[str, Any], ingestion_method: str) -> dict[str, Any]:
@@ -202,6 +370,11 @@ def normalize_item(item: dict[str, Any], ingestion_method: str) -> dict[str, Any
 
 def upsert_source(connection: sqlite3.Connection, item: dict[str, Any]) -> None:
     now = utc_now()
+    source_home = item["url"]
+    parsed_url = urlparse(item["url"])
+    if parsed_url.scheme and parsed_url.netloc:
+        source_home = f"{parsed_url.scheme}://{parsed_url.netloc}"
+
     connection.execute(
         """
         INSERT INTO source_registry (
@@ -219,7 +392,7 @@ def upsert_source(connection: sqlite3.Connection, item: dict[str, Any]) -> None:
             item["source_id"],
             item["source_name"],
             item["source_type"],
-            item["url"],
+            source_home,
             "",
             "sample_or_configured",
             now,
@@ -284,7 +457,11 @@ def record_run(connection: sqlite3.Connection, stats: IngestionStats) -> None:
     )
 
 
-def collect_items(input_mode: str, logger: logging.Logger) -> list[dict[str, Any]]:
+def collect_items(
+    input_mode: str,
+    logger: logging.Logger,
+    rss_limit: int | None = None,
+) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
 
     if input_mode in {"local_sample", "all"}:
@@ -294,25 +471,31 @@ def collect_items(input_mode: str, logger: logging.Logger) -> list[dict[str, Any
             item["_ingestion_method"] = "local_sample"
         items.extend(sample_items)
 
-    if input_mode in {"rss_placeholder", "all"}:
-        rss_items = fetch_rss_placeholder(RSS_CONFIG_PATH, logger)
+    if input_mode in {"rss", "rss_placeholder", "all"}:
+        if input_mode == "rss_placeholder":
+            logger.warning("'rss_placeholder' is deprecated; using real RSS fetch mode.")
+        rss_items = fetch_rss_items(RSS_CONFIG_PATH, logger, rss_limit)
         for item in rss_items:
-            item["_ingestion_method"] = "rss_placeholder"
+            item["_ingestion_method"] = "rss"
         items.extend(rss_items)
 
     return items
 
 
-def run_monitoring(input_mode: str, db_path: Path) -> tuple[IngestionStats, Path]:
+def run_monitoring(
+    input_mode: str,
+    db_path: Path,
+    rss_limit: int | None = None,
+) -> tuple[IngestionStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id, LOG_DIR)
     stats = IngestionStats(run_id=run_id, started_at=utc_now(), input_mode=input_mode)
 
     logger.info("Starting Stage 2 news monitoring run: %s", run_id)
-    logger.info("LLM provider placeholder: %s | enabled=%s", MINIMAX_M27_CONFIG["provider"], MINIMAX_M27_CONFIG["enabled"])
+    logger.info("LLM provider placeholder: %s | enabled=%s", DEFAULT_LLM_CONFIG["provider"], DEFAULT_LLM_CONFIG["enabled"])
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
-    items = collect_items(input_mode, logger)
+    items = collect_items(input_mode, logger, rss_limit)
     stats.items_seen = len(items)
 
     with sqlite3.connect(db_path) as connection:
@@ -333,7 +516,16 @@ def run_monitoring(input_mode: str, db_path: Path) -> tuple[IngestionStats, Path
                 logger.error("Failed to process item: %s", exc)
 
         stats.finished_at = utc_now()
-        stats.notes = "Offline MVP ingestion completed. RSS/API and LLM calls are reserved for later extension."
+        if input_mode in {"rss", "all", "rss_placeholder"}:
+            stats.notes = (
+                "Stage 8 RSS ingestion completed with resilient per-source failure "
+                "handling. Local sample mode remains available as offline fallback."
+            )
+        else:
+            stats.notes = (
+                "Offline MVP ingestion completed. Real RSS mode is available through "
+                "--input-mode rss; LLM calls are reserved for later extension."
+            )
         record_run(connection, stats)
 
     logger.info(
@@ -350,9 +542,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run Stage 2 news monitoring ingestion.")
     parser.add_argument(
         "--input-mode",
-        choices=["local_sample", "rss_placeholder", "all"],
+        choices=["local_sample", "rss", "rss_placeholder", "all"],
         default=DEFAULT_INGESTION_MODE,
         help="Input mode for this run. Default: local_sample.",
+    )
+    parser.add_argument(
+        "--rss-limit",
+        type=int,
+        default=None,
+        help="Optional maximum RSS items per source for quick tests.",
     )
     parser.add_argument(
         "--db-path",
@@ -365,7 +563,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    stats, log_path = run_monitoring(args.input_mode, args.db_path)
+    stats, log_path = run_monitoring(args.input_mode, args.db_path, args.rss_limit)
     print("\nStage 2 news monitoring completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")

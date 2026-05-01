@@ -2,7 +2,7 @@
 
 The router keeps the MVP fully testable offline. It first applies an
 engineering rule gate, then uses a deterministic scoring function that mirrors
-the planned Minimax M2.7 relevance prompt. Later, the score_relevance function
+the planned DeepSeek V4 relevance prompt. Later, the score_relevance function
 can be replaced by a real LLM call while preserving the same database contract.
 """
 
@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from api_config import DATABASE_PATH, LOG_DIR, MINIMAX_M27_CONFIG, SQLITE_SCHEMA_PATH
+from api_config import DATABASE_PATH, DEFAULT_LLM_CONFIG, LOG_DIR, SQLITE_SCHEMA_PATH
 
 
 PROMPT_VERSION = "relevance_routing_v1_offline_mvp"
@@ -386,7 +386,7 @@ def upsert_routing_result(connection: sqlite3.Connection, result: dict[str, Any]
             result["rationale"],
             json.dumps(result["scoring_breakdown"], ensure_ascii=False),
             PROMPT_VERSION,
-            MINIMAX_M27_CONFIG["provider"],
+            DEFAULT_LLM_CONFIG["provider"],
             now,
             now,
         ),
@@ -438,8 +438,8 @@ def run_relevance_router(db_path: Path, rerun: bool = False) -> tuple[RoutingSta
     )
     logger.info(
         "LLM provider placeholder: %s | enabled=%s",
-        MINIMAX_M27_CONFIG["provider"],
-        MINIMAX_M27_CONFIG["enabled"],
+        DEFAULT_LLM_CONFIG["provider"],
+        DEFAULT_LLM_CONFIG["enabled"],
     )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
@@ -471,7 +471,7 @@ def run_relevance_router(db_path: Path, rerun: bool = False) -> tuple[RoutingSta
         stats.notes = (
             "Offline Stage 3A router completed. Rule gate uses keywords, "
             "required_terms, and exclude_terms; semantic score mirrors the "
-            "planned Minimax M2.7 prompt contract."
+            "planned DeepSeek V4 prompt contract."
         )
         record_run(connection, stats)
 

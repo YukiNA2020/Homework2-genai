@@ -271,6 +271,18 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Continue later stages even if one stage fails.",
     )
+    parser.add_argument(
+        "--stage2-input-mode",
+        choices=["local_sample", "rss", "all"],
+        default="local_sample",
+        help="Input mode for Stage 2 ingestion. Default preserves the offline MVP baseline.",
+    )
+    parser.add_argument(
+        "--rss-limit",
+        type=int,
+        default=None,
+        help="Optional maximum RSS items per source when Stage 2 uses rss or all.",
+    )
     return parser.parse_args()
 
 
@@ -282,7 +294,12 @@ def main() -> int:
     logger.info("Database path: %s", args.db_path)
 
     results: list[StageResult] = []
-    for stage_config in STAGE_CONFIGS:
+    stage_configs = [dict(stage_config) for stage_config in STAGE_CONFIGS]
+    stage_configs[0]["args"] = ["--input-mode", args.stage2_input_mode]
+    if args.rss_limit is not None:
+        stage_configs[0]["args"].extend(["--rss-limit", str(args.rss_limit)])
+
+    for stage_config in stage_configs:
         if stage_config["key"] in args.skip_stage:
             logger.info("Skipping %s", stage_config["label"])
             continue

@@ -1,27 +1,67 @@
 {
-  "status": "reserved_for_future_extension",
-  "notes": "Stage 2 runs offline from sample_news.json. These RSS/API entries document the future daily monitoring interface.",
+  "status": "stage_8_active_rss_sources",
+  "updated_at": "2026-05-01",
+  "notes": "Stage 8 enables real RSS ingestion while keeping local_sample as the offline fallback. Each source is fetched independently so one failed feed does not stop the workflow.",
   "rss_sources": [
     {
       "source_id": "mit_technology_review_ai",
-      "source_name": "MIT Technology Review - AI",
-      "source_type": "rss",
+      "source_name": "MIT Technology Review - Artificial Intelligence",
+      "source_type": "media",
+      "feed_type": "rss",
       "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
-      "priority": "medium"
+      "homepage": "https://www.technologyreview.com/topic/artificial-intelligence/",
+      "priority": "high",
+      "enabled": true,
+      "max_items": 8,
+      "topic_fit": "AI industry, compute demand, policy, and infrastructure-adjacent technology signals."
     },
     {
-      "source_id": "csis_technology_policy",
-      "source_name": "CSIS Technology and National Security",
-      "source_type": "rss_or_page",
-      "url": "https://www.csis.org/programs/strategic-technologies-program",
-      "priority": "high"
+      "source_id": "openai_news",
+      "source_name": "OpenAI News",
+      "source_type": "company_blog",
+      "feed_type": "rss",
+      "url": "https://openai.com/news/rss.xml",
+      "homepage": "https://openai.com/news/",
+      "priority": "high",
+      "enabled": true,
+      "max_items": 8,
+      "topic_fit": "AI frontier model, product, safety, infrastructure partnership, and company strategy updates."
     },
     {
-      "source_id": "iea_reports",
-      "source_name": "International Energy Agency Reports",
-      "source_type": "api_or_page",
-      "url": "https://www.iea.org/reports",
-      "priority": "high"
+      "source_id": "microsoft_official_blog",
+      "source_name": "Microsoft Official Blog",
+      "source_type": "company_blog",
+      "feed_type": "rss",
+      "url": "https://blogs.microsoft.com/feed/",
+      "homepage": "https://blogs.microsoft.com/",
+      "priority": "high",
+      "enabled": true,
+      "max_items": 8,
+      "topic_fit": "Cloud, AI infrastructure, data center, security, policy, and enterprise technology signals."
+    },
+    {
+      "source_id": "nvidia_blog",
+      "source_name": "NVIDIA Blog",
+      "source_type": "company_blog",
+      "feed_type": "rss",
+      "url": "https://blogs.nvidia.com/feed/",
+      "homepage": "https://blogs.nvidia.com/",
+      "priority": "high",
+      "enabled": true,
+      "max_items": 8,
+      "topic_fit": "GPU, accelerated computing, data center, AI chip supply, and infrastructure platform updates."
+    },
+    {
+      "source_id": "usgs_news",
+      "source_name": "USGS News",
+      "source_type": "institution_report",
+      "feed_type": "rss",
+      "url": "https://www.usgs.gov/news/national-news-release/feed",
+      "homepage": "https://www.usgs.gov/news/get-our-news",
+      "priority": "medium",
+      "enabled": true,
+      "max_items": 8,
+      "topic_fit": "Critical minerals, geological supply signals, resource risk, and public research updates."
     }
   ]
 }

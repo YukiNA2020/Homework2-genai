@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from api_config import DATABASE_PATH, LOG_DIR, MINIMAX_M27_CONFIG, SQLITE_SCHEMA_PATH
+from api_config import DATABASE_PATH, DEFAULT_LLM_CONFIG, LOG_DIR, SQLITE_SCHEMA_PATH
 
 
 PROMPT_VERSION = "information_classification_v1_offline_mvp"
@@ -308,7 +308,7 @@ def upsert_classification_result(connection: sqlite3.Connection, result: dict[st
             result["rationale"],
             json.dumps(result["category_signal_terms"], ensure_ascii=False),
             PROMPT_VERSION,
-            MINIMAX_M27_CONFIG["provider"],
+            DEFAULT_LLM_CONFIG["provider"],
             now,
             now,
         ),
@@ -353,8 +353,8 @@ def run_information_classification(db_path: Path, rerun: bool = False) -> tuple[
     logger.info("Primary categories: %s", list(CATEGORY_RULES.keys()))
     logger.info(
         "LLM provider placeholder: %s | enabled=%s",
-        MINIMAX_M27_CONFIG["provider"],
-        MINIMAX_M27_CONFIG["enabled"],
+        DEFAULT_LLM_CONFIG["provider"],
+        DEFAULT_LLM_CONFIG["enabled"],
     )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
@@ -381,7 +381,7 @@ def run_information_classification(db_path: Path, rerun: bool = False) -> tuple[
         stats.finished_at = utc_now()
         stats.notes = (
             "Offline Stage 3B classification completed. Categories and auxiliary "
-            "tags mirror the planned Minimax M2.7 prompt contract."
+            "tags mirror the planned DeepSeek V4 prompt contract."
         )
         record_run(connection, stats)
 

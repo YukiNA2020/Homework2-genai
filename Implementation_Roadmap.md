@@ -264,7 +264,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 现阶段的主要限制不是架构方向错误，而是三个能力仍然处于占位状态：
 
 1. **真实每日信息源未接入**：当前只读取本地样例新闻，RSS/API配置仍是预留接口。
-2. **真实大模型未接入**：Minimax M2.7目前是配置占位，摘要、评分、分类和内容生成使用离线确定性逻辑。
+2. **真实大模型未接入业务流程**：DeepSeek V4已作为默认真实LLM配置，摘要、评分、分类和内容生成目前仍使用离线确定性逻辑，阶段十再逐步替换。
 3. **真实图片未生成**：当前输出的是配图Prompt，没有调用图片生成API，也没有保存最终图片文件。
 
 因此，v4.0的目标不是重写系统，而是在现有MVP上逐步替换占位模块。
@@ -303,6 +303,8 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 目标：把阶段二从“本地样例输入”升级为“本地样例 + 真实RSS/API输入”。
 
+当前状态：已于2026-05-01完成阶段八。`1_news_monitoring.py` 已新增 `--input-mode rss` 与 `--rss-limit`；`rss_sources.json` 已配置5个公开RSS源；`0_main_workflow.py` 已新增 `--stage2-input-mode`，默认仍保持 `local_sample` 离线基线。
+
 优先接入来源：
 
 | 优先级 | 来源类型 | 建议来源 |
@@ -322,13 +324,17 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 验收标准：
 
-- 运行RSS模式后，数据库能新增真实新闻记录。
-- 重复运行不会重复插入同一URL或同一内容哈希。
-- 网络失败时工作流给出清晰日志，而不是直接崩溃。
+- 运行RSS模式后，数据库能新增真实新闻记录。（已验证）
+- 重复运行不会重复插入同一URL或同一内容哈希。（已验证）
+- 网络失败时工作流给出清晰日志，而不是直接崩溃。（已验证）
 
 ### 10.5 阶段九：统一LLM客户端与API配置
 
 目标：先做一个统一的模型调用接口，再逐步替换各阶段的离线占位逻辑。
+
+当前状态：已于2026-05-01完成阶段九。`1-Workflow_Files/llm_client.py` 已提供统一LLM调用入口；`1-Workflow_Files/.env.example` 已切换为DeepSeek V4默认配置；无API key或endpoint时会自动返回结构化离线fallback，不影响当前MVP运行。
+
+密钥安全规则：`1-Workflow_Files/.env` 只允许用户本人本地编辑，不允许任何AI开发/测试流程读取、打印、复制、总结或上传该文件内容。后续测试真实LLM时，只能使用 `llm_client.py --print-config --require-online` 这类脱敏命令确认 key 是否配置成功；不得运行 `cat .env`、`sed ... .env`、`grep/rg ... .env`，也不得要求用户把API key发送到对话中。
 
 建议新增模块：
 
@@ -340,8 +346,8 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 具体行动：
 
 1. 在 `.env.example` 中列出需要的环境变量，例如：
-   - `MINIMAX_API_KEY`
-   - `MINIMAX_API_ENDPOINT`
+   - `DEEPSEEK_API_KEY`
+   - `DEEPSEEK_API_ENDPOINT`
    - `LLM_PROVIDER`
    - `LLM_MODEL`
 2. 在 `llm_client.py` 中封装：
@@ -351,6 +357,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
    - 重试与超时
    - 错误日志
    - fallback到离线逻辑
+   - 脱敏配置检查，日志中只显示API key是否存在，不显示真实key
 3. 所有阶段脚本不要直接写API请求，而是统一调用 `llm_client.py`。
 
 验收标准：
@@ -379,6 +386,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 2. 替换后保留同样的数据库字段，不破坏下游模块。
 3. 每个LLM输出都要求JSON格式，严禁只返回自由文本。
 4. 每个阶段都保留 `--offline` 或 fallback 机制。
+5. 任何调试日志、错误信息、进度报告和Prompt记录都不得包含真实API key或 `.env` 文件内容。
 
 验收标准：
 
@@ -460,18 +468,18 @@ daily_outputs/YYYY-MM-DD/
 
 下一步不要同时做联网、LLM、图片和定时任务。推荐按下面顺序一轮一轮推进：
 
-1. **先做真实RSS接入**：证明系统能吃到真实信息。
-2. **再做LLM客户端**：证明API能稳定返回结构化结果。
-3. **先替换新闻摘要**：这是最低风险的LLM替换点。
+1. **真实RSS接入**：已完成，系统已经能吃到真实信息。
+2. **LLM客户端**：已完成统一封装和离线fallback验证。
+3. **下一步先替换新闻摘要**：这是最低风险的LLM替换点。
 4. **再替换相关性评分和分类**：让核心判断更接近作业要求中的AI机制。
 5. **最后替换LinkedIn生成**：在输入质量稳定后再提升输出自然度。
 6. **再接图片生成**：补齐最终内容形态。
 7. **最后做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
 
-### 10.11 阶段七到阶段九的最近三步行动
+### 10.11 阶段九完成与阶段十起点
 
-为了让下一次开发有清晰起点，最近只做三件事：
+阶段九已完成以下三件事；下一次开发应从阶段十“先替换新闻摘要”开始：
 
-1. **更新 `rss_sources.json`**：扩展到3-5个真实、稳定、可公开访问的RSS源。
-2. **升级 `1_news_monitoring.py`**：增加 `--input-mode rss`，实现真实RSS抓取和入库。
-3. **新增 `llm_client.py` 与 `.env.example`**：先跑通一个最小LLM调用测试，再决定替换哪个阶段。
+1. **新增 `.env.example`**：已完成，当前默认DeepSeek V4，列出 `DEEPSEEK_API_KEY`、`DEEPSEEK_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL` 等环境变量。
+2. **新增 `llm_client.py`**：已完成，统一封装API key读取、请求发送、结构化JSON解析、重试、超时与离线fallback。
+3. **新增最小LLM连通性测试**：已完成，无API key时返回结构化fallback；用户填写 `.env` 后可用 `--require-online` 验证真实API。

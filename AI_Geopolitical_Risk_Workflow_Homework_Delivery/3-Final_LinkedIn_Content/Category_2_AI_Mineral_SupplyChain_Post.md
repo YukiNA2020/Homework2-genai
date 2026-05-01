@@ -1,8 +1,8 @@
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。  
-> Run ID: `run_20260501_223154_a619f6aa`  
-> Generated at: `2026-05-01T14:31:54Z`
+> Run ID: `run_20260501_235321_0b4c8eb2`  
+> Generated at: `2026-05-01T15:53:21Z`
 
 ## Metadata
 
@@ -11,7 +11,7 @@
 - Tone and positioning: Deep-analysis executive brief that links mineral supply risk to AI infrastructure cost, timing, and investment decisions.
 - Source news IDs: 2
 - Prompt version: linkedin_content_generation_v1_offline_mvp
-- Model provider placeholder: Minimax M2.7
+- Model provider placeholder: DeepSeek V4
 
 ## Source Evidence
 

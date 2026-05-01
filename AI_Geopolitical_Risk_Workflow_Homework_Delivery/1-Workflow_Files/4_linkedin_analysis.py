@@ -21,11 +21,11 @@ from typing import Any
 
 from api_config import (
     DATABASE_PATH,
+    DEFAULT_LLM_CONFIG,
     KOL_STYLE_ANALYSIS_PROMPT_PATH,
     KOL_STYLE_CHECKLIST_PATH,
     LINKEDIN_CONTENT_CONSTRAINTS_PROMPT_PATH,
     LOG_DIR,
-    MINIMAX_M27_CONFIG,
     SQLITE_SCHEMA_PATH,
 )
 
@@ -336,7 +336,7 @@ def render_analysis_prompt() -> str:
         """
         Prompt name: Stage 4 KOL style analysis prompt
         Workflow step: LinkedIn KOL content structure research
-        Target model: Minimax M2.7 or equivalent reasoning model
+        Target model: DeepSeek V4 (`deepseek-v4-pro`) or equivalent reasoning model
 
         System role:
         You are a content strategist for AI infrastructure geopolitical risk analysis.
@@ -380,7 +380,7 @@ def render_constraints_prompt() -> str:
         """
         Prompt name: Stage 4 LinkedIn content constraints prompt
         Workflow step: Constraint layer for Stage 5 LinkedIn post generation
-        Target model: Minimax M2.7 or equivalent reasoning model
+        Target model: DeepSeek V4 (`deepseek-v4-pro`) or equivalent reasoning model
 
         System role:
         You are an AI infrastructure geopolitical risk analyst writing a LinkedIn
@@ -477,7 +477,7 @@ def upsert_kol_analysis_result(connection: sqlite3.Connection, result: dict[str,
             json.dumps(result["transferable_rules"], ensure_ascii=False),
             result["limitations"],
             PROMPT_VERSION,
-            MINIMAX_M27_CONFIG["provider"],
+            DEFAULT_LLM_CONFIG["provider"],
             now,
             now,
         ),
@@ -519,8 +519,8 @@ def run_linkedin_analysis(
     logger.info("KOL profiles configured: %s", len(KOL_PROFILES))
     logger.info(
         "LLM provider placeholder: %s | enabled=%s",
-        MINIMAX_M27_CONFIG["provider"],
-        MINIMAX_M27_CONFIG["enabled"],
+        DEFAULT_LLM_CONFIG["provider"],
+        DEFAULT_LLM_CONFIG["enabled"],
     )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)

@@ -1,7 +1,7 @@
 # AI基建地缘风险洞察工作流 作业落地总说明
 
 > 文档用途：本文件为《Homework 2 AI Content Monitoring and Generation Workflow》作业的总体说明，用于快速理解项目方向、工作流架构与交付策略。
-> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ Minimax M2.7（摘要、评分、分类、内容生成）+ SQLite（MVP信息仓库）。
+> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ DeepSeek V4（摘要、评分、分类、内容生成，默认 `deepseek-v4-pro`）+ SQLite（MVP信息仓库）。
 > 战略定位：本项目采用MVP优先策略，不追求一次性覆盖“全产业链、全自动、全信息源”，而是聚焦“AI基建地缘风险”这一更可落地的高价值场景。
 
 ---

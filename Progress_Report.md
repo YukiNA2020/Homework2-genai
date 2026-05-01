@@ -730,3 +730,267 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 
 **下一步：**
 交给用户测试当前阶段七冻结后的版本。用户测试通过后，可以进入阶段八：真实新闻/RSS接入。
+
+---
+
+### 第十轮：2026-05-01
+
+**用户需求：**
+用户要求阅读当前文件夹下子文件夹 `Homework2` 中的项目，然后继续完成下一个阶段，也就是阶段八；完成后交给用户测试。如果需要填写API信息，则先中断并告知。
+
+**AI响应：**
+阶段八只接入公开RSS源，不接入LLM、图片生成或付费API，因此本轮不需要用户填写API key。实现原则是兼容式升级：保留 `local_sample` 离线入口，同时新增真实RSS抓取入口。
+
+**本轮完成内容：**
+1. 扩展 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json`，配置5个公开RSS源：
+   - MIT Technology Review - Artificial Intelligence
+   - OpenAI News
+   - Microsoft Official Blog
+   - NVIDIA Blog
+   - USGS News
+2. 升级 `1_news_monitoring.py`：
+   - 新增 `--input-mode rss`
+   - 新增 `--rss-limit`
+   - 使用Python标准库解析RSS/Atom，不新增第三方依赖
+   - 支持HTML清洗、发布时间标准化、内容哈希去重
+   - 单个RSS源失败时只写入warning，不中断整次运行
+3. 保留 `--input-mode local_sample`，继续作为无网络、无API key环境下的演示和测试入口。
+4. 升级 `0_main_workflow.py`：
+   - 新增 `--stage2-input-mode`
+   - 新增 `--rss-limit`
+   - 默认仍为 `local_sample`，保护阶段七冻结基线。
+5. 更新 `STATUS.md` 与 `Implementation_Roadmap.md`，将阶段八标记为已完成，并将阶段九设为下一步。
+
+**验证结果：**
+
+离线回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode local_sample
+```
+
+结果摘要：
+
+- Items seen：6
+- Inserted：0
+- Duplicates skipped：6
+- Errors：0
+
+RSS联网验证：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode rss --rss-limit 2
+```
+
+最终重复抓取验证结果摘要：
+
+- 5个RSS源均可解析
+- Items seen：10
+- Inserted：0
+- Duplicates skipped：10
+- Errors：0
+- 当前数据库记录数：`local_sample=6`，`rss=10`
+
+总控脚本入口验证：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --help
+```
+
+已确认新增参数可见：
+
+- `--stage2-input-mode {local_sample,rss,all}`
+- `--rss-limit RSS_LIMIT`
+
+**关键决策：**
+阶段八只完成真实信息源接入，不提前进入阶段九的LLM客户端、不新增 `.env`、不要求用户填写API key。RSS抓取结果仍写入现有 `news_items` 表，不改变下游数据库结构。
+
+**下一步：**
+交给用户测试阶段八。用户测试通过后，可以进入阶段九：统一LLM客户端与API配置。
+
+---
+
+### 第十一轮：2026-05-01
+
+**用户需求：**
+用户要求阅读当前文件夹下子文件夹 `Homework2` 中的项目，然后继续完成下一个阶段，也就是阶段九；完成后交给用户测试。如果需要填写API信息，可以先中断，也可以先实现 `llm_client.py` 的离线fallback版本。
+
+**AI响应：**
+本轮选择先实现离线fallback方案，不中断用户填写API。阶段九只做统一LLM客户端、配置模板和最小连通性测试，不提前进入阶段十的业务逻辑替换。
+
+**本轮完成内容：**
+1. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py`：
+   - 读取 `.env` 和当前进程环境变量。
+   - 统一封装API key、endpoint、provider、model、timeout、retry、temperature、max tokens等配置。
+   - 使用标准库发送chat-completions风格请求。
+   - 解析模型返回的结构化JSON，支持普通JSON、Markdown fenced JSON和嵌入式JSON对象提取。
+   - API key或endpoint缺失时自动返回结构化离线fallback。
+   - API调用失败或返回非JSON时，可通过 `LLM_FALLBACK_ON_ERROR=true` 自动fallback。
+2. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/.env.example`：
+   - 包含 `MINIMAX_API_KEY`、`MINIMAX_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL`、`LLM_API_STYLE` 等配置项。
+3. 更新 `1-Workflow_Files/api_config.py`：
+   - 新增 `LLM_ENV_PATH`、`LLM_ENV_EXAMPLE_PATH`。
+   - 将Minimax占位模型名更新为 `minimax-m2.7`。
+4. 新增阶段九记录文档：`4-Progress_Report/stage_9_llm_client_notes.md`。
+5. 更新 `STATUS.md` 与 `Implementation_Roadmap.md`，将阶段九标记为已完成，并将阶段十设为下一步。
+
+**验证结果：**
+
+语法检查：
+
+```bash
+python3 -m py_compile AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/api_config.py
+```
+
+结果：通过，无报错。
+
+离线fallback自测：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config
+```
+
+结果摘要：
+
+- `available: false`
+- `reason: API key is not configured`
+- `API called: False`
+- `Used fallback: True`
+- `Parsed JSON` 正常输出，包含 `stage: stage_9_llm_client`
+
+总控脚本回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+结果摘要：
+
+- Run ID：`run_20260501_230740_6af9ab82`
+- `Overall success: True`
+- Stage 2 news monitoring：OK
+- Stage 3A relevance routing：OK
+- Stage 3B information classification：OK
+- Stage 4 LinkedIn KOL analysis：OK
+- Stage 5 LinkedIn content generation：OK
+- 数据库健康检查：全部PASS
+
+**关键决策：**
+阶段九不要求用户现在填写真实API key。用户后续复制 `.env.example` 为 `.env` 并填写配置后，可运行：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
+```
+
+真实API连通后，阶段十再从新闻摘要开始逐步替换离线占位逻辑。
+
+**下一步：**
+交给用户测试阶段九。测试通过后，可以进入阶段十：先用LLM替换新闻摘要与关键词提取。
+
+---
+
+### 第十二轮：2026-05-01
+
+**用户需求：**
+用户担心 `.env` 中的真实API key被后续AI读取后进入对话上下文，要求把安全规则写入项目Markdown文档中的交接Prompt和开发说明，确保负责测试的AI或后续开发过程不会泄露API。
+
+**AI响应：**
+本轮没有读取 `.env` 内容，只更新Markdown安全规则与交接Prompt。
+
+**本轮完成内容：**
+1. 更新 `STATUS.md` 的“新会话启动Prompt”，新增API密钥安全红线：
+   - 不读取、打印、复制、总结或上传 `1-Workflow_Files/.env` 内容。
+   - 不运行 `cat .env`、`sed ... .env`、`grep/rg ... .env` 等会暴露密钥的命令。
+   - 不要求用户把API key发到对话中。
+   - 测试真实LLM时只能运行脱敏命令，例如 `llm_client.py --print-config --require-online`。
+2. 更新 `STATUS.md` 的阶段九完成记录，明确 `.env` 是用户本地私密文件。
+3. 更新 `Implementation_Roadmap.md`，在阶段九和阶段十边界中加入密钥安全规则，要求日志、报告和Prompt记录不得包含真实API key。
+4. 更新 `stage_9_llm_client_notes.md`，新增“API Key安全规则”章节。
+5. 更新 `prompt_optimization_records.md`，把API key安全约束纳入后续Prompt升级方向。
+
+**关键决策：**
+后续AI接手项目时，必须把 `.env` 当作不可读私密文件处理。真实LLM测试只允许通过脱敏状态输出确认配置，不得把密钥内容放入任何对话、Markdown、日志或进度报告。
+
+---
+
+### 第十三轮：2026-05-01
+
+**用户需求：**
+用户询问DeepSeek V4的API是否能够胜任本项目，并提供DeepSeek相关网页。若可行，希望不再使用MiniMax，而是改用DeepSeek V4，并要求说明 `.env` 配置方式，同时更新项目Markdown文档中关于模型使用的描述。
+
+**AI响应：**
+根据DeepSeek官方API文档，DeepSeek提供OpenAI-compatible的Chat Completions接口，并支持JSON Output模式，模型列表包含 `deepseek-v4-flash` 与 `deepseek-v4-pro`。本项目阶段十要做的是摘要、关键词、相关性评分、分类和LinkedIn内容生成，核心要求是稳定的结构化JSON输出，因此DeepSeek V4可以胜任。默认选择 `deepseek-v4-pro`，优先保证质量和结构化输出稳定性。
+
+**本轮完成内容：**
+1. 更新 `1-Workflow_Files/api_config.py`：
+   - 新增默认LLM配置 `DEFAULT_LLM_CONFIG`。
+   - 将默认真实LLM切换为DeepSeek V4。
+   - 默认模型为 `deepseek-v4-pro`。
+   - 默认endpoint为 `https://api.deepseek.com/chat/completions`。
+2. 更新 `1-Workflow_Files/llm_client.py`：
+   - 默认provider从 `minimax` 切换为 `deepseek`。
+   - 支持 `DEEPSEEK_API_KEY`、`DEEPSEEK_API_ENDPOINT`。
+   - 保留 `LLM_API_KEY`、`LLM_API_ENDPOINT` 作为通用provider备用字段。
+   - 继续保持OpenAI-compatible请求体和JSON解析逻辑。
+3. 更新 `1-Workflow_Files/.env.example`：
+   - 默认配置改为DeepSeek V4。
+   - 保留MiniMax字段作为未来切换provider时的可选配置。
+4. 更新项目Markdown模型描述：
+   - `Plan_of_Project.md`
+   - `Intro.md`
+   - `STATUS.md`
+   - `Implementation_Roadmap.md`
+   - `workflow_architecture.md`
+   - `stage_9_llm_client_notes.md`
+   - `prompt_optimization_records.md`
+   - `Progress_Report_Final.md`
+
+**推荐 `.env` 配置：**
+
+```env
+LLM_PROVIDER=deepseek
+LLM_MODEL=deepseek-v4-pro
+LLM_API_STYLE=openai_compatible
+
+DEEPSEEK_API_KEY=你的DeepSeek_API_KEY
+DEEPSEEK_API_ENDPOINT=https://api.deepseek.com/chat/completions
+
+LLM_FORCE_OFFLINE=false
+LLM_FALLBACK_ON_ERROR=true
+```
+
+**关键决策：**
+不自动读取或修改用户私密 `.env` 文件。用户自行把上述配置写入 `.env` 后，可以用脱敏命令测试：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
+```
+
+**验证结果：**
+
+脱敏离线自测（未加载 `.env`）：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --no-env-file --print-config
+```
+
+结果摘要：
+
+- `provider: deepseek`
+- `model: deepseek-v4-pro`
+- `endpoint_configured: true`
+- `api_key_configured: false`
+- `Used fallback: True`
+
+总控脚本离线回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+结果摘要：
+
+- Run ID：`run_20260501_234200_55c40c29`
+- `Overall success: True`
+- 阶段二到阶段五全部 `OK`
+- 数据库健康检查全部 `PASS`

@@ -1,6 +1,6 @@
 Prompt name: Stage 5 LinkedIn post generation prompt
 Workflow step: Final LinkedIn decision-brief content generation
-Target model: Minimax M2.7 or equivalent reasoning model
+Target model: DeepSeek V4 (`deepseek-v4-pro`) or equivalent reasoning model
 
 System role:
 You are an AI infrastructure geopolitical risk analyst writing concise

@@ -1,0 +1,20 @@
+2026-05-01 22:52:45,267 | INFO | Starting Stage 3A relevance routing run: run_20260501_225245_4c64bf41
+2026-05-01 22:52:45,267 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-01 22:52:45,267 | INFO | LLM provider placeholder: Minimax M2.7 | enabled=False
+2026-05-01 22:52:45,269 | INFO | KEEP | score=9.78 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-01 22:52:45,270 | INFO | KEEP | score=8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-01 22:52:45,270 | INFO | KEEP | score=8.88 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-01 22:52:45,270 | INFO | KEEP | score=7.94 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-01 22:52:45,270 | INFO | FILTER | score=0.00 | New multimodal model feature improves creative workflows
+2026-05-01 22:52:45,270 | INFO | FILTER | score=0.00 | General trade talks continue without direct AI infrastructure implications
+2026-05-01 22:52:45,271 | INFO | FILTER | score=6.59 | A new US phone network for Christians aims to block porn and gender-related content
+2026-05-01 22:52:45,271 | INFO | FILTER | score=5.32 | This startup’s new mechanistic interpretability tool lets you debug LLMs
+2026-05-01 22:52:45,271 | INFO | FILTER | score=3.80 | Introducing Advanced Account Security
+2026-05-01 22:52:45,272 | INFO | FILTER | score=3.80 | Where the goblins came from
+2026-05-01 22:52:45,272 | INFO | FILTER | score=6.53 | Unlocking human ambition to drive business growth with AI
+2026-05-01 22:52:45,273 | INFO | FILTER | score=6.90 | Microsoft Sovereign Private Cloud scales to thousands of nodes with Azure Local
+2026-05-01 22:52:45,274 | INFO | FILTER | score=6.56 | Nemotron Labs: What OpenClaw Agents Mean for Every Organization
+2026-05-01 22:52:45,274 | INFO | FILTER | score=6.54 | It’s Gonna Be May: 16 Games Hit the Cloud This Month, With More NVIDIA GeForce RTX 5080 Power
+2026-05-01 22:52:45,274 | INFO | FILTER | score=0.00 | Lithium in Eastern States Could Replace Imports for a Century or More
+2026-05-01 22:52:45,274 | INFO | FILTER | score=4.90 | New Nationwide Tool Helps Answer: Do We Have Enough Water?
+2026-05-01 22:52:45,275 | INFO | Completed routing. seen=16 routed=16 kept=4 filtered=12 errors=0
