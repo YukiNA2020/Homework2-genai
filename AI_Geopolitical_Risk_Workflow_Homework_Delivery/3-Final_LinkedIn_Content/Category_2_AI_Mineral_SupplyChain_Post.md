@@ -1,8 +1,8 @@
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
-> Run ID: `run_20260502_101124_fe98c544`
-> Generated at: `2026-05-02T02:11:24Z`
+> Run ID: `run_20260502_112443_7423c09d`
+> Generated at: `2026-05-02T03:24:43Z`
 
 ## Metadata
 
@@ -10,43 +10,41 @@
 - Target audience: AI infrastructure investors, commodity investors, and AI enterprise supply-chain leaders.
 - Tone and positioning: Deep-analysis executive brief that links mineral supply risk to AI infrastructure cost, timing, and investment decisions.
 - Source news IDs: 2
-- Prompt version: linkedin_content_generation_v2_stage10_offline_fallback
-- Model provider: offline_fallback
+- Prompt version: linkedin_content_generation_v2_stage10_llm
+- Model provider: deepseek:deepseek-v4-flash
 
 ## Source Evidence
 
 | News ID | Source type | Relevance | Classification confidence | Title |
 |---:|---|---:|---:|---|
-| 2 | institution_report | 8.49 | 0.95 | Copper supply concentration creates cost risk for AI infrastructure buildout |
+| 2 | institution_report | 8.70 | 0.85 | Copper supply concentration creates cost risk for AI infrastructure buildout |
 
 ## LinkedIn Post
 
-Copper may be one of the quietest bottlenecks in the AI buildout story.
+🔌 Copper: The hidden bottleneck in AI infrastructure expansion
 
 What happened:
-The selected critical-minerals signal is: Copper supply concentration creates cost risk for AI infrastructure buildout. It links rising demand from data centers, power transmission, and semiconductor manufacturing with political risk in key producing regions.
+A new minerals note highlights rising copper demand from data centers, power transmission, and semiconductor manufacturing—and the growing political risk in key producing regions. Mine disruptions, permitting delays, resource nationalism, and shipping constraints could raise the cost of AI infrastructure expansion.
 
 Why it matters for AI infrastructure:
-AI compute expansion is physical infrastructure before it is only software. Copper availability can shape grid expansion, data center electrical systems, transmission capacity, and the upstream cost base behind AI infrastructure deployment.
+Copper is a strategic input for compute investment. As AI buildout accelerates, supply concentration and geopolitical risk directly affect project costs and timelines. Treating copper availability as a critical factor is no longer optional.
 
 Business implications:
-- AI infrastructure cost models should stress-test mineral input inflation and construction delays, not only GPU pricing.
-- Investors need to compare compute capacity pipelines with copper, transmission, and permitting bottlenecks.
-- Supply-chain teams should monitor regional concentration risk alongside chip and accelerator availability.
+• Rising copper costs could increase capital expenditure for data center and power infrastructure, squeezing margins.
+• Permitting delays and resource nationalism in major producing regions may disrupt supply chains, delaying AI infrastructure projects.
+• Investors should reassess exposure to copper-intensive AI infrastructure projects and consider hedging or diversification strategies.
 
 Signals to watch:
-- Permitting timelines and disruption risk in copper-producing regions.
-- Transmission equipment lead times and grid expansion plans in data center markets.
-- Policy signals around resource nationalism, export limits, or shipping constraints.
+• Policy shifts in copper-producing countries (e.g., new mining taxes or export restrictions)
+• Shipping route disruptions affecting copper concentrate flows
+• Breakthroughs in copper-efficient or alternative technologies
 
-Closing question:
-If AI demand keeps moving from model roadmaps into grid-scale construction, should copper risk be treated as a core AI infrastructure KPI rather than a commodity footnote?
-
-#AIInfrastructure #CriticalMinerals #SupplyChain
+Closing question for decision-makers:
+Are you actively integrating copper supply risk into your AI infrastructure investment and sourcing decisions?
 
 ## Image Generation Prompt
 
-Create a professional 16:9 LinkedIn visual for an executive brief on critical minerals and AI infrastructure. Show copper supply, power transmission lines, semiconductor manufacturing, and data center construction as connected layers of one supply chain. Use a clean editorial business style, no logos, no text overlays, no sensational imagery.
+A professional, 16:9 executive briefing illustration: a subtle network of glowing copper-colored lines connecting a data center silhouette to a globe with mining regions highlighted in muted tones, conveying supply chain connectivity without text or logos. Clean, modern, blue-and-copper palette, no crisis imagery.
 
 ## Quality Self-Check
 
@@ -54,7 +52,7 @@ Create a professional 16:9 LinkedIn visual for an executive brief on critical mi
 |---|---:|
 | Domain relevance | 25 |
 | Decision value | 24 |
-| Credibility | 18 |
+| Credibility | 20 |
 | Structure clarity | 15 |
 | Interaction quality | 15 |
-| Total | 97 |
+| Total | 99 |

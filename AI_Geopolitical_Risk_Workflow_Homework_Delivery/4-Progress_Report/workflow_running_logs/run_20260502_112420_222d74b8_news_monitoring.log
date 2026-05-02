@@ -1,0 +1,7 @@
+2026-05-02 11:24:20,730 | INFO | Starting Stage 2 news monitoring run: run_20260502_112420_222d74b8
+2026-05-02 11:24:20,730 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 11:24:20,731 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True
+2026-05-02 11:24:20,733 | INFO | Loaded 6 local sample items from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/sample_news.json.
+2026-05-02 11:24:20,733 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 11:24:27,860 | INFO | Duplicate skipped: AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 11:24:27,863 | INFO | Completed run. seen=1 inserted=0 duplicates=1 errors=0

@@ -1,0 +1,10 @@
+2026-05-02 10:51:10,025 | INFO | Starting Stage 3A relevance routing run: run_20260502_105110_33e573a3
+2026-05-02 10:51:10,025 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 10:51:10,025 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:51:10,025 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 10:51:10,029 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 10:51:46,432 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=No JSON object found in LLM response: 
+2026-05-02 10:52:24,819 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=No JSON object found in LLM response: 
+2026-05-02 10:53:00,290 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=No JSON object found in LLM response: 
+2026-05-02 10:53:00,297 | ERROR | Failed to route news_id=1: stage_10_relevance_scoring required online LLM but failed: No JSON object found in LLM response: 
+2026-05-02 10:53:00,304 | INFO | Completed routing. seen=1 routed=0 kept=0 filtered=0 errors=1

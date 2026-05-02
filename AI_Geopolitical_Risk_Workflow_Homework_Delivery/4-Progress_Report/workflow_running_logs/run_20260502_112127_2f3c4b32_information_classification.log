@@ -1,0 +1,11 @@
+2026-05-02 11:21:27,214 | INFO | Starting Stage 3B information classification run: run_20260502_112127_2f3c4b32
+2026-05-02 11:21:27,214 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 11:21:27,214 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 11:21:27,215 | INFO | Stage 10 classification LLM mode: auto | available=True | require_online=False
+2026-05-02 11:21:33,528 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.90 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 11:21:47,787 | INFO | CLASSIFIED | AI关键矿产供应链与地缘政治 | confidence=0.85 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 11:21:53,450 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.92 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 11:21:59,909 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.92 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 11:22:06,967 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.88 | Microsoft Sovereign Private Cloud scales to thousands of nodes with Azure Local
+2026-05-02 11:22:15,471 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.85 | The next phase of the Microsoft-OpenAI partnership
+2026-05-02 11:22:15,477 | INFO | Completed classification. seen=6 classified=6 errors=0

@@ -1,0 +1,7 @@
+2026-05-02 10:53:00,429 | INFO | Starting Stage 3B information classification run: run_20260502_105300_881b3b60
+2026-05-02 10:53:00,430 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 10:53:00,430 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:53:00,430 | INFO | Stage 10 classification LLM mode: online | available=True | require_online=True
+2026-05-02 10:53:00,434 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 10:53:31,204 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.92 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 10:53:31,206 | INFO | Completed classification. seen=1 classified=1 errors=0

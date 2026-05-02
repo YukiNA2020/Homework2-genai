@@ -1,0 +1,11 @@
+2026-05-02 10:53:31,285 | INFO | Starting Stage 4 LinkedIn KOL analysis run: run_20260502_105331_2ca3cc84
+2026-05-02 10:53:31,285 | INFO | KOL profiles configured: 4
+2026-05-02 10:53:31,285 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:53:31,287 | INFO | ANALYZED | Chris Miller
+2026-05-02 10:53:31,287 | INFO | ANALYZED | Paul Triolo
+2026-05-02 10:53:31,287 | INFO | ANALYZED | Gregory C. Allen
+2026-05-02 10:53:31,287 | INFO | ANALYZED | Jordan Schneider
+2026-05-02 10:53:31,288 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md
+2026-05-02 10:53:31,288 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt
+2026-05-02 10:53:31,288 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt
+2026-05-02 10:53:31,288 | INFO | Completed KOL analysis. profiles=4 outputs=3 errors=0

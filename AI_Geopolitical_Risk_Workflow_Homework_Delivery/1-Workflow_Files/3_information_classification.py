@@ -520,7 +520,11 @@ def run_information_classification(
         DEFAULT_LLM_CONFIG["provider"],
         DEFAULT_LLM_CONFIG["enabled"],
     )
-    llm_client, require_online = build_llm_client(llm_mode, logger)
+    llm_client, require_online = build_llm_client(
+        llm_mode,
+        logger,
+        model_env_var="CLASSIFICATION_LLM_MODEL",
+    )
     logger.info(
         "Stage 10 classification LLM mode: %s | available=%s | require_online=%s",
         llm_mode,
@@ -602,7 +606,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
     rerun = args.rerun or not args.only_new
     stats, log_path = run_information_classification(args.db_path, rerun, args.llm_mode, args.max_items)
@@ -613,7 +617,8 @@ def main() -> None:
     print(f"Classified: {stats.items_classified}")
     print(f"Errors: {stats.errors}")
     print(f"Log file: {log_path}")
+    return 0 if stats.errors == 0 else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

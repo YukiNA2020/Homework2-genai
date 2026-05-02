@@ -1085,3 +1085,63 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 
 **下一步建议：**
 阶段十一再处理图片生成与内容归档。由于DeepSeek V4多模态能力不是本项目强项，阶段十一应单独选择图片生成模型或服务，不强行用DeepSeek V4做图片。
+
+---
+
+## 2026-05-02 阶段十联网验收：DeepSeek V4 Flash
+
+**用户需求：**
+用户已填写DeepSeek API，并先后调整网络和模型，希望验证阶段十联网模式是否可跑通；如果 `deepseek-v4-pro` 仍不稳定，则切换到 `deepseek-v4-flash`。
+
+**测试过程与结论：**
+1. 脱敏连通性检查通过：
+   - `provider: deepseek`
+   - `model: deepseek-v4-flash`
+   - `api_key_configured: true`
+   - `API succeeded: True`
+   - `Used fallback: False`
+2. `deepseek-v4-pro` 在阶段三A相关性评分中出现过超时和空响应，联网链路可用但不稳定。
+3. 用户切换到 `deepseek-v4-flash` 后，阶段三A单条评分通过，随后阶段十小批量全流程通过。
+
+**新增工程增强：**
+1. `0_main_workflow.py` 新增 `--stage10-max-items`，用于小批量联网验收。
+2. 阶段脚本新增内部错误退出码：如果某阶段 `errors > 0`，脚本返回非0，避免总控脚本误报成功。
+3. 新增分阶段模型覆盖：
+   - `SUMMARIZATION_LLM_MODEL`
+   - `ROUTING_LLM_MODEL`
+   - `CLASSIFICATION_LLM_MODEL`
+   - `CONTENT_LLM_MODEL`
+
+**通过的命令：**
+
+```bash
+env LLM_TIMEOUT_SECONDS=120 python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online --stage10-max-items 1
+```
+
+结果摘要：
+
+- Run ID：`run_20260502_112420_efc3355a`
+- `Overall success: True`
+- Stage 2 online摘要：OK，7.20s，errors=0
+- Stage 3A online相关性评分：OK，7.41s，errors=0
+- Stage 3B online分类：OK，8.00s，errors=0
+- Stage 5 online内容生成：OK，23.85s，errors=0
+- 数据库健康检查全部 `PASS`
+
+**建议配置：**
+
+优先用Flash跑阶段十：
+
+```env
+LLM_MODEL=deepseek-v4-flash
+```
+
+如果后续想让最终LinkedIn内容质量更强，可以使用：
+
+```env
+LLM_MODEL=deepseek-v4-flash
+CONTENT_LLM_MODEL=deepseek-v4-pro
+```
+
+**下一步建议：**
+阶段十联网小批量验收已通过，可以进入阶段十一：图片生成与内容归档。阶段十一不要使用DeepSeek做图片生成，应单独选择图片生成模型或服务。

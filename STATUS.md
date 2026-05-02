@@ -87,6 +87,7 @@
 - 阶段八已完成真实RSS接入：`1_news_monitoring.py` 新增 `--input-mode rss`，`rss_sources.json` 已配置5个公开RSS源，联网验证可抓取并写入 `news_items` 表。
 - 阶段九已完成统一LLM客户端：新增 `llm_client.py` 与 `.env.example`，无API key时自动使用结构化离线fallback；默认真实LLM已切换为DeepSeek V4（`deepseek-v4-pro`）。
 - 阶段十已完成LLM替换接线：阶段二新闻摘要、阶段三相关性评分、阶段三分类、阶段五LinkedIn生成均支持 `--llm-mode offline|auto|online`；默认仍为 `offline` 以保护稳定MVP，`auto/online` 通过统一 `llm_client.py` 调用DeepSeek V4。
+- 阶段十已完成真实联网小批量验收：用户切换为 `deepseek-v4-flash` 后，Run ID `run_20260502_112420_efc3355a`，`Overall success: True`，阶段二、阶段三A、阶段三B、阶段五全部online通过。
 - 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
 - 后续阶段十一以后新增图片生成或定时运行能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 
@@ -186,7 +187,10 @@
 - [x] 已升级 `3_information_classification.py`，可调用LLM输出主线分类、辅助标签、置信度与分类依据，并限制在既有分类体系内。
 - [x] 已升级 `5_linkedin_content_generation.py`，可调用LLM生成LinkedIn决策简报正文、视觉Prompt与质量自检。
 - [x] 已升级 `0_main_workflow.py`，新增 `--llm-mode offline|auto|online` 参数；默认 `offline`，保护阶段七冻结基线。
+- [x] 已新增 `--stage10-max-items`，支持小批量联网验收。
+- [x] 已新增分阶段模型覆盖：`SUMMARIZATION_LLM_MODEL`、`ROUTING_LLM_MODEL`、`CLASSIFICATION_LLM_MODEL`、`CONTENT_LLM_MODEL`。
 - [x] 已完成阶段十离线回归：Run ID `run_20260502_092016_e351f378`，`Overall success: True`，全部数据库健康检查 `PASS`。
+- [x] 已完成阶段十联网小批量验收：Run ID `run_20260502_112420_efc3355a`，`deepseek-v4-flash`，`Overall success: True`。
 - [x] 已记录阶段十说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_10_llm_replacement_notes.md`。
 
 ### 11. 核心定位（已收窄）
@@ -307,7 +311,12 @@ LLM评分权重：
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online
    ```
 4. `--llm-mode auto` 可用于“有可用配置则调用LLM，否则fallback”的日常测试；`--llm-mode online` 用于强制真实API成功，不成功则暴露错误。
-5. 阶段十只处理文本LLM替换，不涉及多模态。DeepSeek V4继续适合作为文本摘要、评分、分类和LinkedIn生成模型；图片生成模型应在阶段十一单独选择。
+5. 推荐联网验收命令：
+   ```bash
+   env LLM_TIMEOUT_SECONDS=120 python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online --stage10-max-items 1
+   ```
+   验证结果：Run ID `run_20260502_112420_efc3355a`，`deepseek-v4-flash`，阶段二、阶段三A、阶段三B、阶段五全部online通过。
+6. 阶段十只处理文本LLM替换，不涉及多模态。DeepSeek V4 Flash更适合当前结构化JSON与批量评分/分类；图片生成模型应在阶段十一单独选择。
 
 ---
 

@@ -1,0 +1,7 @@
+2026-05-02 11:24:27,944 | INFO | Starting Stage 3A relevance routing run: run_20260502_112427_274d95dd
+2026-05-02 11:24:27,944 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 11:24:27,944 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 11:24:27,944 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 11:24:27,947 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 11:24:35,271 | INFO | KEEP | score=8.50 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 11:24:35,273 | INFO | Completed routing. seen=1 routed=1 kept=1 filtered=0 errors=0

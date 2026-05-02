@@ -34,6 +34,12 @@
 6. 升级 `0_main_workflow.py`。
    - 新增全局 `--llm-mode offline|auto|online`。
    - 默认 `offline`，保证原有稳定MVP一键运行不被破坏。
+   - 新增 `--stage10-max-items`，用于小批量online验收，避免历史RSS记录全量调用时拖慢测试。
+
+7. 新增分阶段模型覆盖能力。
+   - 默认读取 `.env` 中的 `LLM_MODEL`。
+   - 可用 `SUMMARIZATION_LLM_MODEL`、`ROUTING_LLM_MODEL`、`CLASSIFICATION_LLM_MODEL`、`CONTENT_LLM_MODEL` 分别覆盖阶段二摘要、阶段三A评分、阶段三B分类、阶段五内容生成模型。
+   - 如果需要快速批量评分，可将全局 `LLM_MODEL` 或 `ROUTING_LLM_MODEL` 设置为 `deepseek-v4-flash`。
 
 ## 测试命令
 
@@ -82,9 +88,39 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode auto
 ```
 
+## 真实联网小批量验收记录
+
+2026-05-02 用户将网络和模型调整为 `deepseek-v4-flash` 后，完成脱敏连通性与阶段十小批量online验收。
+
+脱敏连通性：
+
+- `provider: deepseek`
+- `model: deepseek-v4-flash`
+- `api_key_configured: true`
+- `API succeeded: True`
+- `Used fallback: False`
+
+小批量online全流程：
+
+```bash
+env LLM_TIMEOUT_SECONDS=120 python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online --stage10-max-items 1
+```
+
+验证结果：
+
+- Run ID：`run_20260502_112420_efc3355a`
+- `Overall success: True`
+- Stage 2 online摘要：OK，7.20s，errors=0
+- Stage 3A online相关性评分：OK，7.41s，errors=0
+- Stage 3B online分类：OK，8.00s，errors=0
+- Stage 5 online内容生成：OK，23.85s，errors=0
+- 数据库健康检查全部 `PASS`
+
+结论：`deepseek-v4-flash` 比 `deepseek-v4-pro` 更适合当前阶段十的小批量和后续批量评分/分类验收。若后续追求最终LinkedIn文案质量，可以仅将 `CONTENT_LLM_MODEL` 覆盖为 `deepseek-v4-pro`。
+
 ## 模型选择说明
 
-阶段十只涉及文本摘要、结构化评分、文本分类和LinkedIn正文生成。DeepSeek V4当前仍适合作为文本LLM使用。用户提到的多模态能力不足不影响阶段十；如果阶段十一要生成真实图片，建议单独选择更适合图像生成的模型或服务，不强行让DeepSeek V4承担多模态任务。
+阶段十只涉及文本摘要、结构化评分、文本分类和LinkedIn正文生成。DeepSeek V4 Flash当前更适合作为快速结构化JSON模型使用。用户提到的多模态能力不足不影响阶段十；如果阶段十一要生成真实图片，建议单独选择更适合图像生成的模型或服务，不强行让DeepSeek V4承担多模态任务。
 
 ## 安全边界
 

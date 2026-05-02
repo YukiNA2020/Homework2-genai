@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import replace
 from typing import Literal
 
@@ -16,6 +17,7 @@ LLM_MODE_CHOICES = ("offline", "auto", "online")
 def build_llm_client(
     llm_mode: str,
     logger: logging.Logger | None = None,
+    model_env_var: str | None = None,
 ) -> tuple[LLMClient, bool]:
     """Create an LLM client for a stage without exposing local secrets.
 
@@ -34,6 +36,11 @@ def build_llm_client(
         config = replace(config, force_offline=True, fallback_on_error=True, api_key="")
     elif llm_mode == "online":
         config = replace(config, force_offline=False, fallback_on_error=False)
+
+    if model_env_var:
+        model_override = os.getenv(model_env_var, "").strip()
+        if model_override:
+            config = replace(config, model=model_override)
 
     return LLMClient(config=config, logger=logger), llm_mode == "online"
 
@@ -61,4 +68,3 @@ def prompt_version_label(base_name: str, response: LLMResponse | None) -> str:
     if response.used_fallback:
         return f"{base_name}_offline_fallback"
     return f"{base_name}_llm_failed"
-
