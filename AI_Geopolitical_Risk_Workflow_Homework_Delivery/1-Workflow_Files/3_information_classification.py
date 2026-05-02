@@ -1,9 +1,8 @@
-"""Stage 3B: business-relevant information classification.
+"""Stage 3B/10: business-relevant information classification.
 
 This script classifies routed and retained news into the two project categories
-defined in the roadmap, then assigns optional auxiliary tags. It is deterministic
-for the offline MVP and keeps the same output contract expected from a later LLM
-classification call.
+defined in the roadmap, then assigns optional auxiliary tags. It can use the
+unified LLM client while retaining the deterministic offline MVP contract.
 """
 
 from __future__ import annotations
@@ -20,9 +19,16 @@ from pathlib import Path
 from typing import Any
 
 from api_config import DATABASE_PATH, DEFAULT_LLM_CONFIG, LOG_DIR, SQLITE_SCHEMA_PATH
+from llm_stage_utils import (
+    LLM_MODE_CHOICES,
+    build_llm_client,
+    model_provider_label,
+    prompt_version_label,
+    require_online_success,
+)
 
 
-PROMPT_VERSION = "information_classification_v1_offline_mvp"
+PROMPT_VERSION_BASE = "information_classification_v2_stage10"
 
 CATEGORY_RULES = {
     "AI算力基础设施地缘风险": {
@@ -228,7 +234,53 @@ def choose_auxiliary_tags(text: str) -> tuple[list[str], dict[str, list[str]]]:
     return ranked_tags[:2], tag_hits
 
 
-def classify_item(item: sqlite3.Row) -> dict[str, Any]:
+def truncate_for_prompt(text: str, max_chars: int = 5000) -> str:
+    if len(text) <= max_chars:
+        return text
+    return f"{text[:max_chars].rstrip()}... [truncated for LLM prompt]"
+
+
+def coerce_float(value: Any, default: float, lower: float, upper: float) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return round(max(lower, min(upper, parsed)), 2)
+
+
+def normalize_category_signal_terms(value: Any, fallback: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return fallback
+    primary_hits = value.get("primary_category_hits", fallback["primary_category_hits"])
+    if not isinstance(primary_hits, dict):
+        primary_hits = fallback["primary_category_hits"]
+    normalized_primary_hits = {
+        category: [
+            str(term).strip()
+            for term in (primary_hits.get(category, []) if isinstance(primary_hits, dict) else [])
+            if str(term).strip()
+        ]
+        for category in CATEGORY_RULES
+    }
+
+    auxiliary_hits = value.get("auxiliary_tag_hits", fallback["auxiliary_tag_hits"])
+    if not isinstance(auxiliary_hits, dict):
+        auxiliary_hits = fallback["auxiliary_tag_hits"]
+    normalized_auxiliary_hits = {
+        tag: [
+            str(term).strip()
+            for term in (auxiliary_hits.get(tag, []) if isinstance(auxiliary_hits, dict) else [])
+            if str(term).strip()
+        ]
+        for tag in AUXILIARY_TAG_RULES
+    }
+    return {
+        "primary_category_hits": normalized_primary_hits,
+        "auxiliary_tag_hits": normalized_auxiliary_hits,
+    }
+
+
+def build_classification_fallback(item: sqlite3.Row) -> dict[str, Any]:
     text = build_analysis_text(item)
     primary_category, category_hits, confidence = choose_primary_category(text)
     auxiliary_tags, tag_hits = choose_auxiliary_tags(text)
@@ -249,6 +301,113 @@ def classify_item(item: sqlite3.Row) -> dict[str, Any]:
             "primary_category_hits": category_hits,
             "auxiliary_tag_hits": tag_hits,
         },
+    }
+
+
+def classify_item(
+    item: sqlite3.Row,
+    llm_client: Any | None = None,
+    require_online: bool = False,
+) -> dict[str, Any]:
+    fallback = build_classification_fallback(item)
+    if llm_client is None:
+        return {
+            **fallback,
+            "prompt_version": f"{PROMPT_VERSION_BASE}_offline_fallback",
+            "model_provider": "offline_fallback",
+        }
+
+    system_prompt = (
+        "You are a strict JSON API for classifying AI infrastructure geopolitical "
+        "risk information. Return only one valid JSON object. Do not include "
+        "markdown fences or explanatory prose outside JSON."
+    )
+    user_prompt = json.dumps(
+        {
+            "task": "Classify a retained high-relevance information item into exactly one main category and 0-2 auxiliary tags.",
+            "allowed_primary_categories": CATEGORY_RULES,
+            "allowed_auxiliary_tags": AUXILIARY_TAG_RULES,
+            "instructions": [
+                "Choose exactly one primary category from the allowed list.",
+                "Use auxiliary tags only when directly supported by the item.",
+                "Do not invent new categories or tags.",
+                "Return confidence from 0 to 1.",
+            ],
+            "output_schema": {
+                "primary_category": "AI算力基础设施地缘风险",
+                "auxiliary_tags": ["AI芯片出口管制"],
+                "confidence": 0.86,
+                "category_signal_terms": {
+                    "primary_category_hits": {
+                        "AI算力基础设施地缘风险": ["data center"],
+                        "AI关键矿产供应链与地缘政治": [],
+                    },
+                    "auxiliary_tag_hits": {
+                        "AI芯片出口管制": ["export control"],
+                        "区域冲突影响": [],
+                        "全球AI治理": ["compliance"],
+                    },
+                },
+                "rationale": "one concise explanation",
+            },
+            "item": {
+                "news_id": item["id"],
+                "title": item["title"],
+                "source_name": item["source_name"],
+                "source_type": item["source_type"],
+                "published_at": item["published_at"],
+                "summary": item["summary"],
+                "content_excerpt": truncate_for_prompt(item["cleaned_content"]),
+                "keywords": parse_json_list(item["keywords"]),
+                "routing": {
+                    "ai_signal_terms": parse_json_list(item["ai_signal_terms"]),
+                    "geopolitical_signal_terms": parse_json_list(item["geopolitical_signal_terms"]),
+                    "relevance_score": item["relevance_score"],
+                    "rationale": item["rationale"],
+                },
+            },
+        },
+        ensure_ascii=False,
+    )
+    response = llm_client.complete_json(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        fallback_json=fallback,
+        operation_name="stage_10_information_classification",
+    )
+    require_online_success(response, require_online, "stage_10_information_classification")
+
+    data = response.json_data
+    primary_category = str(data.get("primary_category") or fallback["primary_category"]).strip()
+    if primary_category not in CATEGORY_RULES:
+        primary_category = fallback["primary_category"]
+
+    raw_tags = data.get("auxiliary_tags", fallback["auxiliary_tags"])
+    if not isinstance(raw_tags, list):
+        raw_tags = fallback["auxiliary_tags"]
+    auxiliary_tags = []
+    for tag in raw_tags:
+        tag = str(tag).strip()
+        if tag in AUXILIARY_TAG_RULES and tag not in auxiliary_tags:
+            auxiliary_tags.append(tag)
+    auxiliary_tags = auxiliary_tags[:2]
+
+    confidence = coerce_float(data.get("confidence"), fallback["confidence"], 0.0, 1.0)
+    rationale = str(data.get("rationale") or fallback["rationale"]).strip() or fallback["rationale"]
+    category_signal_terms = normalize_category_signal_terms(
+        data.get("category_signal_terms"),
+        fallback["category_signal_terms"],
+    )
+
+    return {
+        "news_id": item["id"],
+        "primary_category": primary_category,
+        "auxiliary_tags": auxiliary_tags,
+        "confidence": confidence,
+        "rationale": rationale,
+        "category_signal_terms": category_signal_terms,
+        "prompt_version": prompt_version_label(PROMPT_VERSION_BASE, response),
+        "model_provider": model_provider_label(response),
     }
 
 
@@ -307,8 +466,8 @@ def upsert_classification_result(connection: sqlite3.Connection, result: dict[st
             result["confidence"],
             result["rationale"],
             json.dumps(result["category_signal_terms"], ensure_ascii=False),
-            PROMPT_VERSION,
-            DEFAULT_LLM_CONFIG["provider"],
+            result["prompt_version"],
+            result["model_provider"],
             now,
             now,
         ),
@@ -344,7 +503,12 @@ def record_run(connection: sqlite3.Connection, stats: ClassificationStats) -> No
     )
 
 
-def run_information_classification(db_path: Path, rerun: bool = False) -> tuple[ClassificationStats, Path]:
+def run_information_classification(
+    db_path: Path,
+    rerun: bool = False,
+    llm_mode: str = "offline",
+    max_items: int | None = None,
+) -> tuple[ClassificationStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
     stats = ClassificationStats(run_id=run_id, started_at=utc_now())
@@ -356,16 +520,26 @@ def run_information_classification(db_path: Path, rerun: bool = False) -> tuple[
         DEFAULT_LLM_CONFIG["provider"],
         DEFAULT_LLM_CONFIG["enabled"],
     )
+    llm_client, require_online = build_llm_client(llm_mode, logger)
+    logger.info(
+        "Stage 10 classification LLM mode: %s | available=%s | require_online=%s",
+        llm_mode,
+        llm_client.is_available,
+        require_online,
+    )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
 
     with sqlite3.connect(db_path) as connection:
         items = select_routed_items(connection, rerun)
+        if max_items is not None:
+            items = items[:max_items]
+            logger.info("Applied Stage 10 max item limit: %s", max_items)
         stats.items_seen = len(items)
 
         for item in items:
             try:
-                result = classify_item(item)
+                result = classify_item(item, llm_client, require_online)
                 upsert_classification_result(connection, result)
                 stats.items_classified += 1
                 logger.info(
@@ -380,8 +554,9 @@ def run_information_classification(db_path: Path, rerun: bool = False) -> tuple[
 
         stats.finished_at = utc_now()
         stats.notes = (
-            "Offline Stage 3B classification completed. Categories and auxiliary "
-            "tags mirror the planned DeepSeek V4 prompt contract."
+            "Stage 10-enabled Stage 3B classification completed. Categories and "
+            "auxiliary tags can be classified by LLM with deterministic fallback; "
+            f"llm_mode={llm_mode}."
         )
         record_run(connection, stats)
 
@@ -412,13 +587,25 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Only classify kept routed items that do not already have classification results.",
     )
+    parser.add_argument(
+        "--llm-mode",
+        choices=LLM_MODE_CHOICES,
+        default="offline",
+        help="LLM behavior for classification: offline, auto, or online. Default: offline.",
+    )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=None,
+        help="Optional maximum routed items to classify, useful for small online validation runs.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     rerun = args.rerun or not args.only_new
-    stats, log_path = run_information_classification(args.db_path, rerun)
+    stats, log_path = run_information_classification(args.db_path, rerun, args.llm_mode, args.max_items)
     print("\nStage 3B information classification completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")

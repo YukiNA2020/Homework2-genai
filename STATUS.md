@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段九LLM客户端与API配置，下一步进入阶段十LLM替换。
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十LLM替换，下一步进入阶段十一图片生成与内容归档。
 
 ---
 
@@ -22,8 +22,8 @@
 | 阶段七 | 稳定MVP冻结与升级保护 | ✅ 已完成，冻结基线已验证 |
 | 阶段八 | 真实新闻/RSS接入 | ✅ 已完成，AI联网验证通过 |
 | 阶段九 | LLM客户端与API配置 | ✅ 已完成，离线fallback已验证 |
-| 阶段十 | LLM替换摘要、评分、分类与生成 | 🔜 下一步 |
-| 阶段十一 | 图片生成与内容归档 | ⏳ 待启动 |
+| 阶段十 | LLM替换摘要、评分、分类与生成 | ✅ 已完成，离线fallback回归通过 |
+| 阶段十一 | 图片生成与内容归档 | 🔜 下一步 |
 | 阶段十二 | 每日定时运行与人工审核 | ⏳ 待启动 |
 | 阶段十三 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选 |
 
@@ -86,8 +86,9 @@
 - 阶段七已完成稳定MVP冻结验证：2026-05-01重新运行总控脚本，`Overall success: True`，阶段二到阶段五全部OK，数据库健康检查全部PASS。
 - 阶段八已完成真实RSS接入：`1_news_monitoring.py` 新增 `--input-mode rss`，`rss_sources.json` 已配置5个公开RSS源，联网验证可抓取并写入 `news_items` 表。
 - 阶段九已完成统一LLM客户端：新增 `llm_client.py` 与 `.env.example`，无API key时自动使用结构化离线fallback；默认真实LLM已切换为DeepSeek V4（`deepseek-v4-pro`）。
+- 阶段十已完成LLM替换接线：阶段二新闻摘要、阶段三相关性评分、阶段三分类、阶段五LinkedIn生成均支持 `--llm-mode offline|auto|online`；默认仍为 `offline` 以保护稳定MVP，`auto/online` 通过统一 `llm_client.py` 调用DeepSeek V4。
 - 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
-- 后续阶段十以后替换业务逻辑或新增图片生成能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 后续阶段十一以后新增图片生成或定时运行能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 
 ---
 
@@ -178,14 +179,24 @@
 - [x] 已完成总控脚本回归：Run ID `run_20260501_230740_6af9ab82`，`Overall success: True`，数据库健康检查全部 `PASS`。
 - [x] 已记录阶段九说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_9_llm_client_notes.md`。
 
-### 10. 核心定位（已收窄）
+### 10. 阶段十：LLM替换摘要、评分、分类与生成
+- [x] 已新增 `1-Workflow_Files/llm_stage_utils.py`，统一管理 `offline`、`auto`、`online` 三种LLM模式。
+- [x] 已升级 `1_news_monitoring.py`，新闻摘要与关键词提取可通过统一LLM客户端生成，默认仍保留离线fallback。
+- [x] 已升级 `2_relevance_router.py`，规则过滤后可调用LLM按rubric输出0-10分、决策、评分拆解与理由。
+- [x] 已升级 `3_information_classification.py`，可调用LLM输出主线分类、辅助标签、置信度与分类依据，并限制在既有分类体系内。
+- [x] 已升级 `5_linkedin_content_generation.py`，可调用LLM生成LinkedIn决策简报正文、视觉Prompt与质量自检。
+- [x] 已升级 `0_main_workflow.py`，新增 `--llm-mode offline|auto|online` 参数；默认 `offline`，保护阶段七冻结基线。
+- [x] 已完成阶段十离线回归：Run ID `run_20260502_092016_e351f378`，`Overall success: True`，全部数据库健康检查 `PASS`。
+- [x] 已记录阶段十说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_10_llm_replacement_notes.md`。
+
+### 11. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 11. 相关性打分标准
+### 12. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -202,7 +213,7 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 12. 信息源体系
+### 13. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
@@ -275,7 +286,28 @@ LLM评分权重：
    ```bash
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
    ```
-5. 阶段十再从新闻摘要开始逐步接入真实LLM，当前离线MVP不受影响。
+5. 阶段十已完成LLM替换接线；当前离线MVP不受影响，用户填写 `.env` 后可进入真实LLM验收。
+
+### 阶段十完成记录：LLM替换摘要、评分、分类与生成
+
+阶段十已完成。当前阶段二、阶段三A、阶段三B和阶段五均支持统一LLM模式，但默认仍保持离线可复现。
+
+1. 默认离线回归命令：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode offline
+   ```
+   验证结果：Run ID `run_20260502_092016_e351f378`，`Overall success: True`，阶段二到阶段五全部 `OK`，数据库健康检查全部 `PASS`。
+2. 无API key或不想联网时，继续使用默认离线模式：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+   ```
+3. 用户填写 `.env` 并先通过脱敏连通性检查后，可运行真实LLM严格模式：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online
+   ```
+4. `--llm-mode auto` 可用于“有可用配置则调用LLM，否则fallback”的日常测试；`--llm-mode online` 用于强制真实API成功，不成功则暴露错误。
+5. 阶段十只处理文本LLM替换，不涉及多模态。DeepSeek V4继续适合作为文本摘要、评分、分类和LinkedIn生成模型；图片生成模型应在阶段十一单独选择。
 
 ---
 
@@ -286,17 +318,18 @@ LLM评分权重：
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
 | `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0/v4.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段九实现记录 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段十实现记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
-| `1_news_monitoring.py` | 阶段二/八信息监控脚本 | ✅ 已完成，支持本地样例与真实RSS |
-| `2_relevance_router.py` | 阶段三A双层相关性路由脚本 | ✅ 已完成，AI本地验证通过 |
-| `3_information_classification.py` | 阶段三B信息分类脚本 | ✅ 已完成，AI本地验证通过 |
+| `1_news_monitoring.py` | 阶段二/八/十信息监控脚本 | ✅ 已完成，支持本地样例、真实RSS与可选LLM摘要 |
+| `2_relevance_router.py` | 阶段三A/十双层相关性路由脚本 | ✅ 已完成，支持规则过滤后可选LLM评分 |
+| `3_information_classification.py` | 阶段三B/十信息分类脚本 | ✅ 已完成，支持可选LLM分类 |
 | `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，通过 |
-| `5_linkedin_content_generation.py` | 阶段五LinkedIn决策简报生成脚本 | ✅ 已完成，AI本地验证通过 |
-| `0_main_workflow.py` | 阶段六全流程总控脚本 | ✅ 已完成，支持选择阶段二输入模式 |
+| `5_linkedin_content_generation.py` | 阶段五/十LinkedIn决策简报生成脚本 | ✅ 已完成，支持可选LLM生成 |
+| `0_main_workflow.py` | 阶段六/十全流程总控脚本 | ✅ 已完成，支持选择阶段二输入模式与LLM模式 |
 | `llm_client.py` | 阶段九统一LLM客户端 | ✅ 已完成，离线fallback已验证 |
+| `llm_stage_utils.py` | 阶段十LLM模式共享工具 | ✅ 已完成 |
 | `.env.example` | 阶段九LLM环境变量模板 | ✅ 已切换为DeepSeek V4默认配置，等待用户后续填写 `.env` |
 | `workflow_architecture.md` | 工作流架构说明 | ✅ 已完成 |
 | `Progress_Report_Final.md` | 最终进度报告 | ✅ 已完成 |
@@ -304,6 +337,7 @@ LLM评分权重：
 | `stage_7_mvp_freeze_baseline.md` | 阶段七冻结基线记录 | ✅ 已完成 |
 | `stage_8_rss_ingestion_notes.md` | 阶段八RSS接入记录 | ✅ 已完成 |
 | `stage_9_llm_client_notes.md` | 阶段九LLM客户端记录 | ✅ 已完成 |
+| `stage_10_llm_replacement_notes.md` | 阶段十LLM替换记录 | ✅ 已完成 |
 | `rss_sources.json` | 阶段八真实RSS源配置 | ✅ 已配置5个公开RSS源 |
 | `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
 | `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |
@@ -329,5 +363,5 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 ---
 
-*最后更新：2026-05-01*
+*最后更新：2026-05-02*
 *依据：Implementation_Roadmap.md v3.0/v4.0 与 Plan_of_Project.md v3.0*

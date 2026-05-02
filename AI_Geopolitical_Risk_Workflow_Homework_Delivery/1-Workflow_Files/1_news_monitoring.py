@@ -1,9 +1,8 @@
-"""Stage 2/8: MVP news monitoring pipeline.
+"""Stage 2/8/10: MVP news monitoring pipeline.
 
 This script ingests local sample items or configured RSS feeds, cleans and
-summarizes them with a deterministic offline fallback, extracts domain
-keywords, and stores structured records in SQLite. LLM calls are still reserved
-as explicit extension points for later stages.
+summarizes them with optional LLM assistance plus deterministic offline
+fallback, extracts domain keywords, and stores structured records in SQLite.
 """
 
 from __future__ import annotations
@@ -36,7 +35,10 @@ from api_config import (
     SAMPLE_DATA_PATH,
     SQLITE_SCHEMA_PATH,
 )
+from llm_stage_utils import LLM_MODE_CHOICES, build_llm_client, require_online_success
 
+
+SUMMARY_PROMPT_VERSION = "news_summarization_v2_llm_fallback"
 
 DOMAIN_KEYWORDS = [
     "ai",
@@ -127,6 +129,98 @@ def summarize_offline(title: str, content: str, keywords: list[str]) -> str:
         f"{base_summary} Decision relevance signals: {keyword_hint}. "
         "This record is prepared for later relevance routing and classification."
     )
+
+
+def truncate_for_prompt(text: str, max_chars: int = 5000) -> str:
+    text = normalize_whitespace(text)
+    if len(text) <= max_chars:
+        return text
+    return f"{text[:max_chars].rstrip()}... [truncated for LLM prompt]"
+
+
+def coerce_string_list(value: Any, fallback: list[str] | None = None, limit: int = 12) -> list[str]:
+    if not isinstance(value, list):
+        return list(fallback or [])[:limit]
+    items = [normalize_whitespace(str(item)) for item in value if normalize_whitespace(str(item))]
+    return items[:limit] if items else list(fallback or [])[:limit]
+
+
+def build_summary_fallback(title: str, content: str, keywords: list[str]) -> dict[str, Any]:
+    return {
+        "summary": summarize_offline(title, content, keywords),
+        "keywords": keywords[:12],
+        "decision_signals": keywords[:5],
+        "normalization_notes": "Deterministic offline fallback; no external LLM call was required.",
+        "prompt_version": SUMMARY_PROMPT_VERSION,
+    }
+
+
+def summarize_with_llm(
+    title: str,
+    content: str,
+    keywords: list[str],
+    llm_client: Any,
+    require_online: bool,
+) -> dict[str, Any]:
+    fallback = build_summary_fallback(title, content, keywords)
+    system_prompt = (
+        "You are a strict JSON API for an AI infrastructure geopolitical risk "
+        "monitoring workflow. Return only one valid JSON object. Do not include "
+        "markdown fences, citations, or explanatory prose outside JSON."
+    )
+    user_prompt = json.dumps(
+        {
+            "task": "Generate a decision-brief news summary, domain keywords, and decision signals.",
+            "project_focus": "AI infrastructure geopolitical risk and critical-mineral supply-chain risk.",
+            "target_audience": [
+                "AI infrastructure investors",
+                "data center operators",
+                "multinational AI strategy, supply-chain, and risk leaders",
+            ],
+            "output_schema": {
+                "summary": "2-3 concise English sentences focused on decision relevance",
+                "keywords": ["domain keyword"],
+                "decision_signals": ["watch signal"],
+                "normalization_notes": "missing fields or cleaning assumptions",
+            },
+            "hard_constraints": [
+                "Do not invent facts, numbers, source names, or publication dates.",
+                "Do not treat generic AI product updates as geopolitical infrastructure risk unless the text supports it.",
+                "Prefer data center, power, GPU, chip, critical mineral, export-control, supply-chain, or cross-border risk signals.",
+            ],
+            "input": {
+                "title": title,
+                "content": truncate_for_prompt(content),
+                "offline_keyword_candidates": keywords,
+            },
+        },
+        ensure_ascii=False,
+    )
+    response = llm_client.complete_json(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        fallback_json=fallback,
+        operation_name="stage_10_news_summarization",
+    )
+    require_online_success(response, require_online, "stage_10_news_summarization")
+
+    data = response.json_data
+    summary = normalize_whitespace(str(data.get("summary", "")))
+    if not summary:
+        summary = fallback["summary"]
+
+    llm_keywords = coerce_string_list(data.get("keywords"), fallback=keywords, limit=12)
+    decision_signals = coerce_string_list(data.get("decision_signals"), fallback=keywords[:5], limit=5)
+    if decision_signals and "Decision relevance signals:" not in summary:
+        summary = f"{summary} Decision relevance signals: {', '.join(decision_signals[:4])}."
+
+    return {
+        "summary": summary,
+        "keywords": llm_keywords,
+        "decision_signals": decision_signals,
+        "used_fallback": response.used_fallback,
+        "api_succeeded": response.api_succeeded,
+    }
 
 
 def content_hash(item: dict[str, Any], cleaned_content: str) -> str:
@@ -333,7 +427,12 @@ def fetch_rss_items(
     return all_items
 
 
-def normalize_item(item: dict[str, Any], ingestion_method: str) -> dict[str, Any]:
+def normalize_item(
+    item: dict[str, Any],
+    ingestion_method: str,
+    llm_client: Any | None = None,
+    require_online: bool = False,
+) -> dict[str, Any]:
     title = normalize_whitespace(item.get("title", ""))
     raw_content = normalize_whitespace(item.get("content", ""))
     cleaned_content = normalize_whitespace(raw_content)
@@ -344,7 +443,22 @@ def normalize_item(item: dict[str, Any], ingestion_method: str) -> dict[str, Any
         raise ValueError(f"News item '{title}' is missing content.")
 
     keywords = extract_keywords(title, cleaned_content)
-    summary = summarize_offline(title, cleaned_content, keywords)
+    if llm_client is None:
+        summary_result = build_summary_fallback(title, cleaned_content, keywords)
+    else:
+        summary_result = summarize_with_llm(
+            title,
+            cleaned_content,
+            keywords,
+            llm_client,
+            require_online,
+        )
+    keywords = coerce_string_list(summary_result.get("keywords"), fallback=keywords, limit=12)
+    summary = normalize_whitespace(str(summary_result.get("summary", ""))) or summarize_offline(
+        title,
+        cleaned_content,
+        keywords,
+    )
     now = utc_now()
 
     return {
@@ -486,6 +600,8 @@ def run_monitoring(
     input_mode: str,
     db_path: Path,
     rss_limit: int | None = None,
+    llm_mode: str = "offline",
+    max_items: int | None = None,
 ) -> tuple[IngestionStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id, LOG_DIR)
@@ -493,16 +609,26 @@ def run_monitoring(
 
     logger.info("Starting Stage 2 news monitoring run: %s", run_id)
     logger.info("LLM provider placeholder: %s | enabled=%s", DEFAULT_LLM_CONFIG["provider"], DEFAULT_LLM_CONFIG["enabled"])
+    llm_client, require_online = build_llm_client(llm_mode, logger)
+    logger.info(
+        "Stage 10 summarization LLM mode: %s | available=%s | require_online=%s",
+        llm_mode,
+        llm_client.is_available,
+        require_online,
+    )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
     items = collect_items(input_mode, logger, rss_limit)
+    if max_items is not None:
+        items = items[:max_items]
+        logger.info("Applied Stage 10 max item limit: %s", max_items)
     stats.items_seen = len(items)
 
     with sqlite3.connect(db_path) as connection:
         for item in items:
             ingestion_method = item.get("_ingestion_method", input_mode)
             try:
-                normalized = normalize_item(item, ingestion_method)
+                normalized = normalize_item(item, ingestion_method, llm_client, require_online)
                 upsert_source(connection, normalized)
                 inserted = insert_news_item(connection, normalized)
                 if inserted:
@@ -519,12 +645,14 @@ def run_monitoring(
         if input_mode in {"rss", "all", "rss_placeholder"}:
             stats.notes = (
                 "Stage 8 RSS ingestion completed with resilient per-source failure "
-                "handling. Local sample mode remains available as offline fallback."
+                "handling. Local sample mode remains available as offline fallback. "
+                f"Stage 10 summarization llm_mode={llm_mode}."
             )
         else:
             stats.notes = (
                 "Offline MVP ingestion completed. Real RSS mode is available through "
-                "--input-mode rss; LLM calls are reserved for later extension."
+                "--input-mode rss. Stage 10 summarization can use LLM mode with "
+                f"deterministic fallback; llm_mode={llm_mode}."
             )
         record_run(connection, stats)
 
@@ -558,12 +686,30 @@ def parse_args() -> argparse.Namespace:
         default=DATABASE_PATH,
         help="SQLite database path.",
     )
+    parser.add_argument(
+        "--llm-mode",
+        choices=LLM_MODE_CHOICES,
+        default="offline",
+        help="LLM behavior for summarization: offline, auto, or online. Default: offline.",
+    )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=None,
+        help="Optional maximum items to process, useful for small online validation runs.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    stats, log_path = run_monitoring(args.input_mode, args.db_path, args.rss_limit)
+    stats, log_path = run_monitoring(
+        args.input_mode,
+        args.db_path,
+        args.rss_limit,
+        args.llm_mode,
+        args.max_items,
+    )
     print("\nStage 2 news monitoring completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")

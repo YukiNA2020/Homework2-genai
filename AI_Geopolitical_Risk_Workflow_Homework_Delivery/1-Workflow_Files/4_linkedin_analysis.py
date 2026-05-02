@@ -224,9 +224,9 @@ def render_checklist(results: list[dict[str, Any]], run_id: str, generated_at: s
     lines = [
         "# LinkedIn AI基建地缘风险帖子风格与结构清单",
         "",
-        "> 使用环节：阶段四 - KOL内容拆解与风格指南。  ",
-        "> 目标：把对标KOL的内容逻辑转化为本项目可复用的“决策简报式LinkedIn帖子”规范。  ",
-        f"> Run ID: `{run_id}`  ",
+        "> 使用环节：阶段四 - KOL内容拆解与风格指南。",
+        "> 目标：把对标KOL的内容逻辑转化为本项目可复用的“决策简报式LinkedIn帖子”规范。",
+        f"> Run ID: `{run_id}`",
         f"> Generated at: `{generated_at}`",
         "",
         "## 1. 写作定位",

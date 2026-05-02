@@ -994,3 +994,94 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 - `Overall success: True`
 - 阶段二到阶段五全部 `OK`
 - 数据库健康检查全部 `PASS`
+
+---
+
+## 2026-05-02 阶段十：LLM替换摘要、评分、分类与生成
+
+**用户需求：**
+用户要求继续完成下一个阶段，即阶段十；如果需要填写API，可以先中断，也可以先实现离线fallback版本后交给用户测试。用户同时提醒当前使用DeepSeek V4，多模态表现不是很好，如果需要更换模型需要说明。
+
+**本轮选择：**
+继续采用离线fallback优先方案，不中断用户填写API。阶段十只涉及文本摘要、结构化评分、分类和LinkedIn正文生成，不涉及图片或多模态，因此暂不更换DeepSeek V4。图片模型选择留到阶段十一处理。
+
+**本轮完成内容：**
+1. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_stage_utils.py`。
+   - 统一支持 `--llm-mode offline|auto|online`。
+   - `offline`：不调用API，走确定性fallback。
+   - `auto`：有配置则调用LLM，否则fallback。
+   - `online`：要求真实LLM成功，失败则暴露错误。
+2. 升级 `1_news_monitoring.py`。
+   - 新闻摘要、关键词和决策信号可通过统一LLM客户端生成。
+   - 默认仍为 `--llm-mode offline`，不破坏稳定MVP。
+3. 升级 `2_relevance_router.py`。
+   - 保留规则过滤。
+   - 规则通过后可调用LLM按rubric输出0-10分、保留/过滤决策、评分拆解和理由。
+4. 升级 `3_information_classification.py`。
+   - 可调用LLM输出主线分类、辅助标签、置信度和分类依据。
+   - 输出限制在原有两类主分类和三个辅助标签内。
+5. 升级 `5_linkedin_content_generation.py`。
+   - 可调用LLM生成LinkedIn决策简报、视觉Prompt和质量自检。
+   - 仍要求只基于SQLite来源证据，不编造数字、来源或发布时间。
+6. 升级 `0_main_workflow.py`。
+   - 新增全局 `--llm-mode offline|auto|online`。
+   - 默认 `offline`，保护阶段七冻结基线。
+7. 新增阶段十记录文档：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_10_llm_replacement_notes.md`
+8. 更新项目状态与路线图：
+   - `STATUS.md`
+   - `Implementation_Roadmap.md`
+
+**验证结果：**
+
+语法检查：
+
+```bash
+env PYTHONPYCACHEPREFIX=/private/tmp/homework2_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_stage_utils.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+```
+
+结果：通过。
+
+离线回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode offline
+```
+
+结果摘要：
+
+- Run ID：`run_20260502_092016_e351f378`
+- `Overall success: True`
+- 阶段二到阶段五全部 `OK`
+- 数据库健康检查全部 `PASS`
+- 主控日志：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_092016_e351f378_main_workflow.log`
+
+数据库验证：
+
+- `relevance_routing_results.prompt_version/model_provider` 已标记阶段十LLM或fallback来源。
+- `classification_results.prompt_version/model_provider` 已标记阶段十LLM或fallback来源。
+- `linkedin_content_results.prompt_version/model_provider` 已标记阶段十LLM或fallback来源。
+
+**交给用户测试的命令：**
+
+默认离线测试：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+用户填写 `.env` 后的真实LLM测试：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/llm_client.py --print-config --require-online
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --llm-mode online
+```
+
+**下一步建议：**
+阶段十一再处理图片生成与内容归档。由于DeepSeek V4多模态能力不是本项目强项，阶段十一应单独选择图片生成模型或服务，不强行用DeepSeek V4做图片。

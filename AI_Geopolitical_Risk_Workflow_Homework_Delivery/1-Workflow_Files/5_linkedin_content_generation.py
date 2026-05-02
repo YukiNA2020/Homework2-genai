@@ -1,9 +1,9 @@
-"""Stage 5: LinkedIn decision-brief content generation.
+"""Stage 5/10: LinkedIn decision-brief content generation.
 
 This stage reads the classified high-relevance records from SQLite and turns
 the two project categories into final LinkedIn-ready decision briefs. The MVP
-keeps generation deterministic and offline, while preserving the same output
-contract expected from a later DeepSeek V4 content-generation call.
+keeps generation deterministic and offline by default, while Stage 10 can use
+the unified LLM client to improve the post body and visual prompt.
 """
 
 from __future__ import annotations
@@ -29,9 +29,16 @@ from api_config import (
     LOG_DIR,
     SQLITE_SCHEMA_PATH,
 )
+from llm_stage_utils import (
+    LLM_MODE_CHOICES,
+    build_llm_client,
+    model_provider_label,
+    prompt_version_label,
+    require_online_success,
+)
 
 
-PROMPT_VERSION = "linkedin_content_generation_v1_offline_mvp"
+PROMPT_VERSION_BASE = "linkedin_content_generation_v2_stage10"
 
 TARGET_CATEGORIES = {
     "AI算力基础设施地缘风险": {
@@ -276,7 +283,7 @@ def quality_self_check(primary_category: str, item_count: int) -> dict[str, int]
     return scores
 
 
-def generate_category_brief(primary_category: str, items: list[sqlite3.Row]) -> dict[str, Any]:
+def build_offline_category_brief(primary_category: str, items: list[sqlite3.Row]) -> dict[str, Any]:
     target = TARGET_CATEGORIES[primary_category]
     if primary_category == "AI算力基础设施地缘风险":
         linkedin_post = generate_infrastructure_post(items)
@@ -295,6 +302,149 @@ def generate_category_brief(primary_category: str, items: list[sqlite3.Row]) -> 
         "visual_prompt": generate_visual_prompt(primary_category, linkedin_post),
         "quality_score_self_check": quality_self_check(primary_category, len(items)),
         "output_path": str(target["output_path"]),
+        "prompt_version": f"{PROMPT_VERSION_BASE}_offline_fallback",
+        "model_provider": "offline_fallback",
+    }
+
+
+def clamp_int(value: Any, default: int, lower: int, upper: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(lower, min(upper, parsed))
+
+
+def normalize_quality_score(value: Any, fallback: dict[str, int]) -> dict[str, int]:
+    if not isinstance(value, dict):
+        return fallback
+    score = {
+        "domain_relevance": clamp_int(value.get("domain_relevance"), fallback["domain_relevance"], 0, 25),
+        "decision_value": clamp_int(value.get("decision_value"), fallback["decision_value"], 0, 25),
+        "credibility": clamp_int(value.get("credibility"), fallback["credibility"], 0, 20),
+        "structure_clarity": clamp_int(value.get("structure_clarity"), fallback["structure_clarity"], 0, 15),
+        "interaction_quality": clamp_int(value.get("interaction_quality"), fallback["interaction_quality"], 0, 15),
+    }
+    score["total"] = sum(score.values())
+    return score
+
+
+def build_generation_prompt_payload(primary_category: str, items: list[sqlite3.Row], fallback: dict[str, Any]) -> dict[str, Any]:
+    source_records = []
+    for item in items:
+        source_records.append(
+            {
+                "news_id": item["news_id"],
+                "title": item["title"],
+                "source_name": item["source_name"],
+                "source_type": item["source_type"],
+                "published_at": item["published_at"],
+                "url": item["url"],
+                "summary": item["summary"],
+                "cleaned_content_excerpt": item["cleaned_content"][:1200],
+                "keywords": parse_json_list(item["keywords"]),
+                "relevance_score": item["relevance_score"],
+                "routing_rationale": item["routing_rationale"],
+                "classification_rationale": item["classification_rationale"],
+                "auxiliary_tags": parse_json_list(item["auxiliary_tags"]),
+            }
+        )
+
+    return {
+        "task": "Generate a LinkedIn decision-brief post and image prompt from classified evidence.",
+        "project_domain": "AI infrastructure geopolitical risk and critical-mineral supply-chain decision intelligence.",
+        "primary_category": primary_category,
+        "category_label": fallback["category_label"],
+        "target_audience": fallback["target_audience"],
+        "tone_positioning": fallback["tone_positioning"],
+        "source_records": source_records,
+        "required_structure": [
+            "Hook",
+            "What happened",
+            "Why it matters for AI infrastructure",
+            "Business implications",
+            "Signals to watch",
+            "Closing question",
+        ],
+        "hard_constraints": [
+            "Do not invent numbers, quotes, private facts, source names, or publication dates.",
+            "Do not auto-publish or mention LinkedIn automation.",
+            "Use only evidence from source_records.",
+            "Include exactly three business implications.",
+            "Include two or three signals to watch.",
+            "Close with a specific decision question.",
+            "Use no more than three hashtags.",
+            "Keep paragraphs short and mobile-readable.",
+            "The image prompt must be professional, 16:9, no logos, no text overlays, no sensational crisis imagery.",
+        ],
+        "output_schema": {
+            "target_audience": "specific audience segment",
+            "tone_positioning": "decision-brief tone description",
+            "linkedin_post": "full post body",
+            "visual_prompt": "single image generation prompt",
+            "quality_score_self_check": {
+                "domain_relevance": 25,
+                "decision_value": 24,
+                "credibility": 20,
+                "structure_clarity": 15,
+                "interaction_quality": 15,
+                "total": 99,
+            },
+        },
+    }
+
+
+def generate_category_brief(
+    primary_category: str,
+    items: list[sqlite3.Row],
+    llm_client: Any | None = None,
+    require_online: bool = False,
+) -> dict[str, Any]:
+    fallback = build_offline_category_brief(primary_category, items)
+    if llm_client is None:
+        return fallback
+
+    system_prompt = (
+        "You are a strict JSON API and an AI infrastructure geopolitical risk "
+        "analyst. Return only one valid JSON object. Do not include markdown "
+        "fences or explanatory prose outside JSON."
+    )
+    user_prompt = json.dumps(
+        build_generation_prompt_payload(primary_category, items, fallback),
+        ensure_ascii=False,
+    )
+    response = llm_client.complete_json(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        fallback_json=fallback,
+        operation_name="stage_10_linkedin_content_generation",
+    )
+    require_online_success(response, require_online, "stage_10_linkedin_content_generation")
+
+    data = response.json_data
+    linkedin_post = str(data.get("linkedin_post") or fallback["linkedin_post"]).strip()
+    if len(linkedin_post) < 200:
+        linkedin_post = fallback["linkedin_post"]
+
+    visual_prompt = str(data.get("visual_prompt") or fallback["visual_prompt"]).strip()
+    if len(visual_prompt) < 80:
+        visual_prompt = fallback["visual_prompt"]
+
+    target_audience = str(data.get("target_audience") or fallback["target_audience"]).strip()
+    tone_positioning = str(data.get("tone_positioning") or fallback["tone_positioning"]).strip()
+
+    return {
+        **fallback,
+        "target_audience": target_audience or fallback["target_audience"],
+        "tone_positioning": tone_positioning or fallback["tone_positioning"],
+        "linkedin_post": linkedin_post,
+        "visual_prompt": visual_prompt,
+        "quality_score_self_check": normalize_quality_score(
+            data.get("quality_score_self_check"),
+            fallback["quality_score_self_check"],
+        ),
+        "prompt_version": prompt_version_label(PROMPT_VERSION_BASE, response),
+        "model_provider": model_provider_label(response),
     }
 
 
@@ -325,8 +475,8 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
         [
             f"# {brief['category_label']}",
             "",
-            "> 使用环节：阶段五 - LinkedIn决策简报生成。  ",
-            f"> Run ID: `{run_id}`  ",
+            "> 使用环节：阶段五 - LinkedIn决策简报生成。",
+            f"> Run ID: `{run_id}`",
             f"> Generated at: `{generated_at}`",
             "",
             "## Metadata",
@@ -335,8 +485,8 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
             f"- Target audience: {brief['target_audience']}",
             f"- Tone and positioning: {brief['tone_positioning']}",
             f"- Source news IDs: {', '.join(str(item) for item in brief['source_news_ids'])}",
-            f"- Prompt version: {PROMPT_VERSION}",
-            f"- Model provider placeholder: {DEFAULT_LLM_CONFIG['provider']}",
+            f"- Prompt version: {brief['prompt_version']}",
+            f"- Model provider: {brief['model_provider']}",
             "",
             "## Source Evidence",
             "",
@@ -498,8 +648,8 @@ def upsert_content_result(connection: sqlite3.Connection, brief: dict[str, Any])
             brief["visual_prompt"],
             json.dumps(brief["quality_score_self_check"], ensure_ascii=False),
             brief["output_path"],
-            PROMPT_VERSION,
-            DEFAULT_LLM_CONFIG["provider"],
+            brief["prompt_version"],
+            brief["model_provider"],
             now,
             now,
         ),
@@ -533,6 +683,7 @@ def run_linkedin_content_generation(
     post_prompt_path: Path,
     image_prompt_path: Path,
     max_items_per_category: int,
+    llm_mode: str = "offline",
 ) -> tuple[ContentGenerationStats, Path, list[Path]]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
@@ -547,6 +698,13 @@ def run_linkedin_content_generation(
         DEFAULT_LLM_CONFIG["provider"],
         DEFAULT_LLM_CONFIG["enabled"],
     )
+    llm_client, require_online = build_llm_client(llm_mode, logger)
+    logger.info(
+        "Stage 10 LinkedIn generation LLM mode: %s | available=%s | require_online=%s",
+        llm_mode,
+        llm_client.is_available,
+        require_online,
+    )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
 
@@ -560,7 +718,7 @@ def run_linkedin_content_generation(
                     continue
 
                 stats.categories_seen += 1
-                brief = generate_category_brief(primary_category, items)
+                brief = generate_category_brief(primary_category, items, llm_client, require_online)
                 output_path = Path(target["output_path"])
                 write_text(output_path, render_markdown(brief, run_id, generated_at))
                 upsert_content_result(connection, brief)
@@ -590,9 +748,9 @@ def run_linkedin_content_generation(
 
         stats.finished_at = utc_now()
         stats.notes = (
-            "Offline Stage 5 content generation completed. The output uses "
+            "Stage 10-enabled Stage 5 content generation completed. The output uses "
             "classified SQLite records and the Stage 4 decision-brief constraints; "
-            "DeepSeek V4 can later replace the deterministic generator."
+            f"LLM generation is controlled by llm_mode={llm_mode} with fallback."
         )
         record_run(connection, stats)
 
@@ -632,6 +790,12 @@ def parse_args() -> argparse.Namespace:
         default=3,
         help="Maximum classified records used to generate each category brief.",
     )
+    parser.add_argument(
+        "--llm-mode",
+        choices=LLM_MODE_CHOICES,
+        default="offline",
+        help="LLM behavior for content generation: offline, auto, or online. Default: offline.",
+    )
     return parser.parse_args()
 
 
@@ -642,6 +806,7 @@ def main() -> None:
         args.post_prompt_path,
         args.image_prompt_path,
         args.max_items_per_category,
+        args.llm_mode,
     )
     print("\nStage 5 LinkedIn content generation completed")
     print(f"Run ID: {stats.run_id}")

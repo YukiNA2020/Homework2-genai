@@ -1,8 +1,9 @@
-"""Stage 6: end-to-end workflow orchestrator.
+"""Stage 6/10: end-to-end workflow orchestrator.
 
-This script runs the offline MVP workflow from ingestion to final LinkedIn
-content generation, writes a master run log, and performs a small database
-health check for handoff testing.
+This script runs the workflow from ingestion to final LinkedIn content
+generation, writes a master run log, and performs a small database health check
+for handoff testing. Stage 10 adds a shared LLM mode while preserving the
+offline MVP baseline by default.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from api_config import DATABASE_PATH, LOG_DIR
+from llm_stage_utils import LLM_MODE_CHOICES
 
 
 WORKFLOW_DIR = Path(__file__).resolve().parent
@@ -29,19 +31,19 @@ STAGE_CONFIGS = [
         "key": "stage_2_news_monitoring",
         "label": "Stage 2 news monitoring",
         "script": "1_news_monitoring.py",
-        "args": ["--input-mode", "local_sample"],
+        "args": ["--input-mode", "local_sample", "--llm-mode", "offline"],
     },
     {
         "key": "stage_3a_relevance_router",
         "label": "Stage 3A relevance routing",
         "script": "2_relevance_router.py",
-        "args": ["--rerun"],
+        "args": ["--rerun", "--llm-mode", "offline"],
     },
     {
         "key": "stage_3b_information_classification",
         "label": "Stage 3B information classification",
         "script": "3_information_classification.py",
-        "args": ["--rerun"],
+        "args": ["--rerun", "--llm-mode", "offline"],
     },
     {
         "key": "stage_4_linkedin_analysis",
@@ -252,7 +254,7 @@ def validate_database(db_path: Path) -> dict[str, Any]:
 
 def parse_args() -> argparse.Namespace:
     stage_keys = [stage["key"] for stage in STAGE_CONFIGS]
-    parser = argparse.ArgumentParser(description="Run the full offline MVP workflow.")
+    parser = argparse.ArgumentParser(description="Run the full MVP workflow with optional Stage 10 LLM mode.")
     parser.add_argument(
         "--db-path",
         type=Path,
@@ -283,6 +285,18 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional maximum RSS items per source when Stage 2 uses rss or all.",
     )
+    parser.add_argument(
+        "--llm-mode",
+        choices=LLM_MODE_CHOICES,
+        default="offline",
+        help="LLM behavior for Stage 2/3/5: offline, auto, or online. Default preserves offline MVP.",
+    )
+    parser.add_argument(
+        "--stage10-max-items",
+        type=int,
+        default=None,
+        help="Optional small-batch limit for Stage 10 online validation across Stage 2/3/5.",
+    )
     return parser.parse_args()
 
 
@@ -295,9 +309,20 @@ def main() -> int:
 
     results: list[StageResult] = []
     stage_configs = [dict(stage_config) for stage_config in STAGE_CONFIGS]
-    stage_configs[0]["args"] = ["--input-mode", args.stage2_input_mode]
+    stage_configs[0]["args"] = ["--input-mode", args.stage2_input_mode, "--llm-mode", args.llm_mode]
     if args.rss_limit is not None:
         stage_configs[0]["args"].extend(["--rss-limit", str(args.rss_limit)])
+    for stage_config in stage_configs[1:3]:
+        stage_config["args"] = [*stage_config["args"][:-1], args.llm_mode]
+    stage_configs[4]["args"] = ["--llm-mode", args.llm_mode]
+    if args.stage10_max_items is not None:
+        stage_configs[0]["args"].extend(["--max-items", str(args.stage10_max_items)])
+        for stage_config in stage_configs[1:3]:
+            stage_config["args"].extend(["--max-items", str(args.stage10_max_items)])
+        stage_configs[4]["args"].extend([
+            "--max-items-per-category",
+            str(max(1, args.stage10_max_items)),
+        ])
 
     for stage_config in stage_configs:
         if stage_config["key"] in args.skip_stage:

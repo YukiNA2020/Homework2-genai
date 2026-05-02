@@ -1,0 +1,47 @@
+2026-05-02 10:19:51,117 | INFO | Starting Stage 3A relevance routing run: run_20260502_101951_572d6c22
+2026-05-02 10:19:51,117 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 10:19:51,117 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:19:51,117 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 10:20:22,069 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=The read operation timed out
+2026-05-02 10:20:54,186 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=The read operation timed out
+2026-05-02 10:21:23,360 | INFO | KEEP | score=8.20 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 10:21:53,919 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=The read operation timed out
+2026-05-02 10:22:26,681 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=The read operation timed out
+2026-05-02 10:23:04,018 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=The read operation timed out
+2026-05-02 10:23:04,021 | ERROR | Failed to route news_id=2: stage_10_relevance_scoring required online LLM but failed: The read operation timed out
+2026-05-02 10:23:35,608 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=The read operation timed out
+2026-05-02 10:24:10,909 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=The read operation timed out
+2026-05-02 10:24:44,828 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=The read operation timed out
+2026-05-02 10:24:44,832 | ERROR | Failed to route news_id=3: stage_10_relevance_scoring required online LLM but failed: The read operation timed out
+2026-05-02 10:25:15,200 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=The read operation timed out
+2026-05-02 10:25:48,396 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=The read operation timed out
+2026-05-02 10:26:21,787 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=The read operation timed out
+2026-05-02 10:26:21,790 | ERROR | Failed to route news_id=4: stage_10_relevance_scoring required online LLM but failed: The read operation timed out
+2026-05-02 10:26:21,792 | INFO | FILTER | score=0.00 | New multimodal model feature improves creative workflows
+2026-05-02 10:26:21,792 | INFO | FILTER | score=0.00 | General trade talks continue without direct AI infrastructure implications
+2026-05-02 10:26:26,809 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:26:33,328 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:27:14,972 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=The read operation timed out
+2026-05-02 10:27:14,975 | ERROR | Failed to route news_id=55: stage_10_relevance_scoring required online LLM but failed: The read operation timed out
+2026-05-02 10:27:19,995 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:27:51,515 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:28:24,594 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:28:24,596 | ERROR | Failed to route news_id=56: stage_10_relevance_scoring required online LLM but failed: Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:28:54,627 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:29:26,182 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:29:59,218 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:29:59,221 | ERROR | Failed to route news_id=57: stage_10_relevance_scoring required online LLM but failed: Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:30:29,234 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:31:00,782 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:31:33,804 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:31:33,807 | ERROR | Failed to route news_id=58: stage_10_relevance_scoring required online LLM but failed: Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:32:03,855 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:32:35,507 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:33:08,604 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:33:08,606 | ERROR | Failed to route news_id=59: stage_10_relevance_scoring required online LLM but failed: Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:33:38,636 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:34:10,208 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:34:43,244 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:34:43,248 | ERROR | Failed to route news_id=60: stage_10_relevance_scoring required online LLM but failed: Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:35:13,297 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>
+2026-05-02 10:35:44,832 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=Network error: <urlopen error _ssl.c:1112: The handshake operation timed out>

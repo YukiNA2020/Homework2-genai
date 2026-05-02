@@ -1,0 +1,34 @@
+2026-05-02 10:04:31,725 | INFO | Starting Stage 6 main workflow run: run_20260502_100431_c4ca4e44
+2026-05-02 10:04:31,725 | INFO | Database path: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 10:04:31,725 | INFO | Starting Stage 2 news monitoring
+2026-05-02 10:04:31,725 | INFO | Command: /opt/anaconda3/bin/python /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode local_sample --llm-mode auto --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 10:07:48,317 | INFO | Stage 2 news monitoring stdout:
+Stage 2 news monitoring completed
+Run ID: run_20260502_100431_93024f93
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 6
+Inserted: 0
+Duplicates skipped: 6
+Errors: 0
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_100431_93024f93_news_monitoring.log
+2026-05-02 10:07:48,318 | INFO | Stage 2 news monitoring stderr:
+2026-05-02 10:04:31,778 | INFO | Starting Stage 2 news monitoring run: run_20260502_100431_93024f93
+2026-05-02 10:04:31,778 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:04:31,778 | INFO | Stage 10 summarization LLM mode: auto | available=True | require_online=False
+2026-05-02 10:04:31,781 | INFO | Loaded 6 local sample items from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/sample_news.json.
+2026-05-02 10:05:00,521 | INFO | Duplicate skipped: AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 10:05:23,772 | INFO | Duplicate skipped: Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 10:05:54,564 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=1/3 error=The read operation timed out
+2026-05-02 10:06:01,809 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=2/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:06:10,238 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=3/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:06:10,244 | INFO | Duplicate skipped: Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 10:06:18,884 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=1/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:06:30,398 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=2/3 error=Network error: <urlopen error [Errno 54] Connection reset by peer>
+2026-05-02 10:07:05,117 | WARNING | LLM call failed: operation=stage_10_news_summarization attempt=3/3 error=The read operation timed out
+2026-05-02 10:07:05,122 | INFO | Duplicate skipped: Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 10:07:28,297 | INFO | Duplicate skipped: New multimodal model feature improves creative workflows
+2026-05-02 10:07:48,278 | INFO | Duplicate skipped: General trade talks continue without direct AI infrastructure implications
+2026-05-02 10:07:48,286 | INFO | Completed run. seen=6 inserted=0 duplicates=6 errors=0
+2026-05-02 10:07:48,318 | INFO | Completed Stage 2 news monitoring in 196.59s
+2026-05-02 10:07:48,318 | INFO | Starting Stage 3A relevance routing
+2026-05-02 10:07:48,319 | INFO | Command: /opt/anaconda3/bin/python /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py --rerun --llm-mode auto --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3

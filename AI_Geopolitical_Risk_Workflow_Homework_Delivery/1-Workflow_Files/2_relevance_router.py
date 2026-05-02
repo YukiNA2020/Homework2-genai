@@ -1,9 +1,8 @@
-"""Stage 3A: dual-layer relevance routing.
+"""Stage 3A/10: dual-layer relevance routing.
 
 The router keeps the MVP fully testable offline. It first applies an
-engineering rule gate, then uses a deterministic scoring function that mirrors
-the planned DeepSeek V4 relevance prompt. Later, the score_relevance function
-can be replaced by a real LLM call while preserving the same database contract.
+engineering rule gate, then optionally asks the unified LLM client for rubric
+scoring while preserving deterministic fallback and the same database contract.
 """
 
 from __future__ import annotations
@@ -20,9 +19,16 @@ from pathlib import Path
 from typing import Any
 
 from api_config import DATABASE_PATH, DEFAULT_LLM_CONFIG, LOG_DIR, SQLITE_SCHEMA_PATH
+from llm_stage_utils import (
+    LLM_MODE_CHOICES,
+    build_llm_client,
+    model_provider_label,
+    prompt_version_label,
+    require_online_success,
+)
 
 
-PROMPT_VERSION = "relevance_routing_v1_offline_mvp"
+PROMPT_VERSION_BASE = "relevance_routing_v2_stage10"
 KEEP_THRESHOLD = 7.0
 
 ROUTING_RULES = {
@@ -299,12 +305,51 @@ def score_relevance(
     return total, breakdown, rationale
 
 
-def route_item(item: sqlite3.Row) -> dict[str, Any]:
-    text = build_analysis_text(item)
-    ai_terms = find_terms(ROUTING_RULES["keywords"]["ai_infrastructure_supply_chain"], text)
-    geopolitical_terms = find_terms(ROUTING_RULES["keywords"]["geopolitical_cross_border_risk"], text)
-    exclude_terms = find_terms(ROUTING_RULES["exclude_terms"], text)
-    rule_passed = bool(ai_terms and geopolitical_terms and not exclude_terms)
+def truncate_for_prompt(text: str, max_chars: int = 5000) -> str:
+    if len(text) <= max_chars:
+        return text
+    return f"{text[:max_chars].rstrip()}... [truncated for LLM prompt]"
+
+
+def coerce_float(value: Any, default: float, lower: float, upper: float) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return round(max(lower, min(upper, parsed)), 2)
+
+
+def coerce_string_list(value: Any, fallback: list[str], limit: int = 12) -> list[str]:
+    if not isinstance(value, list):
+        return fallback[:limit]
+    items = [str(item).strip() for item in value if str(item).strip()]
+    return items[:limit] if items else fallback[:limit]
+
+
+def normalize_scoring_breakdown(value: Any, fallback: dict[str, float]) -> dict[str, float]:
+    if not isinstance(value, dict):
+        return fallback
+    return {
+        "business_impact": coerce_float(value.get("business_impact"), fallback["business_impact"], 0.0, 4.0),
+        "evidence_support": coerce_float(value.get("evidence_support"), fallback["evidence_support"], 0.0, 2.5),
+        "audience_fit": coerce_float(value.get("audience_fit"), fallback["audience_fit"], 0.0, 2.0),
+        "core_chain_relevance": coerce_float(
+            value.get("core_chain_relevance"),
+            fallback["core_chain_relevance"],
+            0.0,
+            1.5,
+        ),
+    }
+
+
+def build_relevance_fallback(
+    item: sqlite3.Row,
+    text: str,
+    rule_passed: bool,
+    ai_terms: list[str],
+    geopolitical_terms: list[str],
+    exclude_terms: list[str],
+) -> dict[str, Any]:
     relevance_score, scoring_breakdown, rationale = score_relevance(
         item,
         text,
@@ -314,15 +359,12 @@ def route_item(item: sqlite3.Row) -> dict[str, Any]:
         exclude_terms,
     )
     decision = "keep" if rule_passed and relevance_score >= KEEP_THRESHOLD else "filter"
-
     if decision == "filter" and rule_passed:
         rationale = (
             f"Filtered after semantic scoring because score {relevance_score} is below "
             f"the keep threshold {KEEP_THRESHOLD}."
         )
-
     return {
-        "news_id": item["id"],
         "rule_passed": rule_passed,
         "ai_signal_terms": ai_terms,
         "geopolitical_signal_terms": geopolitical_terms,
@@ -331,6 +373,131 @@ def route_item(item: sqlite3.Row) -> dict[str, Any]:
         "decision": decision,
         "rationale": rationale,
         "scoring_breakdown": scoring_breakdown,
+    }
+
+
+def route_item(
+    item: sqlite3.Row,
+    llm_client: Any | None = None,
+    require_online: bool = False,
+) -> dict[str, Any]:
+    text = build_analysis_text(item)
+    ai_terms = find_terms(ROUTING_RULES["keywords"]["ai_infrastructure_supply_chain"], text)
+    geopolitical_terms = find_terms(ROUTING_RULES["keywords"]["geopolitical_cross_border_risk"], text)
+    exclude_terms = find_terms(ROUTING_RULES["exclude_terms"], text)
+    rule_passed = bool(ai_terms and geopolitical_terms and not exclude_terms)
+    fallback = build_relevance_fallback(
+        item,
+        text,
+        rule_passed,
+        ai_terms,
+        geopolitical_terms,
+        exclude_terms,
+    )
+
+    if not rule_passed or llm_client is None:
+        return {
+            "news_id": item["id"],
+            **fallback,
+            "prompt_version": f"{PROMPT_VERSION_BASE}_offline_rule_gate",
+            "model_provider": "offline_rule_gate",
+        }
+
+    system_prompt = (
+        "You are a strict JSON API for AI infrastructure geopolitical risk "
+        "relevance scoring. Return only one valid JSON object. Do not include "
+        "markdown fences or explanatory prose outside JSON."
+    )
+    user_prompt = json.dumps(
+        {
+            "task": "Score this monitored item from 0 to 10 using the provided rubric.",
+            "project_domain": "AI infrastructure geopolitical risk and supply-chain decision intelligence.",
+            "target_audience": [
+                "AI infrastructure investors",
+                "data center investors and operators",
+                "cloud, AI chip, supply-chain, strategy, and risk leaders",
+            ],
+            "rule_gate_result": {
+                "rule_passed": rule_passed,
+                "ai_signal_terms": ai_terms,
+                "geopolitical_signal_terms": geopolitical_terms,
+                "exclude_terms": exclude_terms,
+            },
+            "rubric": {
+                "business_impact": "0-4 points: impact on AI infrastructure investment, data center deployment, supply-chain cost, or cross-border continuity",
+                "evidence_support": "0-2.5 points: real event, data, report, announcement, or credible case",
+                "audience_fit": "0-2 points: decision relevance for the target audience",
+                "core_chain_relevance": "0-1.5 points: compute infrastructure, critical minerals, power, chips, or AI supply-chain links",
+                "keep_threshold": KEEP_THRESHOLD,
+            },
+            "output_schema": {
+                "rule_passed": True,
+                "ai_signal_terms": ["data center"],
+                "geopolitical_signal_terms": ["export control"],
+                "exclude_terms": [],
+                "relevance_score": 8.2,
+                "decision": "keep or filter",
+                "scoring_breakdown": {
+                    "business_impact": 3.4,
+                    "evidence_support": 2.0,
+                    "audience_fit": 1.6,
+                    "core_chain_relevance": 1.2,
+                },
+                "rationale": "one concise explanation",
+            },
+            "item": {
+                "news_id": item["id"],
+                "title": item["title"],
+                "source_name": item["source_name"],
+                "source_type": item["source_type"],
+                "published_at": item["published_at"],
+                "summary": item["summary"],
+                "content_excerpt": truncate_for_prompt(item["cleaned_content"]),
+                "keywords": parse_json_list(item["keywords"]),
+            },
+        },
+        ensure_ascii=False,
+    )
+    response = llm_client.complete_json(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        fallback_json=fallback,
+        operation_name="stage_10_relevance_scoring",
+    )
+    require_online_success(response, require_online, "stage_10_relevance_scoring")
+
+    data = response.json_data
+    scoring_breakdown = normalize_scoring_breakdown(data.get("scoring_breakdown"), fallback["scoring_breakdown"])
+    relevance_score = coerce_float(
+        data.get("relevance_score"),
+        sum(scoring_breakdown.values()),
+        0.0,
+        10.0,
+    )
+    if abs(relevance_score - round(sum(scoring_breakdown.values()), 2)) > 1.0:
+        relevance_score = round(sum(scoring_breakdown.values()), 2)
+    decision = "keep" if rule_passed and relevance_score >= KEEP_THRESHOLD else "filter"
+    rationale = str(data.get("rationale") or fallback["rationale"]).strip()
+    if not rationale:
+        rationale = fallback["rationale"]
+    if decision == "filter" and rule_passed and relevance_score < KEEP_THRESHOLD:
+        rationale = (
+            f"Filtered after semantic scoring because score {relevance_score} is below "
+            f"the keep threshold {KEEP_THRESHOLD}. {rationale}"
+        )
+
+    return {
+        "news_id": item["id"],
+        "rule_passed": rule_passed,
+        "ai_signal_terms": coerce_string_list(data.get("ai_signal_terms"), ai_terms),
+        "geopolitical_signal_terms": coerce_string_list(data.get("geopolitical_signal_terms"), geopolitical_terms),
+        "exclude_terms": coerce_string_list(data.get("exclude_terms"), exclude_terms),
+        "relevance_score": relevance_score,
+        "decision": decision,
+        "rationale": rationale,
+        "scoring_breakdown": scoring_breakdown,
+        "prompt_version": prompt_version_label(PROMPT_VERSION_BASE, response),
+        "model_provider": model_provider_label(response),
     }
 
 
@@ -385,8 +552,8 @@ def upsert_routing_result(connection: sqlite3.Connection, result: dict[str, Any]
             result["decision"],
             result["rationale"],
             json.dumps(result["scoring_breakdown"], ensure_ascii=False),
-            PROMPT_VERSION,
-            DEFAULT_LLM_CONFIG["provider"],
+            result["prompt_version"],
+            result["model_provider"],
             now,
             now,
         ),
@@ -425,7 +592,12 @@ def record_run(connection: sqlite3.Connection, stats: RoutingStats) -> None:
     )
 
 
-def run_relevance_router(db_path: Path, rerun: bool = False) -> tuple[RoutingStats, Path]:
+def run_relevance_router(
+    db_path: Path,
+    rerun: bool = False,
+    llm_mode: str = "offline",
+    max_items: int | None = None,
+) -> tuple[RoutingStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
     stats = RoutingStats(run_id=run_id, started_at=utc_now())
@@ -441,16 +613,26 @@ def run_relevance_router(db_path: Path, rerun: bool = False) -> tuple[RoutingSta
         DEFAULT_LLM_CONFIG["provider"],
         DEFAULT_LLM_CONFIG["enabled"],
     )
+    llm_client, require_online = build_llm_client(llm_mode, logger)
+    logger.info(
+        "Stage 10 relevance LLM mode: %s | available=%s | require_online=%s",
+        llm_mode,
+        llm_client.is_available,
+        require_online,
+    )
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
 
     with sqlite3.connect(db_path) as connection:
         items = select_news_items(connection, rerun)
+        if max_items is not None:
+            items = items[:max_items]
+            logger.info("Applied Stage 10 max item limit: %s", max_items)
         stats.items_seen = len(items)
 
         for item in items:
             try:
-                result = route_item(item)
+                result = route_item(item, llm_client, require_online)
                 upsert_routing_result(connection, result)
                 stats.items_routed += 1
                 if result["decision"] == "keep":
@@ -469,9 +651,9 @@ def run_relevance_router(db_path: Path, rerun: bool = False) -> tuple[RoutingSta
 
         stats.finished_at = utc_now()
         stats.notes = (
-            "Offline Stage 3A router completed. Rule gate uses keywords, "
-            "required_terms, and exclude_terms; semantic score mirrors the "
-            "planned DeepSeek V4 prompt contract."
+            "Stage 10-enabled Stage 3A router completed. Rule gate uses keywords, "
+            "required_terms, and exclude_terms; LLM rubric scoring is controlled by "
+            f"llm_mode={llm_mode} with deterministic fallback."
         )
         record_run(connection, stats)
 
@@ -504,13 +686,25 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Only route news items that do not already have routing results.",
     )
+    parser.add_argument(
+        "--llm-mode",
+        choices=LLM_MODE_CHOICES,
+        default="offline",
+        help="LLM behavior for relevance scoring: offline, auto, or online. Default: offline.",
+    )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=None,
+        help="Optional maximum news items to route, useful for small online validation runs.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     rerun = args.rerun or not args.only_new
-    stats, log_path = run_relevance_router(args.db_path, rerun)
+    stats, log_path = run_relevance_router(args.db_path, rerun, args.llm_mode, args.max_items)
     print("\nStage 3A relevance routing completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")

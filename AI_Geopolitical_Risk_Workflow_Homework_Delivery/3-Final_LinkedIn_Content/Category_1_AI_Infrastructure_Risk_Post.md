@@ -1,8 +1,8 @@
 # Category 1: AI Infrastructure Geopolitical Risk
 
-> 使用环节：阶段五 - LinkedIn决策简报生成。  
-> Run ID: `run_20260501_235321_0b4c8eb2`  
-> Generated at: `2026-05-01T15:53:21Z`
+> 使用环节：阶段五 - LinkedIn决策简报生成。
+> Run ID: `run_20260502_101124_fe98c544`
+> Generated at: `2026-05-02T02:11:24Z`
 
 ## Metadata
 
@@ -10,8 +10,8 @@
 - Target audience: AI infrastructure investors, data center operators, cloud strategy teams, and multinational AI enterprise strategy leaders.
 - Tone and positioning: Professional insight plus risk-warning decision brief, written for executives and investors who need infrastructure allocation signals.
 - Source news IDs: 1, 3, 4
-- Prompt version: linkedin_content_generation_v1_offline_mvp
-- Model provider placeholder: DeepSeek V4
+- Prompt version: linkedin_content_generation_v2_stage10_offline_fallback
+- Model provider: offline_fallback
 
 ## Source Evidence
 

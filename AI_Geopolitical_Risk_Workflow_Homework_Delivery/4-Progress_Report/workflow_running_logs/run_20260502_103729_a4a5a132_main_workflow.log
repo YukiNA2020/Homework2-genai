@@ -1,0 +1,48 @@
+2026-05-02 10:37:29,754 | INFO | Starting Stage 6 main workflow run: run_20260502_103729_a4a5a132
+2026-05-02 10:37:29,754 | INFO | Database path: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 10:37:29,755 | INFO | Starting Stage 2 news monitoring
+2026-05-02 10:37:29,755 | INFO | Command: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode local_sample --llm-mode online --max-items 1 --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 10:38:00,427 | INFO | Stage 2 news monitoring stdout:
+Stage 2 news monitoring completed
+Run ID: run_20260502_103729_ed7e8cb9
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 1
+Inserted: 0
+Duplicates skipped: 1
+Errors: 0
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_103729_ed7e8cb9_news_monitoring.log
+2026-05-02 10:38:00,427 | INFO | Stage 2 news monitoring stderr:
+2026-05-02 10:37:29,819 | INFO | Starting Stage 2 news monitoring run: run_20260502_103729_ed7e8cb9
+2026-05-02 10:37:29,819 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:37:29,819 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True
+2026-05-02 10:37:29,823 | INFO | Loaded 6 local sample items from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/sample_news.json.
+2026-05-02 10:37:29,823 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 10:38:00,406 | INFO | Duplicate skipped: AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 10:38:00,409 | INFO | Completed run. seen=1 inserted=0 duplicates=1 errors=0
+2026-05-02 10:38:00,428 | INFO | Completed Stage 2 news monitoring in 30.67s
+2026-05-02 10:38:00,428 | INFO | Starting Stage 3A relevance routing
+2026-05-02 10:38:00,428 | INFO | Command: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py --rerun --llm-mode online --max-items 1 --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 10:39:36,824 | INFO | Stage 3A relevance routing stdout:
+Stage 3A relevance routing completed
+Run ID: run_20260502_103800_b28b4cf4
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 1
+Routed: 0
+Kept: 0
+Filtered: 0
+Errors: 1
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_103800_b28b4cf4_relevance_router.log
+2026-05-02 10:39:36,824 | INFO | Stage 3A relevance routing stderr:
+2026-05-02 10:38:00,511 | INFO | Starting Stage 3A relevance routing run: run_20260502_103800_b28b4cf4
+2026-05-02 10:38:00,511 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 10:38:00,511 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 10:38:00,512 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 10:38:00,515 | INFO | Applied Stage 10 max item limit: 1
+2026-05-02 10:38:30,808 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=1/3 error=The read operation timed out
+2026-05-02 10:39:03,399 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=2/3 error=The read operation timed out
+2026-05-02 10:39:36,799 | WARNING | LLM call failed: operation=stage_10_relevance_scoring attempt=3/3 error=The read operation timed out
+2026-05-02 10:39:36,803 | ERROR | Failed to route news_id=1: stage_10_relevance_scoring required online LLM but failed: The read operation timed out
+2026-05-02 10:39:36,807 | INFO | Completed routing. seen=1 routed=0 kept=0 filtered=0 errors=1
+2026-05-02 10:39:36,824 | INFO | Completed Stage 3A relevance routing in 96.40s
+2026-05-02 10:39:36,825 | INFO | Starting Stage 3B information classification
+2026-05-02 10:39:36,825 | INFO | Command: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py --rerun --llm-mode online --max-items 1 --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3

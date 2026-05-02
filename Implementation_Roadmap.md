@@ -261,10 +261,10 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 -> 日志与最终报告
 ```
 
-现阶段的主要限制不是架构方向错误，而是三个能力仍然处于占位状态：
+现阶段的主要限制不是架构方向错误，而是后续真实自动化能力仍需继续补齐：
 
-1. **真实每日信息源未接入**：当前只读取本地样例新闻，RSS/API配置仍是预留接口。
-2. **真实大模型未接入业务流程**：DeepSeek V4已作为默认真实LLM配置，摘要、评分、分类和内容生成目前仍使用离线确定性逻辑，阶段十再逐步替换。
+1. **真实每日运行未自动化**：RSS已经接入，但每日定时运行、人工审核队列和归档目录仍待阶段十二补齐。
+2. **真实LLM业务接线已完成但待用户API实测**：DeepSeek V4已作为默认真实LLM配置，摘要、评分、分类和内容生成已支持 `--llm-mode auto|online`，用户填写 `.env` 后再做真实API验收。
 3. **真实图片未生成**：当前输出的是配图Prompt，没有调用图片生成API，也没有保存最终图片文件。
 
 因此，v4.0的目标不是重写系统，而是在现有MVP上逐步替换占位模块。
@@ -370,6 +370,8 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 目标：不要一次性改完所有阶段，而是按风险从低到高逐个替换。
 
+当前状态：已于2026-05-02完成阶段十。阶段二新闻摘要、阶段三相关性评分、阶段三信息分类和阶段五LinkedIn内容生成均已接入统一 `llm_client.py`，并新增全局 `--llm-mode offline|auto|online`。默认模式保持 `offline`，确保无网络、无API key时仍可运行稳定MVP。
+
 推荐顺序：
 
 | 顺序 | 替换环节 | 原逻辑 | 升级后 |
@@ -390,9 +392,9 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 验收标准：
 
-- 阶段二到阶段五均能在真实LLM模式下单独运行。
-- 总控脚本可以通过参数选择离线模式或LLM模式。
-- 数据库中的 `prompt_version`、`model_provider` 能反映真实模型版本。
+- 阶段二到阶段五均能通过统一参数进入LLM模式；真实API由用户填写 `.env` 后使用 `--llm-mode online` 验证。
+- 总控脚本可以通过参数选择离线模式或LLM模式。（已完成）
+- 数据库中的 `prompt_version`、`model_provider` 能反映真实模型版本或离线fallback状态。（已完成）
 
 ### 10.7 阶段十一：接入图片生成与内容归档
 
@@ -470,11 +472,9 @@ daily_outputs/YYYY-MM-DD/
 
 1. **真实RSS接入**：已完成，系统已经能吃到真实信息。
 2. **LLM客户端**：已完成统一封装和离线fallback验证。
-3. **下一步先替换新闻摘要**：这是最低风险的LLM替换点。
-4. **再替换相关性评分和分类**：让核心判断更接近作业要求中的AI机制。
-5. **最后替换LinkedIn生成**：在输入质量稳定后再提升输出自然度。
-6. **再接图片生成**：补齐最终内容形态。
-7. **最后做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
+3. **LLM替换摘要、评分、分类和LinkedIn生成**：已完成，默认离线，支持 `auto/online`。
+4. **下一步接图片生成**：补齐最终内容形态。
+5. **最后做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
 
 ### 10.11 阶段九完成与阶段十起点
 
@@ -483,3 +483,13 @@ daily_outputs/YYYY-MM-DD/
 1. **新增 `.env.example`**：已完成，当前默认DeepSeek V4，列出 `DEEPSEEK_API_KEY`、`DEEPSEEK_API_ENDPOINT`、`LLM_PROVIDER`、`LLM_MODEL` 等环境变量。
 2. **新增 `llm_client.py`**：已完成，统一封装API key读取、请求发送、结构化JSON解析、重试、超时与离线fallback。
 3. **新增最小LLM连通性测试**：已完成，无API key时返回结构化fallback；用户填写 `.env` 后可用 `--require-online` 验证真实API。
+
+### 10.12 阶段十完成与阶段十一起点
+
+阶段十已完成以下内容；下一次开发应从阶段十一“图片生成与内容归档”开始：
+
+1. **新增 `llm_stage_utils.py`**：统一管理 `offline`、`auto`、`online` 三种LLM运行模式。
+2. **完成文本LLM替换接线**：`1_news_monitoring.py`、`2_relevance_router.py`、`3_information_classification.py`、`5_linkedin_content_generation.py` 均可通过统一LLM客户端运行。
+3. **升级总控脚本**：`0_main_workflow.py --llm-mode offline|auto|online` 可统一控制阶段二、阶段三和阶段五的LLM行为。
+4. **离线回归通过**：Run ID `run_20260502_092016_e351f378`，`Overall success: True`，数据库健康检查全部 `PASS`。
+5. **模型边界**：DeepSeek V4继续用于文本LLM任务；阶段十一如果生成真实图片，应单独选择图片生成模型或服务。
