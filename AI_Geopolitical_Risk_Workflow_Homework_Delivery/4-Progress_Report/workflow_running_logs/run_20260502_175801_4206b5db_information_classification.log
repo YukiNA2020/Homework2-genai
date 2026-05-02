@@ -1,0 +1,14 @@
+2026-05-02 17:58:01,624 | INFO | Starting Stage 3B information classification run: run_20260502_175801_4206b5db
+2026-05-02 17:58:01,624 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 17:58:01,625 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 17:58:01,625 | INFO | Stage 10 classification LLM mode: auto | available=True | require_online=False
+2026-05-02 17:58:01,629 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 17:58:01,641 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=1/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:03,158 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=2/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:06,173 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=3/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:06,179 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 17:58:06,187 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=1/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:07,705 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=2/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:10,717 | WARNING | LLM call failed: operation=stage_10_information_classification attempt=3/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:10,722 | INFO | CLASSIFIED | AI关键矿产供应链与地缘政治 | confidence=0.95 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 17:58:10,725 | INFO | Completed classification. seen=2 classified=2 errors=0

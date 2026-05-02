@@ -1,0 +1,15 @@
+2026-05-02 17:58:10,913 | INFO | Starting Stage 5 LinkedIn content generation run: run_20260502_175810_5da3fdb3
+2026-05-02 17:58:10,913 | INFO | Target categories configured: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 17:58:10,914 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 17:58:10,914 | INFO | Stage 10 LinkedIn generation LLM mode: auto | available=True | require_online=False
+2026-05-02 17:58:10,944 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=1/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:12,464 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=2/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:15,474 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=3/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:15,477 | INFO | GENERATED | AI算力基础设施地缘风险 | items=2 | output=/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md
+2026-05-02 17:58:15,484 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=1/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:16,993 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=2/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:20,011 | WARNING | LLM call failed: operation=stage_10_linkedin_content_generation attempt=3/3 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:58:20,014 | INFO | GENERATED | AI关键矿产供应链与地缘政治 | items=1 | output=/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md
+2026-05-02 17:58:20,015 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt
+2026-05-02 17:58:20,016 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt
+2026-05-02 17:58:20,017 | INFO | Completed content generation. categories=2 posts=2 outputs=4 errors=0

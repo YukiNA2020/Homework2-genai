@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Professional LinkedIn visual for AI infrastructure risk">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F6F7F9"/>
+      <stop offset="0.55" stop-color="#E9EEF3"/>
+      <stop offset="1" stop-color="#F2EFE9"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#DDE7EF" stop-opacity="0.72"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#1F2933" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <path d="M0 610 C210 550 310 640 515 590 C710 545 815 455 1015 505 C1190 548 1320 625 1600 560 L1600 900 L0 900 Z" fill="#C9DDF0" opacity="0.72"/>
+  <path d="M80 210 C290 120 430 190 600 155 C840 105 1000 145 1200 115 C1345 94 1450 110 1535 160" fill="none" stroke="#9AA8B5" stroke-width="3" opacity="0.38"/>
+  <path d="M120 705 L1480 270" fill="none" stroke="#2B6CB0" stroke-width="5" opacity="0.32"/>
+  <path d="M185 615 L1360 430" fill="none" stroke="#4D7C3F" stroke-width="4" opacity="0.34"/>
+  <g filter="url(#shadow)">
+    <rect x="205" y="315" width="410" height="270" rx="8" fill="url(#glass)" stroke="#B6C3D1" stroke-width="2"/>
+    <rect x="250" y="360" width="315" height="34" rx="4" fill="#2B6CB0" opacity="0.82"/>
+    <rect x="250" y="418" width="315" height="34" rx="4" fill="#2B6CB0" opacity="0.58"/>
+    <rect x="250" y="476" width="315" height="34" rx="4" fill="#2B6CB0" opacity="0.36"/>
+    <rect x="630" y="245" width="325" height="455" rx="8" fill="#EFF4F7" stroke="#B6C3D1" stroke-width="2"/>
+    <g opacity="0.85">
+      <rect x="672" y="298" width="64" height="310" rx="5" fill="#BFCAD6"/>
+      <rect x="758" y="298" width="64" height="310" rx="5" fill="#CBD5DF"/>
+      <rect x="844" y="298" width="64" height="310" rx="5" fill="#BFCAD6"/>
+    </g>
+    <rect x="987" y="370" width="380" height="210" rx="8" fill="url(#glass)" stroke="#B6C3D1" stroke-width="2"/>
+    <path d="M1058 527 C1110 450 1190 455 1244 500 C1290 540 1320 516 1350 472" fill="none" stroke="#7A5AA6" stroke-width="12" stroke-linecap="round" opacity="0.75"/>
+  </g>
+  <g fill="#FFFFFF" stroke="#738496" stroke-width="3">
+    <circle cx="205" cy="615" r="22"/>
+    <circle cx="615" cy="470" r="20"/>
+    <circle cx="955" cy="330" r="24"/>
+    <circle cx="1360" cy="430" r="22"/>
+  </g>
+  <g fill="#2B6CB0" opacity="0.9">
+    <circle cx="205" cy="615" r="9"/>
+    <circle cx="615" cy="470" r="8"/>
+    <circle cx="955" cy="330" r="10"/>
+    <circle cx="1360" cy="430" r="9"/>
+  </g>
+  <g opacity="0.22" fill="none" stroke="#64748B" stroke-width="2">
+    <path d="M1140 174 a170 74 0 1 0 1 0"/>
+    <path d="M1140 174 a118 170 0 1 0 1 0"/>
+    <path d="M978 174 h326"/>
+    <path d="M1008 115 h266"/>
+    <path d="M1008 233 h266"/>
+  </g>
+  <metadata>compute:Q3JlYXRlIG</metadata>
+</svg>

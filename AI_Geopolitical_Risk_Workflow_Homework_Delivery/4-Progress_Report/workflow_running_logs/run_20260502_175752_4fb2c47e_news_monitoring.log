@@ -1,0 +1,11 @@
+2026-05-02 17:57:52,265 | INFO | Starting Stage 2 news monitoring run: run_20260502_175752_4fb2c47e
+2026-05-02 17:57:52,266 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 17:57:52,266 | INFO | Stage 10 summarization LLM mode: auto | available=True | require_online=False
+2026-05-02 17:57:52,269 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-02 17:57:52,294 | WARNING | RSS source failed but run will continue: source=MIT Technology Review - Artificial Intelligence url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ error=<urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:57:52,300 | WARNING | RSS source failed but run will continue: source=OpenAI News url=https://openai.com/news/rss.xml error=<urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:57:52,305 | WARNING | RSS source failed but run will continue: source=Microsoft Official Blog url=https://blogs.microsoft.com/feed/ error=<urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:57:52,310 | WARNING | RSS source failed but run will continue: source=NVIDIA Blog url=https://blogs.nvidia.com/feed/ error=<urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:57:52,315 | WARNING | RSS source failed but run will continue: source=USGS News url=https://www.usgs.gov/news/national-news-release/feed error=<urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 17:57:52,316 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 17:57:52,318 | INFO | Completed run. seen=0 inserted=0 duplicates=0 errors=0

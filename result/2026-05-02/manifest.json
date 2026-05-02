@@ -1,0 +1,81 @@
+{
+  "stage": "stage_12_daily_run_and_human_review",
+  "prompt_version": "daily_review_queue_v1_stage12",
+  "stats": {
+    "run_id": "daily_20260502_175846_42f15b3f",
+    "run_date": "2026-05-02",
+    "started_at": "2026-05-02T09:58:46Z",
+    "finished_at": "2026-05-02T10:02:04Z",
+    "stage2_input_mode": "rss",
+    "llm_mode": "auto",
+    "image_mode": "auto",
+    "workflow_run_id": "run_20260502_175846_f9e84a58",
+    "workflow_return_code": 0,
+    "workflow_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_175846_f9e84a58_main_workflow.log",
+    "daily_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_175846_42f15b3f_daily_review.log",
+    "output_dir": "result/2026-05-02",
+    "review_queue_path": "result/2026-05-02/review_queue.md",
+    "manifest_path": "result/2026-05-02/manifest.json",
+    "items_seen": 2,
+    "items_inserted": 2,
+    "items_kept": 2,
+    "items_classified": 2,
+    "candidate_posts": 2,
+    "images_generated": 2,
+    "fallback_used": 0,
+    "review_items": 2,
+    "errors": 0,
+    "notes": "Stage 12 generated a daily candidate review package and SQLite review queue. No LinkedIn publishing or external posting was performed."
+  },
+  "candidate_records": [
+    {
+      "daily_run_id": "daily_20260502_175846_42f15b3f",
+      "run_date": "2026-05-02",
+      "primary_category": "AI关键矿产供应链与地缘政治",
+      "source_content_id": 2,
+      "source_news_ids": [
+        "2"
+      ],
+      "source_titles": [
+        "Copper supply concentration creates cost risk for AI infrastructure buildout"
+      ],
+      "candidate_post_path": "result/2026-05-02/candidates/category_2_ai_critical_minerals_supply_chain_candidate.md",
+      "image_path": "result/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_180052_ce409b70.jpg",
+      "archive_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain",
+      "review_status": "pending_review",
+      "review_priority": "P1",
+      "prompt_version": "linkedin_content_generation_v2_stage10_llm",
+      "model_provider": "deepseek:deepseek-v4-flash",
+      "image_status": "generated"
+    },
+    {
+      "daily_run_id": "daily_20260502_175846_42f15b3f",
+      "run_date": "2026-05-02",
+      "primary_category": "AI算力基础设施地缘风险",
+      "source_content_id": 1,
+      "source_news_ids": [
+        "1",
+        "3"
+      ],
+      "source_titles": [
+        "AI data center expansion raises electricity demand and grid planning risk",
+        "Cloud provider reassesses regional AI compute deployment after new export-control guidance"
+      ],
+      "candidate_post_path": "result/2026-05-02/candidates/category_1_ai_infrastructure_risk_candidate.md",
+      "image_path": "result/2026-05-02/assets/category_1_ai_infrastructure_risk_run_20260502_180052_ce409b70.jpg",
+      "archive_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk",
+      "review_status": "pending_review",
+      "review_priority": "P1",
+      "prompt_version": "linkedin_content_generation_v2_stage10_llm",
+      "model_provider": "deepseek:deepseek-v4-flash",
+      "image_status": "generated"
+    }
+  ],
+  "artifacts": {
+    "review_queue": "result/2026-05-02/review_queue.md",
+    "review_queue_csv": "result/2026-05-02/review_queue.csv",
+    "candidates_dir": "result/2026-05-02/candidates",
+    "assets_dir": "result/2026-05-02/assets"
+  },
+  "publishing_policy": "manual_review_required_no_auto_publish"
+}
