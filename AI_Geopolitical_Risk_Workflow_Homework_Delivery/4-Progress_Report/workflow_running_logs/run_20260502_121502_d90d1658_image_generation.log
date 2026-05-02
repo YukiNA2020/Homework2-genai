@@ -1,0 +1,7 @@
+2026-05-02 12:15:02,456 | INFO | Starting Stage 11 image generation run: run_20260502_121502_d90d1658
+2026-05-02 12:15:02,456 | INFO | Image mode: online
+2026-05-02 12:15:02,456 | INFO | Image output dir: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images
+2026-05-02 12:15:02,456 | INFO | Archive root: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive
+2026-05-02 12:15:02,459 | INFO | Sanitized image config: {"provider": "minimax", "model": "image-01", "available": true, "reason": "online image generation configuration is available", "endpoint_configured": true, "api_key_configured": true, "aspect_ratio": "16:9", "response_format": "base64", "force_offline": false, "fallback_on_error": false}
+2026-05-02 12:15:27,030 | INFO | IMAGE_READY | AI关键矿产供应链与地缘政治 | status=generated | image=/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg | archive=/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain
+2026-05-02 12:15:27,031 | INFO | Completed Stage 11 image generation. items=1 images=1 archives=1 fallback=0 errors=0

@@ -1,3 +1,15 @@
+# Archived LinkedIn Content Bundle
+
+- Primary category: AI关键矿产供应链与地缘政治
+- Generated at: `2026-05-02T04:15:02Z`
+- Image status: `generated`
+- Image provider: `minimax`
+- Image model: `image-01`
+- Image file: `category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg`
+
+![Archived LinkedIn visual](category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg)
+
+---
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
@@ -58,25 +70,3 @@ Create a professional 16:9 LinkedIn visual for an executive brief on critical mi
 | Structure clarity | 15 |
 | Interaction quality | 15 |
 | Total | 97 |
-
-<!-- STAGE11_IMAGE_ARCHIVE_START -->
-
-## Stage 11 Generated Image
-
-![Stage 11 LinkedIn visual](images/category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg)
-
-- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg`
-- Archive directory: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain`
-- Archive post: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain/linkedin_post.md`
-- Generated at: `2026-05-02T04:15:02Z`
-- Image mode: `online`
-- Image provider: `minimax`
-- Image model: `image-01`
-- Status: `generated`
-- Prompt version: `image_generation_archive_v1_stage11`
-
-### Final Image Prompt
-
-Create a professional 16:9 LinkedIn visual for an executive brief on critical minerals and AI infrastructure. Show copper supply, power transmission lines, semiconductor manufacturing, and data center construction as connected layers of one supply chain. Use a clean editorial business style, no logos, no text overlays, no sensational imagery.
-
-<!-- STAGE11_IMAGE_ARCHIVE_END -->

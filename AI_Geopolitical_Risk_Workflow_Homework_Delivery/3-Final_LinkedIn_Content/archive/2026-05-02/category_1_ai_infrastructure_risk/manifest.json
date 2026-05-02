@@ -1,0 +1,38 @@
+{
+  "run_generated_at": "2026-05-02T03:53:51Z",
+  "primary_category": "AI算力基础设施地缘风险",
+  "source_content_id": 1,
+  "source_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_1_AI_Infrastructure_Risk_Post.md",
+  "archive_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk/linkedin_post.md",
+  "image_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk/category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg",
+  "image_mime_type": "image/svg+xml",
+  "status": "offline_fallback",
+  "image_mode": "offline",
+  "image_provider": "offline_fallback",
+  "image_model": "deterministic_svg",
+  "prompt_version": "image_generation_archive_v1_stage11",
+  "visual_prompt": "Create a professional 16:9 LinkedIn visual for an executive brief on AI infrastructure geopolitical risk. Show a modern data center connected to power-grid lines, cloud compute nodes, and subtle map-based regional risk markers. Use a clean editorial style, realistic lighting, restrained colors, no logos, no text overlays, no alarmist imagery.",
+  "source_news_ids": [
+    1,
+    3,
+    4
+  ],
+  "source_titles": [
+    "AI data center expansion raises electricity demand and grid planning risk",
+    "Cloud provider reassesses regional AI compute deployment after new export-control guidance",
+    "Regional conflict increases shipping and energy-security concerns for data center operators"
+  ],
+  "stage5_prompt_version": "linkedin_content_generation_v2_stage10_offline_fallback",
+  "stage5_model_provider": "offline_fallback",
+  "image_metadata": {
+    "fallback_type": "deterministic_svg",
+    "aspect_ratio": "16:9",
+    "style_constraints": [
+      "professional editorial business style",
+      "no logos",
+      "no text overlays",
+      "no sensational crisis imagery"
+    ]
+  },
+  "error": ""
+}

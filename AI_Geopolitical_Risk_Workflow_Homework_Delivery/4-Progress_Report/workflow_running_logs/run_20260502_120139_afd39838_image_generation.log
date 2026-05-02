@@ -1,0 +1,9 @@
+2026-05-02 12:01:39,294 | INFO | Starting Stage 11 image generation run: run_20260502_120139_afd39838
+2026-05-02 12:01:39,295 | INFO | Image mode: online
+2026-05-02 12:01:39,295 | INFO | Image output dir: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images
+2026-05-02 12:01:39,295 | INFO | Archive root: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive
+2026-05-02 12:01:39,296 | INFO | Sanitized image config: {"provider": "minimax", "model": "image-01", "available": true, "reason": "online image generation configuration is available", "endpoint_configured": true, "api_key_configured": true, "aspect_ratio": "16:9", "response_format": "base64", "force_offline": false, "fallback_on_error": false}
+2026-05-02 12:01:39,321 | WARNING | Image API call failed: category=AI关键矿产供应链与地缘政治 attempt=1/2 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 12:01:41,337 | WARNING | Image API call failed: category=AI关键矿产供应链与地缘政治 attempt=2/2 error=Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 12:01:41,341 | ERROR | Failed image/archive generation for AI关键矿产供应链与地缘政治: Network error: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+2026-05-02 12:01:41,346 | INFO | Completed Stage 11 image generation. items=1 images=0 archives=0 fallback=0 errors=1

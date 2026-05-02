@@ -1,9 +1,10 @@
-"""Stage 6/10: end-to-end workflow orchestrator.
+"""Stage 6/10/11: end-to-end workflow orchestrator.
 
 This script runs the workflow from ingestion to final LinkedIn content
 generation, writes a master run log, and performs a small database health check
 for handoff testing. Stage 10 adds a shared LLM mode while preserving the
-offline MVP baseline by default.
+offline MVP baseline by default. Stage 11 can be included explicitly to render
+post visuals and archive content bundles.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from llm_stage_utils import LLM_MODE_CHOICES
 
 
 WORKFLOW_DIR = Path(__file__).resolve().parent
+IMAGE_MODE_CHOICES = ("offline", "auto", "online")
 
 STAGE_CONFIGS = [
     {
@@ -58,6 +60,13 @@ STAGE_CONFIGS = [
         "args": [],
     },
 ]
+
+OPTIONAL_STAGE11_CONFIG = {
+    "key": "stage_11_image_generation_archive",
+    "label": "Stage 11 image generation and archive",
+    "script": "6_image_generation.py",
+    "args": ["--image-mode", "offline"],
+}
 
 
 @dataclass
@@ -165,7 +174,7 @@ def count_table(connection: sqlite3.Connection, table_name: str) -> int:
     return int(cursor.fetchone()[0])
 
 
-def validate_database(db_path: Path) -> dict[str, Any]:
+def validate_database(db_path: Path, include_stage11: bool = False) -> dict[str, Any]:
     if not db_path.exists():
         return {
             "database_exists": False,
@@ -177,7 +186,7 @@ def validate_database(db_path: Path) -> dict[str, Any]:
     counts: dict[str, int] = {}
     messages: list[str] = []
     with sqlite3.connect(db_path) as connection:
-        for table_name in [
+        table_names = [
             "news_items",
             "relevance_routing_results",
             "classification_results",
@@ -188,7 +197,14 @@ def validate_database(db_path: Path) -> dict[str, Any]:
             "classification_runs",
             "kol_analysis_runs",
             "linkedin_content_runs",
-        ]:
+        ]
+        if include_stage11:
+            table_names.extend([
+                "image_generation_results",
+                "image_generation_runs",
+            ])
+
+        for table_name in table_names:
             counts[table_name] = count_table(connection, table_name)
 
         cursor = connection.execute(
@@ -224,6 +240,26 @@ def validate_database(db_path: Path) -> dict[str, Any]:
             for row in cursor.fetchall()
         ]
 
+        image_outputs: list[dict[str, Any]] = []
+        if include_stage11:
+            cursor = connection.execute(
+                """
+                SELECT primary_category, image_path, archive_post_path, status
+                FROM image_generation_results
+                """
+            )
+            image_outputs = [
+                {
+                    "primary_category": row[0],
+                    "image_path": row[1],
+                    "archive_post_path": row[2],
+                    "status": row[3],
+                    "image_exists": Path(row[1]).exists() if row[1] else False,
+                    "archive_post_exists": Path(row[2]).exists() if row[2] else False,
+                }
+                for row in cursor.fetchall()
+            ]
+
     expected_checks = {
         "news_items_at_least_6": counts["news_items"] >= 6,
         "routing_results_at_least_6": counts["relevance_routing_results"] >= 6,
@@ -237,6 +273,17 @@ def validate_database(db_path: Path) -> dict[str, Any]:
         ),
     }
 
+    if include_stage11:
+        expected_checks.update(
+            {
+                "image_generation_results_at_least_2": counts.get("image_generation_results", 0) >= 2,
+                "image_files_exist": bool(image_outputs)
+                and all(item["image_exists"] for item in image_outputs),
+                "archive_posts_exist": bool(image_outputs)
+                and all(item["archive_post_exists"] for item in image_outputs),
+            }
+        )
+
     for check_name, passed in expected_checks.items():
         messages.append(f"{check_name}: {'PASS' if passed else 'FAIL'}")
 
@@ -247,13 +294,14 @@ def validate_database(db_path: Path) -> dict[str, Any]:
         "routing_decisions": routing_decisions,
         "category_counts": category_counts,
         "content_lengths": content_lengths,
+        "image_outputs": image_outputs,
         "checks": expected_checks,
         "messages": messages,
     }
 
 
 def parse_args() -> argparse.Namespace:
-    stage_keys = [stage["key"] for stage in STAGE_CONFIGS]
+    stage_keys = [stage["key"] for stage in STAGE_CONFIGS] + [OPTIONAL_STAGE11_CONFIG["key"]]
     parser = argparse.ArgumentParser(description="Run the full MVP workflow with optional Stage 10 LLM mode.")
     parser.add_argument(
         "--db-path",
@@ -297,6 +345,23 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional small-batch limit for Stage 10 online validation across Stage 2/3/5.",
     )
+    parser.add_argument(
+        "--include-stage11",
+        action="store_true",
+        help="Also run Stage 11 image generation and content archiving after Stage 5.",
+    )
+    parser.add_argument(
+        "--image-mode",
+        choices=IMAGE_MODE_CHOICES,
+        default="offline",
+        help="Image behavior for Stage 11: offline, auto, or online. Default preserves offline fallback.",
+    )
+    parser.add_argument(
+        "--stage11-max-items",
+        type=int,
+        default=None,
+        help="Optional limit for Stage 11 image/archive handoff testing.",
+    )
     return parser.parse_args()
 
 
@@ -324,6 +389,13 @@ def main() -> int:
             str(max(1, args.stage10_max_items)),
         ])
 
+    if args.include_stage11:
+        stage11_config = dict(OPTIONAL_STAGE11_CONFIG)
+        stage11_config["args"] = ["--image-mode", args.image_mode]
+        if args.stage11_max_items is not None:
+            stage11_config["args"].extend(["--max-items", str(args.stage11_max_items)])
+        stage_configs.append(stage11_config)
+
     for stage_config in stage_configs:
         if stage_config["key"] in args.skip_stage:
             logger.info("Skipping %s", stage_config["label"])
@@ -335,7 +407,7 @@ def main() -> int:
             logger.error("Stopping workflow because %s failed.", result.label)
             break
 
-    validation = validate_database(args.db_path)
+    validation = validate_database(args.db_path, include_stage11=args.include_stage11)
     stages_ok = all(result.return_code == 0 for result in results)
     overall_success = stages_ok and bool(validation["checks_passed"])
 

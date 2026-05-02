@@ -181,3 +181,45 @@ CREATE TABLE IF NOT EXISTS linkedin_content_runs (
     errors INTEGER NOT NULL,
     notes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS image_generation_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    primary_category TEXT NOT NULL UNIQUE,
+    source_content_id INTEGER,
+    source_post_path TEXT NOT NULL,
+    visual_prompt TEXT NOT NULL,
+    image_mode TEXT NOT NULL,
+    image_provider TEXT NOT NULL,
+    image_model TEXT NOT NULL,
+    image_path TEXT NOT NULL,
+    image_mime_type TEXT NOT NULL,
+    archive_dir TEXT NOT NULL,
+    archive_post_path TEXT NOT NULL,
+    status TEXT NOT NULL,
+    error TEXT,
+    prompt_version TEXT NOT NULL,
+    image_metadata TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(source_content_id) REFERENCES linkedin_content_results(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_image_generation_primary_category
+ON image_generation_results(primary_category);
+
+CREATE INDEX IF NOT EXISTS idx_image_generation_status
+ON image_generation_results(status);
+
+CREATE TABLE IF NOT EXISTS image_generation_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL UNIQUE,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    image_mode TEXT NOT NULL,
+    items_seen INTEGER NOT NULL,
+    images_generated INTEGER NOT NULL,
+    archives_written INTEGER NOT NULL,
+    fallback_used INTEGER NOT NULL,
+    errors INTEGER NOT NULL,
+    notes TEXT
+);

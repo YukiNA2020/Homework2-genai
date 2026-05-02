@@ -16,6 +16,8 @@ RSS_CONFIG_PATH = WORKFLOW_DIR / "sample_data" / "rss_sources.json"
 LOG_DIR = DELIVERY_DIR / "4-Progress_Report" / "workflow_running_logs"
 PROMPT_DIR = DELIVERY_DIR / "2-Prompt_Design_Samples"
 LINKEDIN_CONTENT_DIR = DELIVERY_DIR / "3-Final_LinkedIn_Content"
+IMAGE_OUTPUT_DIR = LINKEDIN_CONTENT_DIR / "images"
+CONTENT_ARCHIVE_DIR = LINKEDIN_CONTENT_DIR / "archive"
 LLM_ENV_PATH = WORKFLOW_DIR / ".env"
 LLM_ENV_EXAMPLE_PATH = WORKFLOW_DIR / ".env.example"
 RELEVANCE_ROUTING_PROMPT_PATH = PROMPT_DIR / "relevance_routing_prompt.txt"
@@ -38,6 +40,18 @@ DEFAULT_LLM_CONFIG = {
     "api_style_env": "LLM_API_STYLE",
     "model": "deepseek-v4-pro",
     "endpoint": "https://api.deepseek.com/chat/completions",
+}
+
+DEFAULT_IMAGE_CONFIG = {
+    "provider": "minimax",
+    "enabled": False,
+    "api_key_env": "MINIMAX_API_KEY",
+    "endpoint_env": "MINIMAX_IMAGE_ENDPOINT",
+    "model_env": "IMAGE_MODEL",
+    "model": "image-01",
+    "endpoint": "https://api.minimaxi.com/v1/image_generation",
+    "aspect_ratio": "16:9",
+    "response_format": "base64",
 }
 
 # Backward-compatible name used by existing stage scripts.

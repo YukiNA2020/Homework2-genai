@@ -1,3 +1,15 @@
+# Archived LinkedIn Content Bundle
+
+- Primary category: AI算力基础设施地缘风险
+- Generated at: `2026-05-02T03:53:51Z`
+- Image status: `offline_fallback`
+- Image provider: `offline_fallback`
+- Image model: `deterministic_svg`
+- Image file: `category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg`
+
+![Archived LinkedIn visual](category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg)
+
+---
 # Category 1: AI Infrastructure Geopolitical Risk
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
@@ -60,25 +72,3 @@ Create a professional 16:9 LinkedIn visual for an executive brief on AI infrastr
 | Structure clarity | 15 |
 | Interaction quality | 14 |
 | Total | 98 |
-
-<!-- STAGE11_IMAGE_ARCHIVE_START -->
-
-## Stage 11 Generated Image
-
-![Stage 11 LinkedIn visual](images/category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg)
-
-- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg`
-- Archive directory: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk`
-- Archive post: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk/linkedin_post.md`
-- Generated at: `2026-05-02T03:53:51Z`
-- Image mode: `offline`
-- Image provider: `offline_fallback`
-- Image model: `deterministic_svg`
-- Status: `offline_fallback`
-- Prompt version: `image_generation_archive_v1_stage11`
-
-### Final Image Prompt
-
-Create a professional 16:9 LinkedIn visual for an executive brief on AI infrastructure geopolitical risk. Show a modern data center connected to power-grid lines, cloud compute nodes, and subtle map-based regional risk markers. Use a clean editorial style, realistic lighting, restrained colors, no logos, no text overlays, no alarmist imagery.
-
-<!-- STAGE11_IMAGE_ARCHIVE_END -->

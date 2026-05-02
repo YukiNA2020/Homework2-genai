@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十LLM替换，下一步进入阶段十一图片生成与内容归档。
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十一图片生成与内容归档，下一步进入阶段十二每日定时运行与人工审核。
 
 ---
 
@@ -23,8 +23,8 @@
 | 阶段八 | 真实新闻/RSS接入 | ✅ 已完成，AI联网验证通过 |
 | 阶段九 | LLM客户端与API配置 | ✅ 已完成，离线fallback已验证 |
 | 阶段十 | LLM替换摘要、评分、分类与生成 | ✅ 已完成，离线fallback回归通过 |
-| 阶段十一 | 图片生成与内容归档 | 🔜 下一步 |
-| 阶段十二 | 每日定时运行与人工审核 | ⏳ 待启动 |
+| 阶段十一 | 图片生成与内容归档 | ✅ 已完成，离线fallback与归档验证通过 |
+| 阶段十二 | 每日定时运行与人工审核 | 🔜 下一步 |
 | 阶段十三 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选 |
 
 ---
@@ -57,6 +57,7 @@
 -> 主线分类与辅助标签
 -> SQLite存储
 -> LinkedIn决策简报式内容生成
+-> 图片生成与内容归档
 -> 运行日志与最终进度报告
 
 必须遵守的实现原则：
@@ -88,8 +89,9 @@
 - 阶段九已完成统一LLM客户端：新增 `llm_client.py` 与 `.env.example`，无API key时自动使用结构化离线fallback；默认真实LLM已切换为DeepSeek V4（`deepseek-v4-pro`）。
 - 阶段十已完成LLM替换接线：阶段二新闻摘要、阶段三相关性评分、阶段三分类、阶段五LinkedIn生成均支持 `--llm-mode offline|auto|online`；默认仍为 `offline` 以保护稳定MVP，`auto/online` 通过统一 `llm_client.py` 调用DeepSeek V4。
 - 阶段十已完成真实联网小批量验收：用户切换为 `deepseek-v4-flash` 后，Run ID `run_20260502_112420_efc3355a`，`Overall success: True`，阶段二、阶段三A、阶段三B、阶段五全部online通过。
+- 阶段十一已完成图片生成与内容归档：新增 `6_image_generation.py`，默认 `--image-mode offline` 生成本地16:9 SVG fallback，`auto/online` 可调用MiniMax图片API；最终帖子Markdown已写入图片路径、模型、生成时间和Prompt，归档目录已生成manifest。
 - 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
-- 后续阶段十一以后新增图片生成或定时运行能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 后续阶段十二以后新增定时运行或增强能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 
 ---
 
@@ -193,14 +195,30 @@
 - [x] 已完成阶段十联网小批量验收：Run ID `run_20260502_112420_efc3355a`，`deepseek-v4-flash`，`Overall success: True`。
 - [x] 已记录阶段十说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_10_llm_replacement_notes.md`。
 
-### 11. 核心定位（已收窄）
+### 11. 阶段十一：图片生成与内容归档
+- [x] 已新增 `1-Workflow_Files/6_image_generation.py`。
+- [x] 已扩展SQLite schema，新增 `image_generation_results`、`image_generation_runs`。
+- [x] 已新增输出目录：`3-Final_LinkedIn_Content/images/`。
+- [x] 已新增归档目录：`3-Final_LinkedIn_Content/archive/YYYY-MM-DD/<category_slug>/`。
+- [x] 已实现 `--image-mode offline|auto|online`：
+  - `offline`：不读取 `.env`，生成本地16:9 SVG fallback。
+  - `auto`：如MiniMax图片API配置可用则调用API，否则自动fallback。
+  - `online`：强制MiniMax图片API成功，适合用户填写key后验收。
+- [x] 已更新 `.env.example`，新增 `IMAGE_MODEL=image-01`、`MINIMAX_IMAGE_ENDPOINT`、`IMAGE_ASPECT_RATIO=16:9` 等图片配置项。
+- [x] 已升级 `0_main_workflow.py`，新增 `--include-stage11`、`--image-mode` 和 `--stage11-max-items`。
+- [x] 已在两篇最终帖子Markdown中写入阶段十一图片路径、归档路径、生成时间、模型名称和最终图片Prompt。
+- [x] 已生成两套归档包，每套包含 `linkedin_post.md`、图片文件和 `manifest.json`。
+- [x] 已完成阶段十一离线验证：Run ID `run_20260502_113929_cab3e7e7`，`Overall success: True`，图片与归档检查全部 `PASS`。
+- [x] 已记录阶段十一说明：`AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_11_image_generation_notes.md`。
+
+### 12. 核心定位（已收窄）
 - [x] **垂直领域：** AI基础设施地缘风险与供应链决策洞察。
 - [x] **主目标受众：** AI基建投资者、跨国AI企业战略/供应链/风控负责人。
 - [x] **主线分类：** 分类1 AI算力基础设施地缘风险；分类2 AI关键矿产供应链与地缘政治。
 - [x] **辅助标签：** AI芯片出口管制、区域冲突影响、全球AI治理。
 - [x] **核心判断问题：** 这条信息是否影响AI基建投资、数据中心布局、供应链成本或跨境风险决策？
 
-### 12. 相关性打分标准
+### 13. 相关性打分标准
 采用“双层路由”：
 
 | 层级 | 作用 |
@@ -217,7 +235,7 @@ LLM评分权重：
 | 20% | 匹配主目标受众的决策需求 |
 | 15% | 涉及算力基础设施、关键矿产、能源、电力、芯片供应链等核心环节 |
 
-### 13. 信息源体系
+### 14. 信息源体系
 当前版本采用MVP策略：
 
 | 输入类型 | 用途 |
@@ -318,6 +336,33 @@ LLM评分权重：
    验证结果：Run ID `run_20260502_112420_efc3355a`，`deepseek-v4-flash`，阶段二、阶段三A、阶段三B、阶段五全部online通过。
 6. 阶段十只处理文本LLM替换，不涉及多模态。DeepSeek V4 Flash更适合当前结构化JSON与批量评分/分类；图片生成模型应在阶段十一单独选择。
 
+### 阶段十一完成记录：图片生成与内容归档
+
+阶段十一已完成。当前两篇最终LinkedIn内容都已获得本地视觉文件、帖子内图片元数据和归档包。默认离线模式不读取 `.env`，因此不会卡在API key上。
+
+1. 阶段十一离线测试命令：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py --image-mode offline
+   ```
+   验证结果：生成2张16:9 SVG fallback图片、2套归档包，错误0条。
+2. 总控脚本阶段十一集成验证命令：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --include-stage11 --image-mode offline --skip-stage stage_2_news_monitoring --skip-stage stage_3a_relevance_router --skip-stage stage_3b_information_classification --skip-stage stage_4_linkedin_analysis --skip-stage stage_5_linkedin_content_generation
+   ```
+   验证结果：Run ID `run_20260502_113929_cab3e7e7`，`Overall success: True`，`image_generation_results_at_least_2`、`image_files_exist`、`archive_posts_exist` 全部 `PASS`。
+3. 当前输出位置：
+   ```text
+   AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/
+   AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/
+   ```
+4. 如用户希望测试真实图片API，可在私密 `.env` 中填写 `MINIMAX_API_KEY`，然后运行：
+   ```bash
+   python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py --image-mode online
+   ```
+   不要把API key发送到对话中，也不要打印 `.env` 内容。
+5. MiniMax文档显示 Token Plan 覆盖文本、图像、语音、视频等模型额度；阶段十一默认使用图片模型 `image-01`，不再让DeepSeek承担图片生成任务。
+6. 下一阶段建议进入阶段十二：每日定时运行与人工审核队列。阶段十二仍不做自动LinkedIn发布，只生成候选内容和人工审核材料。
+
 ---
 
 ## 文件清单
@@ -327,7 +372,7 @@ LLM评分权重：
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
 | `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0/v4.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段十实现记录 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段十一实现记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
@@ -336,10 +381,11 @@ LLM评分权重：
 | `3_information_classification.py` | 阶段三B/十信息分类脚本 | ✅ 已完成，支持可选LLM分类 |
 | `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，通过 |
 | `5_linkedin_content_generation.py` | 阶段五/十LinkedIn决策简报生成脚本 | ✅ 已完成，支持可选LLM生成 |
-| `0_main_workflow.py` | 阶段六/十全流程总控脚本 | ✅ 已完成，支持选择阶段二输入模式与LLM模式 |
+| `6_image_generation.py` | 阶段十一图片生成与内容归档脚本 | ✅ 已完成，支持离线fallback与MiniMax可选online |
+| `0_main_workflow.py` | 阶段六/十/十一全流程总控脚本 | ✅ 已完成，支持选择阶段二输入、LLM模式与可选阶段十一 |
 | `llm_client.py` | 阶段九统一LLM客户端 | ✅ 已完成，离线fallback已验证 |
 | `llm_stage_utils.py` | 阶段十LLM模式共享工具 | ✅ 已完成 |
-| `.env.example` | 阶段九LLM环境变量模板 | ✅ 已切换为DeepSeek V4默认配置，等待用户后续填写 `.env` |
+| `.env.example` | 阶段九/十一环境变量模板 | ✅ 已包含DeepSeek文本配置与MiniMax图片配置 |
 | `workflow_architecture.md` | 工作流架构说明 | ✅ 已完成 |
 | `Progress_Report_Final.md` | 最终进度报告 | ✅ 已完成 |
 | `prompt_optimization_records.md` | Prompt优化记录 | ✅ 已完成 |
@@ -347,6 +393,9 @@ LLM评分权重：
 | `stage_8_rss_ingestion_notes.md` | 阶段八RSS接入记录 | ✅ 已完成 |
 | `stage_9_llm_client_notes.md` | 阶段九LLM客户端记录 | ✅ 已完成 |
 | `stage_10_llm_replacement_notes.md` | 阶段十LLM替换记录 | ✅ 已完成 |
+| `stage_11_image_generation_notes.md` | 阶段十一图片生成与归档记录 | ✅ 已完成 |
+| `images/` | 阶段十一图片输出目录 | ✅ 已生成本地16:9 fallback图片 |
+| `archive/2026-05-02/` | 阶段十一内容归档目录 | ✅ 已生成帖子、图片和manifest归档包 |
 | `rss_sources.json` | 阶段八真实RSS源配置 | ✅ 已配置5个公开RSS源 |
 | `relevance_routing_prompt.txt` | 阶段三A相关性评分Prompt样例 | ✅ 已完成 |
 | `information_classification_prompt.txt` | 阶段三B分类Prompt样例 | ✅ 已完成 |

@@ -125,6 +125,14 @@
 
 阶段九接入真实LLM配置后，所有后续Prompt和测试说明必须额外遵守API key安全约束：不得读取、打印、复制、总结或上传 `1-Workflow_Files/.env` 的内容；不得要求用户把API key发送到对话中；测试真实LLM时只能使用 `llm_client.py --print-config --require-online` 等脱敏命令，并且日志中只能记录 key 是否已配置，不能记录真实 key。
 
+阶段十一接入图片生成后，图片Prompt和运行说明进一步增加以下约束：
+
+- 图片Prompt必须保持专业LinkedIn视觉风格，默认16:9。
+- 不使用logo、文字水印、文字叠层或夸张灾难图。
+- DeepSeek V4继续承担文本LLM任务，不用于图片生成。
+- MiniMax图片API作为可选online能力；缺少key或API失败时使用本地SVG fallback。
+- 最终帖子Markdown必须记录图片路径、模型、生成时间、状态和Prompt，便于人工审核。
+
 1. 接入真实DeepSeek V4后，保留同样的JSON输出格式，减少代码改动。
 2. 为不同来源类型设计不同摘要Prompt，例如企业公告、智库报告、媒体报道和投资机构报告。
 3. 增加“反事实检查”Prompt，要求模型标注哪些结论只是推断，哪些由来源直接支持。

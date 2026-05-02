@@ -258,14 +258,15 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 -> SQLite存储
 -> KOL风格约束
 -> LinkedIn决策简报生成
+-> 图片生成与内容归档
 -> 日志与最终报告
 ```
 
 现阶段的主要限制不是架构方向错误，而是后续真实自动化能力仍需继续补齐：
 
-1. **真实每日运行未自动化**：RSS已经接入，但每日定时运行、人工审核队列和归档目录仍待阶段十二补齐。
+1. **真实每日运行未自动化**：RSS、LLM接线、图片生成和归档已经接入，但每日定时运行与人工审核队列仍待阶段十二补齐。
 2. **真实LLM业务接线已完成但待用户API实测**：DeepSeek V4已作为默认真实LLM配置，摘要、评分、分类和内容生成已支持 `--llm-mode auto|online`，用户填写 `.env` 后再做真实API验收。
-3. **真实图片未生成**：当前输出的是配图Prompt，没有调用图片生成API，也没有保存最终图片文件。
+3. **真实图片API待用户key验收**：阶段十一已保存本地fallback图片文件并预留MiniMax `online` 模式，用户填写 `.env` 后可测试真实图片生成。
 
 因此，v4.0的目标不是重写系统，而是在现有MVP上逐步替换占位模块。
 
@@ -400,24 +401,31 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 目标：补齐作业中“text and image”的真实图片能力，让每篇LinkedIn内容都能附带一张可用视觉图。
 
+当前状态：已于2026-05-02完成阶段十一。新增 `6_image_generation.py`，支持 `--image-mode offline|auto|online`；默认离线模式生成本地16:9 SVG fallback，`auto/online` 可接MiniMax图片API。两篇最终帖子Markdown已写入图片文件路径、生成时间、模型名称和Prompt，并已生成按日期分组的归档包。
+
 具体行动：
 
-1. 在阶段五中保留现有 `visual_prompt`。
-2. 新增图片生成脚本或函数，例如 `6_image_generation.py`。
-3. 调用图片生成API生成16:9图片。
-4. 图片保存到：
+1. 在阶段五中保留现有 `visual_prompt`。（已完成）
+2. 新增图片生成脚本或函数，例如 `6_image_generation.py`。（已完成）
+3. 调用图片生成API生成16:9图片；无API key时生成本地fallback图片。（已完成）
+4. 图片保存到：（已完成）
 
 ```text
 AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/
 ```
 
-5. 在最终帖子Markdown中写入图片文件路径、生成时间、模型名称和Prompt。
+5. 在最终帖子Markdown中写入图片文件路径、生成时间、模型名称和Prompt。（已完成）
+6. 归档成品到：
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/YYYY-MM-DD/
+```
 
 验收标准：
 
-- 每篇最终LinkedIn帖子至少对应一张本地图片文件。
-- 图片风格符合专业LinkedIn视觉，不含logo、不含文字水印、不使用夸张灾难图。
-- 即使图片生成失败，文本内容仍然可以正常生成。
+- 每篇最终LinkedIn帖子至少对应一张本地图片文件。（已验证）
+- 图片风格符合专业LinkedIn视觉，不含logo、不含文字水印、不使用夸张灾难图。（离线fallback已遵守）
+- 即使图片生成失败，文本内容仍然可以正常生成。（已通过fallback设计保护）
 
 ### 10.8 阶段十二：每日定时运行与人工审核
 
@@ -473,8 +481,8 @@ daily_outputs/YYYY-MM-DD/
 1. **真实RSS接入**：已完成，系统已经能吃到真实信息。
 2. **LLM客户端**：已完成统一封装和离线fallback验证。
 3. **LLM替换摘要、评分、分类和LinkedIn生成**：已完成，默认离线，支持 `auto/online`。
-4. **下一步接图片生成**：补齐最终内容形态。
-5. **最后做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
+4. **接图片生成**：已完成，补齐最终内容形态。
+5. **下一步做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
 
 ### 10.11 阶段九完成与阶段十起点
 
@@ -493,3 +501,14 @@ daily_outputs/YYYY-MM-DD/
 3. **升级总控脚本**：`0_main_workflow.py --llm-mode offline|auto|online` 可统一控制阶段二、阶段三和阶段五的LLM行为。
 4. **离线回归通过**：Run ID `run_20260502_092016_e351f378`，`Overall success: True`，数据库健康检查全部 `PASS`。
 5. **模型边界**：DeepSeek V4继续用于文本LLM任务；阶段十一如果生成真实图片，应单独选择图片生成模型或服务。
+
+### 10.13 阶段十一完成与阶段十二起点
+
+阶段十一已完成以下内容；下一次开发应从阶段十二“每日定时运行与人工审核”开始：
+
+1. **新增 `6_image_generation.py`**：从 `linkedin_content_results` 读取最终帖子和图片Prompt，生成图片并写入归档。
+2. **扩展图片模式**：`--image-mode offline|auto|online`，默认离线fallback，用户填写MiniMax key后可用online模式测试真实图片。
+3. **扩展数据库审计**：新增 `image_generation_results` 和 `image_generation_runs`。
+4. **升级总控脚本**：`0_main_workflow.py --include-stage11 --image-mode offline|auto|online` 可选择是否跑阶段十一。
+5. **离线集成验证通过**：Run ID `run_20260502_113929_cab3e7e7`，`Overall success: True`，图片与归档检查全部 `PASS`。
+6. **下一阶段边界**：阶段十二只做每日运行与人工审核队列，不做自动LinkedIn发布。

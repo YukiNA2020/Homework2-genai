@@ -1145,3 +1145,89 @@ CONTENT_LLM_MODEL=deepseek-v4-pro
 
 **下一步建议：**
 阶段十联网小批量验收已通过，可以进入阶段十一：图片生成与内容归档。阶段十一不要使用DeepSeek做图片生成，应单独选择图片生成模型或服务。
+
+---
+
+## 2026-05-02 阶段十一：图片生成与内容归档
+
+**用户需求：**
+用户要求继续完成下一个阶段，即阶段十一；如需要填写API可先中断，也可以先实现无key fallback。用户同时提醒DeepSeek V4多模态能力一般，并提供MiniMax Token Plan网页用于确认是否包含图片模型。
+
+**AI响应：**
+本轮选择继续采用离线fallback优先方案，不中断用户填写API。阶段十一不让DeepSeek承担图片生成任务，而是新增独立图片生成与归档脚本：无MiniMax key时生成本地16:9 SVG fallback；用户填写MiniMax key后可用 `online` 模式调用真实图片API。
+
+**本轮完成内容：**
+1. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py`。
+2. 新增 `--image-mode offline|auto|online`：
+   - `offline`：不读取 `.env`，生成确定性本地SVG fallback。
+   - `auto`：MiniMax配置可用则调用API，否则fallback。
+   - `online`：要求真实图片API成功。
+3. 扩展SQLite schema，新增：
+   - `image_generation_results`
+   - `image_generation_runs`
+4. 更新 `.env.example`，新增MiniMax图片配置：
+   - `IMAGE_MODEL=image-01`
+   - `MINIMAX_IMAGE_ENDPOINT=https://api.minimaxi.com/v1/image_generation`
+   - `IMAGE_ASPECT_RATIO=16:9`
+   - `IMAGE_RESPONSE_FORMAT=base64`
+5. 升级 `0_main_workflow.py`：
+   - 新增 `--include-stage11`
+   - 新增 `--image-mode`
+   - 新增 `--stage11-max-items`
+   - 当包含阶段十一时，总控健康检查会验证图片记录、图片文件和归档帖子是否存在。
+6. 为两篇最终LinkedIn帖子追加阶段十一图片信息：
+   - 图片文件路径
+   - 归档目录
+   - 归档帖子路径
+   - 生成时间
+   - 图片模式、模型和状态
+   - 最终图片Prompt
+7. 新增阶段十一说明文档：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_11_image_generation_notes.md`
+
+**输出目录：**
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/
+```
+
+**测试记录：**
+
+语法检查通过：
+```bash
+env PYTHONPYCACHEPREFIX=/private/tmp/homework2_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py
+```
+
+阶段十一离线运行：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py --image-mode offline
+```
+
+结果摘要：
+- Run ID：`run_20260502_113914_a90532c1`
+- Items seen：2
+- Images generated：2
+- Archive bundles written：2
+- Fallback used：2
+- Errors：0
+
+总控脚本集成验证：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --include-stage11 --image-mode offline --skip-stage stage_2_news_monitoring --skip-stage stage_3a_relevance_router --skip-stage stage_3b_information_classification --skip-stage stage_4_linkedin_analysis --skip-stage stage_5_linkedin_content_generation
+```
+
+结果摘要：
+- Run ID：`run_20260502_113929_cab3e7e7`
+- `Overall success: True`
+- Stage 11：OK
+- `image_generation_results_at_least_2: PASS`
+- `image_files_exist: PASS`
+- `archive_posts_exist: PASS`
+
+**模型选择说明：**
+MiniMax官方Token Plan显示其计划覆盖文本、图像、语音和视频等模型额度；阶段十一默认图片模型设为 `image-01`。DeepSeek V4继续用于文本LLM任务，不用于图片生成。
+
+**交接给用户：**
+当前阶段十一已经可以由用户直接测试。无API key时先跑 `--image-mode offline`；如要测试真实图片生成，请在本地 `.env` 填写 `MINIMAX_API_KEY` 后运行 `--image-mode online`，不要把API key发到对话里。
