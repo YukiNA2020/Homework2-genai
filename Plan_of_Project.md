@@ -322,3 +322,21 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 4. 第四步：完成全模块代码开发与联调，实现一键运行MVP。
 5. 第五步：生成2篇最终LinkedIn内容与结构化进度报告。
 6. 第六步：按照标准目录结构整理最终交付物。
+
+---
+
+## 六、90+评分修正优先级
+
+> 本节为阶段十二完成后，根据评分AI反馈新增的后续修正计划。后续工作从阶段十三开始，原“向量库/看板/邮件简报”等可选增强顺延到阶段十九。
+
+| 阶段 | 修正主题 | 目标 |
+|------|----------|------|
+| 阶段十三 | Daily Run数据血缘闭环修复 | 确保Stage 12候选内容只来自本次daily run，不混用历史sample data |
+| 阶段十四 | Evidence Grounding与事实约束 | 防止LinkedIn内容出现evidence中没有的数字、国家、公司、机构、引用或预测区间 |
+| 阶段十五 | Daily Review透明度增强 | 在review queue中展示本次RSS抓取、过滤、拒绝理由、score和factual validation |
+| 阶段十六 | KOL Reverse Engineering修正 | 增加KOL选择理由和五项拆解表格，并谨慎说明样本来源 |
+| 阶段十七 | 图片与结果包一致性修复 | 确保图片、archive、candidate visual、manifest状态一致且可打开 |
+| 阶段十八 | 最终报告修订与回归验证 | 在最终报告中说明lineage、grounding和daily review修复，并重新跑Stage 12 |
+| 阶段十九 | 可选增强 | 向量库、看板、邮件/Slack简报、多版本内容生成等 |
+
+阶段十三到十八完成前，不建议推进阶段十九可选增强。优先级最高的是阶段十三和阶段十四，因为它们直接对应当前最主要扣分点。

@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十二每日定时运行与人工审核，下一步进入用户测试或阶段十三可选增强。
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十三Daily Run数据血缘闭环修复；根据评分AI反馈，下一步进入阶段十四Evidence Grounding与事实约束，目标从约82/100提升到90+/100。
 
 ---
 
@@ -24,8 +24,14 @@
 | 阶段九 | LLM客户端与API配置 | ✅ 已完成，离线fallback已验证 |
 | 阶段十 | LLM替换摘要、评分、分类与生成 | ✅ 已完成，离线fallback回归通过 |
 | 阶段十一 | 图片生成与内容归档 | ✅ 已完成，离线fallback与归档验证通过 |
-| 阶段十二 | 每日定时运行与人工审核 | ✅ 已完成，待用户测试 |
-| 阶段十三 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选 |
+| 阶段十二 | 每日定时运行与人工审核 | ✅ 已完成 |
+| 阶段十三 | Daily Run数据血缘闭环修复 | ✅ 已完成，待用户测试 |
+| 阶段十四 | Evidence Grounding与事实约束 | 🔜 下一步，P0 |
+| 阶段十五 | Daily Review透明度增强 | ⏳ 后续，P1 |
+| 阶段十六 | KOL Reverse Engineering修正 | ⏳ 后续，P1 |
+| 阶段十七 | 图片与结果包一致性修复 | ⏳ 后续，P1 |
+| 阶段十八 | 最终报告修订与回归验证 | ⏳ 后续，P1 |
+| 阶段十九 | 向量库、看板、邮件简报等可选增强 | ⏳ 后续可选，P2 |
 
 ---
 
@@ -92,7 +98,10 @@
 - 阶段十已完成真实联网小批量验收：用户切换为 `deepseek-v4-flash` 后，Run ID `run_20260502_112420_efc3355a`，`Overall success: True`，阶段二、阶段三A、阶段三B、阶段五全部online通过。
 - 阶段十一已完成图片生成与内容归档：新增 `6_image_generation.py`，默认 `--image-mode offline` 生成本地16:9 SVG fallback，`auto/online` 可调用MiniMax图片API；最终帖子Markdown已写入图片路径、模型、生成时间和Prompt，归档目录已生成manifest。
 - 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
-- 阶段十二已新增每日运行与人工审核队列；后续阶段十三增强能力时，必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 阶段十二已新增每日运行与人工审核队列。
+- 阶段十三已修复daily run数据血缘闭环：当前候选内容只从本次 `workflow_run_id` / `daily_run_id` 对应的lineage中生成；重复RSS/样例项也会记录 `run_item_lineage`；无候选时输出 `no_candidate_generated_today`，不会复用历史sample内容。
+- 评分AI指出 evidence grounding、review transparency、KOL reverse engineering 和图片/结果包一致性仍需继续修复。后续阶段十四到十八必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 原“阶段十三：向量库、看板、邮件简报等可选增强”已顺延为阶段十九；下一步不要先做可选增强。
 
 ---
 
@@ -395,7 +404,82 @@ LLM评分权重：
    python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py
    ```
 5. 如果用户希望接入真实LLM或图片API，可在本地私密 `.env` 填写key后使用 `--llm-mode auto --image-mode auto`；不要把API key发送到对话中，也不要打印 `.env` 内容。
-6. 下一阶段为可选增强：向量库、看板、邮件/Slack简报或多版本内容生成。建议先由用户测试阶段十二审核包。
+6. 根据评分AI反馈，下一阶段不做可选增强，而是进入阶段十三：Daily Run数据血缘闭环修复。原向量库、看板、邮件/Slack简报或多版本内容生成顺延到阶段十九。
+
+### 阶段十三完成记录：Daily Run数据血缘闭环修复
+
+阶段十三已完成。当前Stage 12 daily run生成的候选内容只来自本次 `workflow_run_id` / `daily_run_id` 对应的lineage，不再从历史sample data或旧RSS结果中回捞候选。
+
+优先修改文件：
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/database_config/sqlite_db_init.sql
+```
+
+完成内容：
+
+1. 新增 `lineage_utils.py`，集中处理Stage 13 schema migration与lineage mode判断。
+2. 新增 `run_item_lineage` 表；重复新闻即使被 `content_hash` 去重，也会记录为本次run看到过的 `duplicate_seen`。
+3. Stage 2记录 `ingestion_run_id`、`workflow_run_id`、`daily_run_id`。
+4. Stage 3A/3B只处理本次run lineage中的news items和routing/classification records。
+5. Stage 5只基于本次workflow/daily run的classified items生成候选；当前run无分类结果时跳过候选生成并返回成功。
+6. Stage 11只处理本次run的content records，避免复用旧图片。
+7. Stage 12的 `review_queue.md`、`manifest.json` 和candidate markdown均展示 `lineage_mode` / `source_mode`。
+8. 当前run无候选时输出 `no_candidate_generated_today`，并明确说明历史sample内容未被复用。
+
+验收标准：
+
+- `daily_outputs/YYYY-MM-DD/manifest.json` 中candidate source IDs全部属于本次daily run。
+- `review_queue.md` 清楚区分真实RSS路径、sample baseline与fallback。
+- 本次RSS无相关内容时，系统合理输出no-candidate success。
+
+本地验证结果：
+
+```text
+Daily Run ID: daily_20260502_203904_4e5b7da4
+Wrapped Workflow Run ID: run_20260502_203905_fa433c16
+Overall success: True
+candidate_source_ids = [1, 2, 3, 4]
+daily_run_lineage_news_ids = [1, 2, 3, 4, 5, 6]
+all_candidate_ids_in_daily_lineage = True
+lineage_mode = local_sample_baseline
+```
+
+no-candidate路径已验证：
+
+```text
+Overall success: True
+Candidate posts: 0
+Review items: 0
+Lineage mode: fallback
+No-candidate reason: no_candidate_generated_today
+Historical sample content was not reused.
+```
+
+阶段十三记录文档：
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_13_daily_lineage_notes.md
+```
+
+### 阶段十四到十九后续修正顺序
+
+| 阶段 | 目标 | 关键验收 |
+|------|------|------|
+| 阶段十四 | Evidence Grounding与事实约束 | 候选帖不得包含evidence中没有的数字、国家、公司、机构或引用 |
+| 阶段十五 | Daily Review透明度增强 | review_queue展示filtered/rejected items、原因、score和factual validation |
+| 阶段十六 | KOL Reverse Engineering修正 | KOL分析增加选择理由和五项表格，避免声称分析了不存在的具体帖子 |
+| 阶段十七 | 图片与结果包一致性修复 | result assets只包含本次run图片，manifest如实记录fallback/API状态 |
+| 阶段十八 | 最终报告修订与回归验证 | Progress_Report_Final说明lineage、grounding、review transparency修复 |
+| 阶段十九 | 可选增强 | 向量库、看板、邮件/Slack简报、多版本内容生成 |
+
+阶段十四到十八完成前，不建议推进阶段十九可选增强。
 
 ---
 
@@ -406,18 +490,19 @@ LLM评分权重：
 | `Homework2.md` | 作业要求原文 | 保留不改 |
 | `Plan_of_Project.md` | 详细执行方案 | ✅ 已更新v3.0 |
 | `Implementation_Roadmap.md` | 战略路线图 | ✅ 已更新v3.0/v4.0 |
-| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段十一实现记录 |
+| `Progress_Report.md` | 对话记录 + Prompt库 | ✅ 已追加阶段十三实现记录 |
 | `STATUS.md` | 本文件 - 状态同步 | ✅ 已更新 |
 | `Intro.md` | 作业落地总说明 | ✅ 已同步更新 |
 | `AI_Geopolitical_Risk_Workflow_Homework_Delivery/` | 最终作业交付目录 | ✅ 已创建 |
-| `1_news_monitoring.py` | 阶段二/八/十信息监控脚本 | ✅ 已完成，支持本地样例、真实RSS与可选LLM摘要 |
-| `2_relevance_router.py` | 阶段三A/十双层相关性路由脚本 | ✅ 已完成，支持规则过滤后可选LLM评分 |
-| `3_information_classification.py` | 阶段三B/十信息分类脚本 | ✅ 已完成，支持可选LLM分类 |
+| `lineage_utils.py` | 阶段十三数据血缘与schema migration工具 | ✅ 已完成 |
+| `1_news_monitoring.py` | 阶段二/八/十/十三信息监控脚本 | ✅ 已完成，支持本地样例、真实RSS、可选LLM摘要与run lineage |
+| `2_relevance_router.py` | 阶段三A/十/十三双层相关性路由脚本 | ✅ 已完成，支持规则过滤、可选LLM评分与run-scoped取数 |
+| `3_information_classification.py` | 阶段三B/十/十三信息分类脚本 | ✅ 已完成，支持可选LLM分类与run-scoped取数 |
 | `4_linkedin_analysis.py` | 阶段四KOL分析与风格指南脚本 | ✅ 已完成，通过 |
-| `5_linkedin_content_generation.py` | 阶段五/十LinkedIn决策简报生成脚本 | ✅ 已完成，支持可选LLM生成 |
-| `6_image_generation.py` | 阶段十一图片生成与内容归档脚本 | ✅ 已完成，支持离线fallback与MiniMax可选online |
-| `7_daily_run_review.py` | 阶段十二每日运行与人工审核脚本 | ✅ 已完成，生成每日候选审核包 |
-| `0_main_workflow.py` | 阶段六/十/十一全流程总控脚本 | ✅ 已完成，支持选择阶段二输入、LLM模式与可选阶段十一 |
+| `5_linkedin_content_generation.py` | 阶段五/十/十三LinkedIn决策简报生成脚本 | ✅ 已完成，支持可选LLM生成与run-scoped候选生成 |
+| `6_image_generation.py` | 阶段十一/十三图片生成与内容归档脚本 | ✅ 已完成，支持离线fallback、MiniMax可选online与run-scoped图片输出 |
+| `7_daily_run_review.py` | 阶段十二/十三每日运行与人工审核脚本 | ✅ 已完成，生成每日候选审核包并修复daily lineage |
+| `0_main_workflow.py` | 阶段六/十/十一/十三全流程总控脚本 | ✅ 已完成，支持选择阶段二输入、LLM模式、可选阶段十一与daily run ID透传 |
 | `llm_client.py` | 阶段九统一LLM客户端 | ✅ 已完成，离线fallback已验证 |
 | `llm_stage_utils.py` | 阶段十LLM模式共享工具 | ✅ 已完成 |
 | `.env.example` | 阶段九/十一环境变量模板 | ✅ 已包含DeepSeek文本配置与MiniMax图片配置 |
@@ -430,6 +515,7 @@ LLM评分权重：
 | `stage_10_llm_replacement_notes.md` | 阶段十LLM替换记录 | ✅ 已完成 |
 | `stage_11_image_generation_notes.md` | 阶段十一图片生成与归档记录 | ✅ 已完成 |
 | `stage_12_daily_review_notes.md` | 阶段十二每日运行与人工审核记录 | ✅ 已完成 |
+| `stage_13_daily_lineage_notes.md` | 阶段十三Daily Run数据血缘闭环修复记录 | ✅ 已完成 |
 | `images/` | 阶段十一图片输出目录 | ✅ 已生成本地16:9 fallback图片 |
 | `archive/2026-05-02/` | 阶段十一内容归档目录 | ✅ 已生成帖子、图片和manifest归档包 |
 | `daily_outputs/2026-05-02/` | 阶段十二每日人工审核包 | ✅ 已生成review queue、候选稿、manifest和图片资产 |

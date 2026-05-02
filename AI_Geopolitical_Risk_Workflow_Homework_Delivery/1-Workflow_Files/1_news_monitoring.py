@@ -36,6 +36,7 @@ from api_config import (
     SQLITE_SCHEMA_PATH,
 )
 from llm_stage_utils import LLM_MODE_CHOICES, build_llm_client, require_online_success
+from lineage_utils import apply_schema_with_migrations, source_mode_for_item
 
 
 SUMMARY_PROMPT_VERSION = "news_summarization_v2_llm_fallback"
@@ -80,6 +81,8 @@ class IngestionStats:
     started_at: str
     finished_at: str = ""
     input_mode: str = DEFAULT_INGESTION_MODE
+    workflow_run_id: str = ""
+    daily_run_id: str = ""
     items_seen: int = 0
     items_inserted: int = 0
     duplicates_skipped: int = 0
@@ -234,9 +237,7 @@ def content_hash(item: dict[str, Any], cleaned_content: str) -> str:
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, schema_path)
 
 
 def setup_logger(run_id: str, log_dir: Path) -> tuple[logging.Logger, Path]:
@@ -515,15 +516,23 @@ def upsert_source(connection: sqlite3.Connection, item: dict[str, Any]) -> None:
     )
 
 
-def insert_news_item(connection: sqlite3.Connection, item: dict[str, Any]) -> bool:
+def insert_news_item(
+    connection: sqlite3.Connection,
+    item: dict[str, Any],
+    *,
+    ingestion_run_id: str,
+    workflow_run_id: str,
+    daily_run_id: str,
+) -> tuple[bool, int]:
     cursor = connection.execute(
         """
         INSERT OR IGNORE INTO news_items (
             source_id, source_name, source_type, title, url, published_at, author,
             language, raw_content, cleaned_content, summary, keywords,
-            ingestion_method, content_hash, status, created_at, updated_at
+            ingestion_method, ingestion_run_id, workflow_run_id, daily_run_id,
+            content_hash, status, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             item["source_id"],
@@ -539,29 +548,86 @@ def insert_news_item(connection: sqlite3.Connection, item: dict[str, Any]) -> bo
             item["summary"],
             json.dumps(item["keywords"], ensure_ascii=False),
             item["ingestion_method"],
+            ingestion_run_id,
+            workflow_run_id,
+            daily_run_id,
             item["content_hash"],
             item["status"],
             item["created_at"],
             item["updated_at"],
         ),
     )
-    return cursor.rowcount == 1
+    if cursor.rowcount == 1:
+        return True, int(cursor.lastrowid)
+
+    existing = connection.execute(
+        "SELECT id FROM news_items WHERE content_hash = ?",
+        (item["content_hash"],),
+    ).fetchone()
+    if existing is None:
+        raise RuntimeError("Unable to resolve duplicate news item id after INSERT OR IGNORE.")
+    return False, int(existing[0])
+
+
+def record_item_lineage(
+    connection: sqlite3.Connection,
+    *,
+    news_id: int,
+    ingestion_run_id: str,
+    workflow_run_id: str,
+    daily_run_id: str,
+    input_mode: str,
+    ingestion_method: str,
+    lineage_status: str,
+) -> None:
+    now = utc_now()
+    source_mode = source_mode_for_item(input_mode, ingestion_method)
+    connection.execute(
+        """
+        INSERT INTO run_item_lineage (
+            news_id, ingestion_run_id, workflow_run_id, daily_run_id,
+            source_mode, ingestion_method, lineage_status, seen_at, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(ingestion_run_id, news_id) DO UPDATE SET
+            workflow_run_id = excluded.workflow_run_id,
+            daily_run_id = excluded.daily_run_id,
+            source_mode = excluded.source_mode,
+            ingestion_method = excluded.ingestion_method,
+            lineage_status = excluded.lineage_status,
+            seen_at = excluded.seen_at
+        """,
+        (
+            news_id,
+            ingestion_run_id,
+            workflow_run_id,
+            daily_run_id,
+            source_mode,
+            ingestion_method,
+            lineage_status,
+            now,
+            now,
+        ),
+    )
 
 
 def record_run(connection: sqlite3.Connection, stats: IngestionStats) -> None:
     connection.execute(
         """
         INSERT INTO ingestion_runs (
-            run_id, started_at, finished_at, input_mode, items_seen,
+            run_id, started_at, finished_at, input_mode, workflow_run_id,
+            daily_run_id, items_seen,
             items_inserted, duplicates_skipped, errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
             stats.started_at,
             stats.finished_at,
             stats.input_mode,
+            stats.workflow_run_id,
+            stats.daily_run_id,
             stats.items_seen,
             stats.items_inserted,
             stats.duplicates_skipped,
@@ -602,10 +668,18 @@ def run_monitoring(
     rss_limit: int | None = None,
     llm_mode: str = "offline",
     max_items: int | None = None,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> tuple[IngestionStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id, LOG_DIR)
-    stats = IngestionStats(run_id=run_id, started_at=utc_now(), input_mode=input_mode)
+    stats = IngestionStats(
+        run_id=run_id,
+        started_at=utc_now(),
+        input_mode=input_mode,
+        workflow_run_id=workflow_run_id,
+        daily_run_id=daily_run_id,
+    )
 
     logger.info("Starting Stage 2 news monitoring run: %s", run_id)
     logger.info("LLM provider placeholder: %s | enabled=%s", DEFAULT_LLM_CONFIG["provider"], DEFAULT_LLM_CONFIG["enabled"])
@@ -634,7 +708,23 @@ def run_monitoring(
             try:
                 normalized = normalize_item(item, ingestion_method, llm_client, require_online)
                 upsert_source(connection, normalized)
-                inserted = insert_news_item(connection, normalized)
+                inserted, news_id = insert_news_item(
+                    connection,
+                    normalized,
+                    ingestion_run_id=run_id,
+                    workflow_run_id=workflow_run_id,
+                    daily_run_id=daily_run_id,
+                )
+                record_item_lineage(
+                    connection,
+                    news_id=news_id,
+                    ingestion_run_id=run_id,
+                    workflow_run_id=workflow_run_id,
+                    daily_run_id=daily_run_id,
+                    input_mode=input_mode,
+                    ingestion_method=ingestion_method,
+                    lineage_status="inserted" if inserted else "duplicate_seen",
+                )
                 if inserted:
                     stats.items_inserted += 1
                     logger.info("Inserted: %s", normalized["title"])
@@ -702,6 +792,16 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional maximum items to process, useful for small online validation runs.",
     )
+    parser.add_argument(
+        "--workflow-run-id",
+        default="",
+        help="Optional parent workflow run ID for Stage 13 lineage scoping.",
+    )
+    parser.add_argument(
+        "--daily-run-id",
+        default="",
+        help="Optional daily run ID for Stage 13 review lineage scoping.",
+    )
     return parser.parse_args()
 
 
@@ -713,6 +813,8 @@ def main() -> int:
         args.rss_limit,
         args.llm_mode,
         args.max_items,
+        args.workflow_run_id,
+        args.daily_run_id,
     )
     print("\nStage 2 news monitoring completed")
     print(f"Run ID: {stats.run_id}")
@@ -720,6 +822,8 @@ def main() -> int:
     print(f"Items seen: {stats.items_seen}")
     print(f"Inserted: {stats.items_inserted}")
     print(f"Duplicates skipped: {stats.duplicates_skipped}")
+    print(f"Workflow run ID: {stats.workflow_run_id or 'not_set'}")
+    print(f"Daily run ID: {stats.daily_run_id or 'not_set'}")
     print(f"Errors: {stats.errors}")
     print(f"Log file: {log_path}")
     return 0 if stats.errors == 0 else 1

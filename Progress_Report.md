@@ -1298,3 +1298,183 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_
 
 **交接给用户：**
 阶段十二已经可以由用户直接测试。无API key时运行离线验收命令；若要测试日常RSS模式，可直接运行 `7_daily_run_review.py` 默认命令；若后续希望接入真实LLM/图片，可在本地 `.env` 填写key后使用 `--llm-mode auto --image-mode auto`。仍然不要把API key发送到对话中，也不要打印 `.env` 内容。
+
+---
+
+## 2026-05-02 阶段十三到十九：90+评分修正路线同步
+
+**用户需求：**
+用户提供评分AI反馈，指出当前项目约82/100，主要扣分点包括daily run数据链路不闭环、LinkedIn内容存在unsupported claims、sample/RSS结果混用、review queue透明度不足、KOL研究不够像真实reverse engineering，以及图片/结果包一致性仍需加强。用户要求先不要直接实施修复，而是把后续修改方案同步到当前项目文件中，方便后续AI和用户按计划开展工作。
+
+**AI响应：**
+本轮没有改业务代码，只同步后续修正路线。后续工作从阶段十三开始重新命名，原本“向量库/看板/邮件简报”等可选增强整体顺延到阶段十九。
+
+**同步到项目文件的核心路线：**
+
+1. **阶段十三：Daily Run数据血缘闭环修复**
+   - 修复Stage 12 candidate仍引用旧sample news IDs的问题。
+   - Stage 2/3/3B/5/12必须围绕本次daily run的news IDs流转。
+   - 若本次RSS没有足够相关内容，应输出 `no_candidate_generated_today`，不能回退旧样例冒充今日结果。
+
+2. **阶段十四：Evidence Grounding与事实约束**
+   - 增加post validation/evidence guard。
+   - 禁止生成evidence中没有的数字、国家、公司、机构、引用、预测区间。
+   - 修复 `#AInfrastructure` typo为 `#AIInfrastructure`。
+
+3. **阶段十五：Daily Review透明度增强**
+   - `review_queue.md` 增加 `Filtered Today` 区块。
+   - candidate中展示relevance rationale、classification rationale、matched terms、score breakdown。
+   - 对被过滤RSS内容输出short rejection summary。
+
+4. **阶段十六：KOL Reverse Engineering修正**
+   - 增加KOL选择理由。
+   - 对每位KOL补充hook、structure、credibility、engagement、style五项表格。
+   - 如果没有真实样本或链接，表述为 representative public style analysis，不声称分析了具体帖子。
+
+5. **阶段十七：图片与结果包一致性修复**
+   - manifest记录image status、fallback_used、provider、model、脱敏api_error。
+   - result assets只复制本次run图片。
+   - 图片prompt与source evidence和post topic对齐。
+
+6. **阶段十八：最终报告修订与回归验证**
+   - `Progress_Report_Final.md`说明data lineage、evidence grounding、daily review transparency修复。
+   - 明确offline sample是demo baseline，daily RSS是production-like path，两者不能混用。
+   - 重新跑Stage 12验证。
+
+7. **阶段十九：可选增强**
+   - 原阶段十三顺延到这里。
+   - 包括向量库、看板、邮件/Slack简报、来源可信度评分、多版本内容生成。
+
+**已更新文件：**
+
+1. `Implementation_Roadmap.md`
+   - 将v4.0升级路径从阶段十三可选增强改为阶段十三到十九修正路线。
+   - 补充每个阶段的目标、优先修改文件、实施要点和验收标准。
+
+2. `STATUS.md`
+   - 更新当前战略版本说明。
+   - 将当前下一步改为阶段十三：Daily Run数据血缘闭环修复。
+   - 增加阶段十三起点和阶段十四到十九修正顺序。
+
+**下一步建议：**
+下一次开发应直接从阶段十三开始，优先修复daily run数据血缘闭环。不要先做向量库、看板或邮件简报等可选增强。
+
+---
+
+## 2026-05-02 阶段十三：Daily Run数据血缘闭环修复
+
+**用户需求：**
+用户要求阅读当前文件夹下子文件夹 `Homework2` 中的项目，然后接着做下一个阶段，也就是阶段十三，完成后交给用户测试。
+
+**AI响应：**
+根据 `STATUS.md` 的最新阶段定义，本轮没有做原先顺延到阶段十九的向量库/看板/邮件增强，而是完成P0修复：Daily Run数据血缘闭环。目标是让Stage 12审核包中的候选内容只来自本次 `workflow_run_id` / `daily_run_id`，如果当天没有候选则输出 `no_candidate_generated_today`，不能复用历史sample内容。
+
+**本轮完成内容：**
+
+1. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/lineage_utils.py`。
+2. 扩展SQLite schema并提供migration-safe补列逻辑。
+3. 新增 `run_item_lineage` 表，用于记录当前run看到的news item。
+4. 升级 `1_news_monitoring.py`：
+   - 新增 `--workflow-run-id` / `--daily-run-id`。
+   - 对插入项和重复项都写入 `run_item_lineage`。
+5. 升级 `2_relevance_router.py` 与 `3_information_classification.py`：
+   - 支持run-scoped取数。
+   - 只处理本次daily/workflow run的items。
+6. 升级 `5_linkedin_content_generation.py`：
+   - 只从当前run的classified items生成候选。
+   - 当前run无分类结果时跳过候选生成并保持成功。
+   - evidence basis增加 `source_mode`、run IDs和lineage信息。
+7. 升级 `6_image_generation.py`：
+   - 只处理当前run的content records。
+   - 当前run无候选时不生成图片、不复用旧图片。
+8. 升级 `0_main_workflow.py` 与 `7_daily_run_review.py`：
+   - Stage 12将 `daily_run_id` 传给总控脚本。
+   - 总控脚本将 `workflow_run_id` / `daily_run_id` 传给Stage 2/3/5/11。
+   - `review_queue.md`、candidate markdown和manifest均展示lineage mode。
+9. 新增阶段十三说明文档：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_13_daily_lineage_notes.md`
+10. 更新 `STATUS.md` 与 `Implementation_Roadmap.md`，将阶段十三标记为已完成，并将阶段十四设为下一步。
+
+**测试记录：**
+
+语法检查通过：
+
+```bash
+env PYTHONPYCACHEPREFIX=/private/tmp/homework2_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/lineage_utils.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+阶段十三离线daily run回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  --stage2-input-mode local_sample \
+  --llm-mode offline \
+  --image-mode offline \
+  --run-date 2026-05-02
+```
+
+结果摘要：
+
+- Daily Run ID：`daily_20260502_203904_4e5b7da4`
+- Wrapped Workflow Run ID：`run_20260502_203905_fa433c16`
+- `Overall success: True`
+- News seen：6
+- Items kept：4
+- Items classified：4
+- Candidate posts：2
+- Review items：2
+- Lineage mode：`local_sample_baseline`
+- Errors：0
+
+血缘校验：
+
+```text
+candidate_source_ids = [1, 2, 3, 4]
+daily_run_lineage_news_ids = [1, 2, 3, 4, 5, 6]
+all_candidate_ids_in_daily_lineage = True
+source_modes = ['local_sample_baseline']
+```
+
+no-candidate路径验证：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  --stage2-input-mode local_sample \
+  --stage10-max-items 0 \
+  --llm-mode offline \
+  --image-mode offline \
+  --output-root /private/tmp/homework2_stage13_no_candidate_workflow \
+  --run-date 2026-05-02
+```
+
+结果摘要：
+
+- `Overall success: True`
+- Candidate posts：0
+- Review items：0
+- Lineage mode：`fallback`
+- No-candidate reason：`no_candidate_generated_today`
+- Historical sample content was not reused.
+
+**交接给用户：**
+阶段十三已经完成，用户可以直接测试：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  --stage2-input-mode local_sample \
+  --llm-mode offline \
+  --image-mode offline
+```
+
+如果测试真实RSS路径，可运行默认命令或指定 `--stage2-input-mode rss --rss-limit 2`。如果当天RSS没有足够相关内容，正确结果应是 `Overall success: True` 且 `no_candidate_generated_today`，而不是复用历史样例内容。
+
+**下一步：**
+用户测试阶段十三。测试通过后进入阶段十四：Evidence Grounding与事实约束，重点修复candidate post中的unsupported claims问题。

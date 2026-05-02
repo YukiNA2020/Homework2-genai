@@ -1,83 +1,49 @@
 {
   "stage": "stage_12_daily_run_and_human_review",
-  "prompt_version": "daily_review_queue_v1_stage12",
+  "prompt_version": "daily_review_queue_v2_stage13_lineage",
   "stats": {
-    "run_id": "daily_20260502_154949_9970b52c",
+    "run_id": "daily_20260502_204833_00eb267a",
     "run_date": "2026-05-02",
-    "started_at": "2026-05-02T07:49:49Z",
-    "finished_at": "2026-05-02T07:49:49Z",
-    "stage2_input_mode": "local_sample",
+    "started_at": "2026-05-02T12:48:33Z",
+    "finished_at": "2026-05-02T12:48:33Z",
+    "stage2_input_mode": "rss",
     "llm_mode": "offline",
     "image_mode": "offline",
-    "workflow_run_id": "run_20260502_154949_897ee7ae",
+    "lineage_mode": "fallback",
+    "no_candidate_reason": "no_candidate_generated_today: the current workflow/daily run did not produce classified content records for review. Historical sample content was not reused.",
+    "workflow_run_id": "",
     "workflow_return_code": 0,
-    "workflow_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_154949_897ee7ae_main_workflow.log",
-    "daily_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_154949_9970b52c_daily_review.log",
+    "workflow_log_path": "",
+    "daily_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_204833_00eb267a_daily_review.log",
     "output_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02",
     "review_queue_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_queue.md",
     "manifest_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/manifest.json",
-    "items_seen": 6,
+    "items_seen": 0,
     "items_inserted": 0,
-    "items_kept": 5,
-    "items_classified": 5,
-    "candidate_posts": 2,
-    "images_generated": 2,
-    "fallback_used": 2,
-    "review_items": 2,
+    "items_kept": 0,
+    "items_classified": 0,
+    "candidate_posts": 0,
+    "images_generated": 0,
+    "fallback_used": 0,
+    "review_items": 0,
     "errors": 0,
     "notes": "Stage 12 generated a daily candidate review package and SQLite review queue. No LinkedIn publishing or external posting was performed."
   },
-  "candidate_records": [
-    {
-      "daily_run_id": "daily_20260502_154949_9970b52c",
-      "run_date": "2026-05-02",
-      "primary_category": "AI关键矿产供应链与地缘政治",
-      "source_content_id": 2,
-      "source_news_ids": [
-        "2"
-      ],
-      "source_titles": [
-        "Copper supply concentration creates cost risk for AI infrastructure buildout"
-      ],
-      "candidate_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/candidates/category_2_ai_critical_minerals_supply_chain_candidate.md",
-      "image_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg",
-      "archive_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain",
-      "review_status": "pending_review",
-      "review_priority": "P1",
-      "prompt_version": "linkedin_content_generation_v2_stage10_offline_fallback",
-      "model_provider": "offline_fallback",
-      "image_status": "offline_fallback"
-    },
-    {
-      "daily_run_id": "daily_20260502_154949_9970b52c",
-      "run_date": "2026-05-02",
-      "primary_category": "AI算力基础设施地缘风险",
-      "source_content_id": 1,
-      "source_news_ids": [
-        "1",
-        "3",
-        "4"
-      ],
-      "source_titles": [
-        "AI data center expansion raises electricity demand and grid planning risk",
-        "Cloud provider reassesses regional AI compute deployment after new export-control guidance",
-        "Regional conflict increases shipping and energy-security concerns for data center operators"
-      ],
-      "candidate_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/candidates/category_1_ai_infrastructure_risk_candidate.md",
-      "image_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg",
-      "archive_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk",
-      "review_status": "pending_review",
-      "review_priority": "P1",
-      "prompt_version": "linkedin_content_generation_v2_stage10_offline_fallback",
-      "model_provider": "offline_fallback",
-      "image_status": "offline_fallback"
-    }
-  ],
+  "candidate_records": [],
   "artifacts": {
     "review_queue": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_queue.md",
     "review_queue_csv": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_queue.csv",
     "candidates_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/candidates",
     "assets_dir": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets"
+  },
+  "lineage_policy": {
+    "candidate_sources_must_match_daily_run": true,
+    "no_candidate_success_state": "no_candidate_generated_today",
+    "allowed_source_modes": [
+      "rss_current_run",
+      "local_sample_baseline",
+      "fallback"
+    ]
   },
   "publishing_policy": "manual_review_required_no_auto_publish"
 }

@@ -26,6 +26,7 @@ from llm_stage_utils import (
     prompt_version_label,
     require_online_success,
 )
+from lineage_utils import apply_schema_with_migrations
 
 
 PROMPT_VERSION_BASE = "relevance_routing_v2_stage10"
@@ -99,6 +100,8 @@ class RoutingStats:
     run_id: str
     started_at: str
     finished_at: str = ""
+    workflow_run_id: str = ""
+    daily_run_id: str = ""
     items_seen: int = 0
     items_routed: int = 0
     items_kept: int = 0
@@ -151,9 +154,7 @@ def find_terms(terms: list[str], text: str) -> list[str]:
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, schema_path)
 
 
 def setup_logger(run_id: str) -> tuple[logging.Logger, Path]:
@@ -501,8 +502,36 @@ def route_item(
     }
 
 
-def select_news_items(connection: sqlite3.Connection, rerun: bool) -> list[sqlite3.Row]:
+def select_news_items(
+    connection: sqlite3.Connection,
+    rerun: bool,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
+) -> list[sqlite3.Row]:
     connection.row_factory = sqlite3.Row
+    if workflow_run_id or daily_run_id:
+        filters = []
+        params: list[Any] = []
+        if workflow_run_id:
+            filters.append("run_item_lineage.workflow_run_id = ?")
+            params.append(workflow_run_id)
+        if daily_run_id:
+            filters.append("run_item_lineage.daily_run_id = ?")
+            params.append(daily_run_id)
+        where_clause = " AND ".join(filters)
+        cursor = connection.execute(
+            f"""
+            SELECT DISTINCT news_items.*
+            FROM news_items
+            INNER JOIN run_item_lineage
+                ON run_item_lineage.news_id = news_items.id
+            WHERE {where_clause}
+            ORDER BY news_items.id
+            """,
+            params,
+        )
+        return list(cursor.fetchall())
+
     if rerun:
         cursor = connection.execute("SELECT * FROM news_items ORDER BY id")
     else:
@@ -519,17 +548,28 @@ def select_news_items(connection: sqlite3.Connection, rerun: bool) -> list[sqlit
     return list(cursor.fetchall())
 
 
-def upsert_routing_result(connection: sqlite3.Connection, result: dict[str, Any]) -> None:
+def upsert_routing_result(
+    connection: sqlite3.Connection,
+    result: dict[str, Any],
+    *,
+    routing_run_id: str,
+    workflow_run_id: str,
+    daily_run_id: str,
+) -> None:
     now = utc_now()
     connection.execute(
         """
         INSERT INTO relevance_routing_results (
-            news_id, rule_passed, ai_signal_terms, geopolitical_signal_terms,
-            exclude_terms, relevance_score, decision, rationale, scoring_breakdown,
-            prompt_version, model_provider, created_at, updated_at
+            news_id, routing_run_id, workflow_run_id, daily_run_id, rule_passed,
+            ai_signal_terms, geopolitical_signal_terms, exclude_terms, relevance_score,
+            decision, rationale, scoring_breakdown, prompt_version, model_provider,
+            created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(news_id) DO UPDATE SET
+            routing_run_id = excluded.routing_run_id,
+            workflow_run_id = excluded.workflow_run_id,
+            daily_run_id = excluded.daily_run_id,
             rule_passed = excluded.rule_passed,
             ai_signal_terms = excluded.ai_signal_terms,
             geopolitical_signal_terms = excluded.geopolitical_signal_terms,
@@ -544,6 +584,9 @@ def upsert_routing_result(connection: sqlite3.Connection, result: dict[str, Any]
         """,
         (
             result["news_id"],
+            routing_run_id,
+            workflow_run_id,
+            daily_run_id,
             int(result["rule_passed"]),
             json.dumps(result["ai_signal_terms"], ensure_ascii=False),
             json.dumps(result["geopolitical_signal_terms"], ensure_ascii=False),
@@ -573,15 +616,18 @@ def record_run(connection: sqlite3.Connection, stats: RoutingStats) -> None:
     connection.execute(
         """
         INSERT INTO routing_runs (
-            run_id, started_at, finished_at, items_seen, items_routed,
+            run_id, started_at, finished_at, workflow_run_id, daily_run_id,
+            items_seen, items_routed,
             items_kept, items_filtered, errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
             stats.started_at,
             stats.finished_at,
+            stats.workflow_run_id,
+            stats.daily_run_id,
             stats.items_seen,
             stats.items_routed,
             stats.items_kept,
@@ -597,10 +643,17 @@ def run_relevance_router(
     rerun: bool = False,
     llm_mode: str = "offline",
     max_items: int | None = None,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> tuple[RoutingStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
-    stats = RoutingStats(run_id=run_id, started_at=utc_now())
+    stats = RoutingStats(
+        run_id=run_id,
+        started_at=utc_now(),
+        workflow_run_id=workflow_run_id,
+        daily_run_id=daily_run_id,
+    )
 
     logger.info("Starting Stage 3A relevance routing run: %s", run_id)
     logger.info(
@@ -628,7 +681,7 @@ def run_relevance_router(
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
 
     with sqlite3.connect(db_path) as connection:
-        items = select_news_items(connection, rerun)
+        items = select_news_items(connection, rerun, workflow_run_id, daily_run_id)
         if max_items is not None:
             items = items[:max_items]
             logger.info("Applied Stage 10 max item limit: %s", max_items)
@@ -637,7 +690,13 @@ def run_relevance_router(
         for item in items:
             try:
                 result = route_item(item, llm_client, require_online)
-                upsert_routing_result(connection, result)
+                upsert_routing_result(
+                    connection,
+                    result,
+                    routing_run_id=run_id,
+                    workflow_run_id=workflow_run_id,
+                    daily_run_id=daily_run_id,
+                )
                 stats.items_routed += 1
                 if result["decision"] == "keep":
                     stats.items_kept += 1
@@ -702,13 +761,30 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional maximum news items to route, useful for small online validation runs.",
     )
+    parser.add_argument(
+        "--workflow-run-id",
+        default="",
+        help="Optional parent workflow run ID for Stage 13 lineage scoping.",
+    )
+    parser.add_argument(
+        "--daily-run-id",
+        default="",
+        help="Optional daily run ID for Stage 13 review lineage scoping.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     rerun = args.rerun or not args.only_new
-    stats, log_path = run_relevance_router(args.db_path, rerun, args.llm_mode, args.max_items)
+    stats, log_path = run_relevance_router(
+        args.db_path,
+        rerun,
+        args.llm_mode,
+        args.max_items,
+        args.workflow_run_id,
+        args.daily_run_id,
+    )
     print("\nStage 3A relevance routing completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")
@@ -716,6 +792,8 @@ def main() -> int:
     print(f"Routed: {stats.items_routed}")
     print(f"Kept: {stats.items_kept}")
     print(f"Filtered: {stats.items_filtered}")
+    print(f"Workflow run ID: {stats.workflow_run_id or 'not_set'}")
+    print(f"Daily run ID: {stats.daily_run_id or 'not_set'}")
     print(f"Errors: {stats.errors}")
     print(f"Log file: {log_path}")
     return 0 if stats.errors == 0 else 1

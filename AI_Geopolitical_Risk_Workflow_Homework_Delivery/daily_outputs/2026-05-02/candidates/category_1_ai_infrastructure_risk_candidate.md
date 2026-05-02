@@ -5,9 +5,11 @@
 
 ## Review Metadata
 
-- Daily run ID: `daily_20260502_154949_9970b52c`
+- Daily run ID: `daily_20260502_203904_4e5b7da4`
+- Wrapped workflow run ID: `run_20260502_203905_fa433c16`
 - Run date: `2026-05-02`
 - Review status: `pending_review`
+- Lineage mode: `local_sample_baseline`
 - Primary category: AI算力基础设施地缘风险
 - Target audience: AI infrastructure investors, data center operators, cloud strategy teams, and multinational AI enterprise strategy leaders.
 - Tone and positioning: Professional insight plus risk-warning decision brief, written for executives and investors who need infrastructure allocation signals.
@@ -30,11 +32,11 @@
 
 ## Source Evidence
 
-| News ID | Source | Published | Relevance | Title |
-|---:|---|---|---:|---|
-| 1 | IEA sample brief | 2026-04-20 | 9.78 | AI data center expansion raises electricity demand and grid planning risk |
-| 3 | Cloud operator sample announcement | 2026-04-16 | 8.88 | Cloud provider reassesses regional AI compute deployment after new export-control guidance |
-| 4 | Geopolitical media sample | 2026-04-14 | 7.94 | Regional conflict increases shipping and energy-security concerns for data center operators |
+| News ID | Source mode | Source | Published | Relevance | Title |
+|---:|---|---|---|---:|---|
+| 1 | local_sample_baseline | IEA sample brief | 2026-04-20 | 9.78 | AI data center expansion raises electricity demand and grid planning risk |
+| 3 | local_sample_baseline | Cloud operator sample announcement | 2026-04-16 | 8.88 | Cloud provider reassesses regional AI compute deployment after new export-control guidance |
+| 4 | local_sample_baseline | Geopolitical media sample | 2026-04-14 | 7.94 | Regional conflict increases shipping and energy-security concerns for data center operators |
 
 ## Candidate LinkedIn Post
 
@@ -63,10 +65,10 @@ For AI infrastructure investors and operators, which constraint should now move 
 
 ## Candidate Visual
 
-![Candidate visual](../assets/category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg)
+![Candidate visual](../assets/category_1_ai_infrastructure_risk_run_20260502_203905_fd2b2997.svg)
 
-- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg`
-- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg`
+- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_1_ai_infrastructure_risk_run_20260502_203905_fd2b2997.svg`
+- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_203905_fd2b2997.svg`
 - Image status: `offline_fallback`
 - Image provider/model: `offline_fallback` / `deterministic_svg`
 

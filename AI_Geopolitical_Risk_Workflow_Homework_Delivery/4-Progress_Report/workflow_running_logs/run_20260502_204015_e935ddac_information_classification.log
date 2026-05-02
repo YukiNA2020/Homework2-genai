@@ -1,0 +1,6 @@
+2026-05-02 20:40:15,159 | INFO | Starting Stage 3B information classification run: run_20260502_204015_e935ddac
+2026-05-02 20:40:15,159 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 20:40:15,159 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 20:40:15,159 | INFO | Stage 10 classification LLM mode: offline | available=False | require_online=False
+2026-05-02 20:40:15,163 | INFO | Applied Stage 10 max item limit: 0
+2026-05-02 20:40:15,164 | INFO | Completed classification. seen=0 classified=0 errors=0

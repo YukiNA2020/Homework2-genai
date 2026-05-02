@@ -25,6 +25,9 @@ CREATE TABLE IF NOT EXISTS news_items (
     summary TEXT NOT NULL,
     keywords TEXT NOT NULL,
     ingestion_method TEXT NOT NULL,
+    ingestion_run_id TEXT,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     content_hash TEXT NOT NULL UNIQUE,
     status TEXT NOT NULL DEFAULT 'monitored',
     created_at TEXT NOT NULL,
@@ -34,6 +37,35 @@ CREATE TABLE IF NOT EXISTS news_items (
 CREATE INDEX IF NOT EXISTS idx_news_items_source_id ON news_items(source_id);
 CREATE INDEX IF NOT EXISTS idx_news_items_published_at ON news_items(published_at);
 CREATE INDEX IF NOT EXISTS idx_news_items_status ON news_items(status);
+CREATE TABLE IF NOT EXISTS run_item_lineage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    news_id INTEGER NOT NULL,
+    ingestion_run_id TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
+    source_mode TEXT NOT NULL,
+    ingestion_method TEXT NOT NULL,
+    lineage_status TEXT NOT NULL,
+    seen_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(ingestion_run_id, news_id),
+    FOREIGN KEY(news_id) REFERENCES news_items(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_run_item_lineage_news_id
+ON run_item_lineage(news_id);
+
+CREATE INDEX IF NOT EXISTS idx_run_item_lineage_ingestion_run
+ON run_item_lineage(ingestion_run_id);
+
+CREATE INDEX IF NOT EXISTS idx_run_item_lineage_workflow_run
+ON run_item_lineage(workflow_run_id);
+
+CREATE INDEX IF NOT EXISTS idx_run_item_lineage_daily_run
+ON run_item_lineage(daily_run_id);
+
+CREATE INDEX IF NOT EXISTS idx_run_item_lineage_source_mode
+ON run_item_lineage(source_mode);
 
 CREATE TABLE IF NOT EXISTS ingestion_runs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,6 +73,8 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     started_at TEXT NOT NULL,
     finished_at TEXT NOT NULL,
     input_mode TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     items_seen INTEGER NOT NULL,
     items_inserted INTEGER NOT NULL,
     duplicates_skipped INTEGER NOT NULL,
@@ -51,6 +85,9 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
 CREATE TABLE IF NOT EXISTS relevance_routing_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     news_id INTEGER NOT NULL UNIQUE,
+    routing_run_id TEXT,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     rule_passed INTEGER NOT NULL,
     ai_signal_terms TEXT NOT NULL,
     geopolitical_signal_terms TEXT NOT NULL,
@@ -77,6 +114,8 @@ CREATE TABLE IF NOT EXISTS routing_runs (
     run_id TEXT NOT NULL UNIQUE,
     started_at TEXT NOT NULL,
     finished_at TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     items_seen INTEGER NOT NULL,
     items_routed INTEGER NOT NULL,
     items_kept INTEGER NOT NULL,
@@ -88,6 +127,9 @@ CREATE TABLE IF NOT EXISTS routing_runs (
 CREATE TABLE IF NOT EXISTS classification_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     news_id INTEGER NOT NULL UNIQUE,
+    classification_run_id TEXT,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     primary_category TEXT NOT NULL,
     auxiliary_tags TEXT NOT NULL,
     confidence REAL NOT NULL,
@@ -111,6 +153,8 @@ CREATE TABLE IF NOT EXISTS classification_runs (
     run_id TEXT NOT NULL UNIQUE,
     started_at TEXT NOT NULL,
     finished_at TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
     items_seen INTEGER NOT NULL,
     items_classified INTEGER NOT NULL,
     errors INTEGER NOT NULL,
@@ -152,6 +196,10 @@ CREATE TABLE IF NOT EXISTS kol_analysis_runs (
 CREATE TABLE IF NOT EXISTS linkedin_content_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     primary_category TEXT NOT NULL UNIQUE,
+    content_run_id TEXT,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
     target_audience TEXT NOT NULL,
     tone_positioning TEXT NOT NULL,
     source_news_ids TEXT NOT NULL,
@@ -175,6 +223,9 @@ CREATE TABLE IF NOT EXISTS linkedin_content_runs (
     run_id TEXT NOT NULL UNIQUE,
     started_at TEXT NOT NULL,
     finished_at TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
     categories_seen INTEGER NOT NULL,
     posts_generated INTEGER NOT NULL,
     outputs_written INTEGER NOT NULL,
@@ -185,6 +236,10 @@ CREATE TABLE IF NOT EXISTS linkedin_content_runs (
 CREATE TABLE IF NOT EXISTS image_generation_results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     primary_category TEXT NOT NULL UNIQUE,
+    image_generation_run_id TEXT,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
     source_content_id INTEGER,
     source_post_path TEXT NOT NULL,
     visual_prompt TEXT NOT NULL,
@@ -216,6 +271,9 @@ CREATE TABLE IF NOT EXISTS image_generation_runs (
     started_at TEXT NOT NULL,
     finished_at TEXT NOT NULL,
     image_mode TEXT NOT NULL,
+    workflow_run_id TEXT,
+    daily_run_id TEXT,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
     items_seen INTEGER NOT NULL,
     images_generated INTEGER NOT NULL,
     archives_written INTEGER NOT NULL,
@@ -233,6 +291,8 @@ CREATE TABLE IF NOT EXISTS daily_workflow_runs (
     stage2_input_mode TEXT NOT NULL,
     llm_mode TEXT NOT NULL,
     image_mode TEXT NOT NULL,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
+    no_candidate_reason TEXT NOT NULL DEFAULT '',
     workflow_run_id TEXT,
     workflow_return_code INTEGER NOT NULL,
     workflow_log_path TEXT,
@@ -260,6 +320,7 @@ CREATE TABLE IF NOT EXISTS review_queue_items (
     daily_run_id TEXT NOT NULL,
     run_date TEXT NOT NULL,
     primary_category TEXT NOT NULL,
+    lineage_mode TEXT NOT NULL DEFAULT 'legacy',
     source_content_id INTEGER,
     source_news_ids TEXT NOT NULL,
     source_titles TEXT NOT NULL,

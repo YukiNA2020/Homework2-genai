@@ -1,52 +1,55 @@
 # Category 1: AI Infrastructure Geopolitical Risk
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
-> Run ID: `run_20260502_180024_3604c985`
-> Generated at: `2026-05-02T10:00:24Z`
+> Run ID: `run_20260502_203905_88be7b16`
+> Generated at: `2026-05-02T12:39:05Z`
 
 ## Metadata
 
 - Primary category: AI算力基础设施地缘风险
 - Target audience: AI infrastructure investors, data center operators, cloud strategy teams, and multinational AI enterprise strategy leaders.
 - Tone and positioning: Professional insight plus risk-warning decision brief, written for executives and investors who need infrastructure allocation signals.
-- Source news IDs: 1, 3
-- Prompt version: linkedin_content_generation_v2_stage10_llm
-- Model provider: deepseek:deepseek-v4-flash
+- Source news IDs: 1, 3, 4
+- Lineage mode: local_sample_baseline
+- Prompt version: linkedin_content_generation_v2_stage10_offline_fallback
+- Model provider: offline_fallback
 
 ## Source Evidence
 
-| News ID | Source type | Relevance | Classification confidence | Title |
-|---:|---|---:|---:|---|
-| 1 | institution_report | 9.00 | 0.90 | AI data center expansion raises electricity demand and grid planning risk |
-| 3 | company_announcement | 8.88 | 0.95 | Cloud provider reassesses regional AI compute deployment after new export-control guidance |
+| News ID | Source mode | Source type | Relevance | Classification confidence | Title |
+|---:|---|---|---:|---:|---|
+| 1 | local_sample_baseline | institution_report | 9.78 | 0.95 | AI data center expansion raises electricity demand and grid planning risk |
+| 3 | local_sample_baseline | company_announcement | 8.88 | 0.95 | Cloud provider reassesses regional AI compute deployment after new export-control guidance |
+| 4 | local_sample_baseline | media | 7.94 | 0.95 | Regional conflict increases shipping and energy-security concerns for data center operators |
 
 ## LinkedIn Post
 
-⚡️ AI data center expansion faces twin pressures: energy grid constraints and new export controls.
+AI compute risk is no longer only about chip supply. It is becoming a site-selection and resilience problem.
 
 What happened:
-• IEA: Rapid AI buildout is straining electricity grids — connection delays, PPA competition, and local permitting could slow infrastructure deployment.
-• A major cloud provider is now reassessing GPU procurement and regional AI compute plans after updated export-control guidance affecting advanced accelerators.
+The current monitored set points to three connected signals: AI data center expansion raises electricity demand and grid planning risk; Cloud provider reassesses regional AI compute deployment after new export-control guidance; and Regional conflict increases shipping and energy-security concerns for data center operators.
 
 Why it matters for AI infrastructure:
-These two signals — power availability and policy shifts — jointly create uncertainty for compute capacity planning. Grid bottlenecks may delay projects, while export controls can reroute where clusters are built and who gets access to high-end chips.
+Power access, GPU procurement, logistics, and cross-border customer allocation now interact. A data center plan that looks attractive on latency, incentives, or land cost can change quickly if grid queues, export-control compliance, or indirect energy and shipping shocks tighten at the same time.
 
-Three business implications:
-1. Grid and permitting delays risk pushing data center completion timelines by 12-18 months in some markets.
-2. Export control adjustments may force cloud operators to reallocate GPU inventory across regions, affecting pricing and access.
-3. Combined, these increase the cost and complexity of scaling AI compute, raising barriers for non-incumbent players.
+Business implications:
+- Site selection needs geopolitical and energy-risk scoring, not just land and power-price screens.
+- GPU and accelerator deployment plans should include compliance scenarios for where high-end compute can be placed and served.
+- Continuity planning should treat energy, shipping, backup fuel, network redundancy, and component delivery as one operating-risk system.
 
 Signals to watch:
-• Regional changes in grid connection lead times and power purchase agreement terms.
-• Further revisions to export-control guidance on advanced accelerators.
+- Grid connection delays, permitting changes, and power purchase agreement competition in AI data center markets.
+- Export-control guidance affecting advanced accelerators and cross-border cloud customers.
+- Shipping insurance, fuel-contract, and energy-security indicators around conflict-exposed regions.
 
-Your move: How are you adjusting your AI infrastructure allocation to account for these converging power and policy risks?
+Closing question:
+For AI infrastructure investors and operators, which constraint should now move earliest in diligence: power availability, accelerator compliance, or regional continuity risk?
 
-#AIInfrastructure #GeopoliticalRisk #DataCenterStrategy
+#AIInfrastructure #Geopolitics #DataCenters
 
 ## Image Generation Prompt
 
-A professional 16:9 image split into two halves. Left side: a modern data center interior with server racks and a subtle electricity grid overlay (power lines, transformers). Right side: a world map with glowing nodes connected by lines, and a faint lock icon or trade-route arrows indicating control. No logos, no text overlays, no crisis imagery. Color palette: cool blues and grays with accent orange for energy. Photorealistic style.
+Create a professional 16:9 LinkedIn visual for an executive brief on AI infrastructure geopolitical risk. Show a modern data center connected to power-grid lines, cloud compute nodes, and subtle map-based regional risk markers. Use a clean editorial style, realistic lighting, restrained colors, no logos, no text overlays, no alarmist imagery.
 
 ## Quality Self-Check
 
@@ -56,27 +59,27 @@ A professional 16:9 image split into two halves. Left side: a modern data center
 | Decision value | 24 |
 | Credibility | 20 |
 | Structure clarity | 15 |
-| Interaction quality | 15 |
-| Total | 99 |
+| Interaction quality | 14 |
+| Total | 98 |
 
 <!-- STAGE11_IMAGE_ARCHIVE_START -->
 
 ## Stage 11 Generated Image
 
-![Stage 11 LinkedIn visual](images/category_1_ai_infrastructure_risk_run_20260502_180052_ce409b70.jpg)
+![Stage 11 LinkedIn visual](images/category_1_ai_infrastructure_risk_run_20260502_203905_fd2b2997.svg)
 
-- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_180052_ce409b70.jpg`
+- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_203905_fd2b2997.svg`
 - Archive directory: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk`
 - Archive post: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk/linkedin_post.md`
-- Generated at: `2026-05-02T10:00:52Z`
-- Image mode: `auto`
-- Image provider: `minimax`
-- Image model: `image-01`
-- Status: `generated`
+- Generated at: `2026-05-02T12:39:05Z`
+- Image mode: `offline`
+- Image provider: `offline_fallback`
+- Image model: `deterministic_svg`
+- Status: `offline_fallback`
 - Prompt version: `image_generation_archive_v1_stage11`
 
 ### Final Image Prompt
 
-A professional 16:9 image split into two halves. Left side: a modern data center interior with server racks and a subtle electricity grid overlay (power lines, transformers). Right side: a world map with glowing nodes connected by lines, and a faint lock icon or trade-route arrows indicating control. No logos, no text overlays, no crisis imagery. Color palette: cool blues and grays with accent orange for energy. Photorealistic style.
+Create a professional 16:9 LinkedIn visual for an executive brief on AI infrastructure geopolitical risk. Show a modern data center connected to power-grid lines, cloud compute nodes, and subtle map-based regional risk markers. Use a clean editorial style, realistic lighting, restrained colors, no logos, no text overlays, no alarmist imagery.
 
 <!-- STAGE11_IMAGE_ARCHIVE_END -->

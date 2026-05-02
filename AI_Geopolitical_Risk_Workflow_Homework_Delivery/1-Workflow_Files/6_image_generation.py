@@ -41,6 +41,7 @@ from api_config import (
     SQLITE_SCHEMA_PATH,
 )
 from llm_client import load_env_file, parse_bool, parse_float, parse_int
+from lineage_utils import apply_schema_with_migrations, classify_lineage_mode
 
 
 PROMPT_VERSION = "image_generation_archive_v1_stage11"
@@ -77,6 +78,9 @@ class ImageGenerationStats:
     started_at: str
     finished_at: str = ""
     image_mode: str = "offline"
+    workflow_run_id: str = ""
+    daily_run_id: str = ""
+    lineage_mode: str = "legacy"
     items_seen: int = 0
     images_generated: int = 0
     archives_written: int = 0
@@ -89,6 +93,9 @@ class ImageGenerationStats:
 class ImageArtifact:
     primary_category: str
     source_content_id: int
+    workflow_run_id: str
+    daily_run_id: str
+    lineage_mode: str
     source_post_path: Path
     visual_prompt: str
     image_mode: str
@@ -113,9 +120,7 @@ def local_date_slug() -> str:
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, schema_path)
 
 
 def setup_logger(run_id: str) -> tuple[logging.Logger, Path]:
@@ -205,11 +210,25 @@ def image_config_status(config: ImageConfig) -> dict[str, Any]:
 def select_content_items(
     connection: sqlite3.Connection,
     max_items: int | None = None,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> list[sqlite3.Row]:
     connection.row_factory = sqlite3.Row
+    filters = []
+    params: list[Any] = []
+    if workflow_run_id:
+        filters.append("workflow_run_id = ?")
+        params.append(workflow_run_id)
+    if daily_run_id:
+        filters.append("daily_run_id = ?")
+        params.append(daily_run_id)
+    where_sql = f"WHERE {' AND '.join(filters)}" if filters else ""
     sql = """
         SELECT
             id AS source_content_id,
+            workflow_run_id,
+            daily_run_id,
+            lineage_mode,
             primary_category,
             target_audience,
             tone_positioning,
@@ -223,12 +242,12 @@ def select_content_items(
             model_provider,
             updated_at
         FROM linkedin_content_results
+        {where_sql}
         ORDER BY primary_category ASC
-    """
-    params: tuple[Any, ...] = ()
+    """.format(where_sql=where_sql)
     if max_items is not None:
         sql += " LIMIT ?"
-        params = (max_items,)
+        params.append(max_items)
     cursor = connection.execute(sql, params)
     return list(cursor.fetchall())
 
@@ -340,6 +359,9 @@ def make_archive_bundle(
         "run_generated_at": generated_at,
         "primary_category": artifact.primary_category,
         "source_content_id": artifact.source_content_id,
+        "workflow_run_id": artifact.workflow_run_id,
+        "daily_run_id": artifact.daily_run_id,
+        "lineage_mode": artifact.lineage_mode,
         "source_post_path": str(artifact.source_post_path),
         "archive_post_path": str(archive_post_path),
         "image_path": str(archived_image_path),
@@ -769,9 +791,13 @@ def build_artifact(
         if image_mode == "auto":
             metadata["offline_reason"] = image_config_status(config)["reason"]
 
+    metadata["image_generation_run_id"] = run_id
     artifact = ImageArtifact(
         primary_category=primary_category,
         source_content_id=int(item["source_content_id"]),
+        workflow_run_id=item["workflow_run_id"] or "",
+        daily_run_id=item["daily_run_id"] or "",
+        lineage_mode=item["lineage_mode"] or "legacy",
         source_post_path=source_post_path,
         visual_prompt=visual_prompt,
         image_mode=image_mode,
@@ -796,13 +822,18 @@ def upsert_image_result(connection: sqlite3.Connection, artifact: ImageArtifact)
     connection.execute(
         """
         INSERT INTO image_generation_results (
-            primary_category, source_content_id, source_post_path, visual_prompt,
+            primary_category, image_generation_run_id, workflow_run_id, daily_run_id,
+            lineage_mode, source_content_id, source_post_path, visual_prompt,
             image_mode, image_provider, image_model, image_path, image_mime_type,
             archive_dir, archive_post_path, status, error, prompt_version,
             image_metadata, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(primary_category) DO UPDATE SET
+            image_generation_run_id = excluded.image_generation_run_id,
+            workflow_run_id = excluded.workflow_run_id,
+            daily_run_id = excluded.daily_run_id,
+            lineage_mode = excluded.lineage_mode,
             source_content_id = excluded.source_content_id,
             source_post_path = excluded.source_post_path,
             visual_prompt = excluded.visual_prompt,
@@ -821,6 +852,10 @@ def upsert_image_result(connection: sqlite3.Connection, artifact: ImageArtifact)
         """,
         (
             artifact.primary_category,
+            artifact.image_metadata.get("image_generation_run_id", ""),
+            artifact.workflow_run_id,
+            artifact.daily_run_id,
+            artifact.lineage_mode,
             artifact.source_content_id,
             str(artifact.source_post_path),
             artifact.visual_prompt,
@@ -845,16 +880,20 @@ def record_run(connection: sqlite3.Connection, stats: ImageGenerationStats) -> N
     connection.execute(
         """
         INSERT INTO image_generation_runs (
-            run_id, started_at, finished_at, image_mode, items_seen,
-            images_generated, archives_written, fallback_used, errors, notes
+            run_id, started_at, finished_at, image_mode, workflow_run_id,
+            daily_run_id, lineage_mode, items_seen, images_generated,
+            archives_written, fallback_used, errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
             stats.started_at,
             stats.finished_at,
             stats.image_mode,
+            stats.workflow_run_id,
+            stats.daily_run_id,
+            stats.lineage_mode,
             stats.items_seen,
             stats.images_generated,
             stats.archives_written,
@@ -872,16 +911,25 @@ def run_image_generation(
     image_mode: str = "offline",
     max_items: int | None = None,
     archive_date: str | None = None,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> tuple[ImageGenerationStats, Path, list[Path]]:
     if image_mode not in IMAGE_MODE_CHOICES:
         raise ValueError(f"Unsupported image_mode: {image_mode}")
 
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
-    stats = ImageGenerationStats(run_id=run_id, started_at=utc_now(), image_mode=image_mode)
+    stats = ImageGenerationStats(
+        run_id=run_id,
+        started_at=utc_now(),
+        image_mode=image_mode,
+        workflow_run_id=workflow_run_id,
+        daily_run_id=daily_run_id,
+    )
     generated_at = utc_now()
     archive_date = archive_date or local_date_slug()
     output_paths: list[Path] = []
+    lineage_modes_seen: list[str] = []
 
     logger.info("Starting Stage 11 image generation run: %s", run_id)
     logger.info("Image mode: %s", image_mode)
@@ -901,7 +949,12 @@ def run_image_generation(
 
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
     with sqlite3.connect(db_path) as connection:
-        items = select_content_items(connection, max_items=max_items)
+        items = select_content_items(
+            connection,
+            max_items=max_items,
+            workflow_run_id=workflow_run_id,
+            daily_run_id=daily_run_id,
+        )
         stats.items_seen = len(items)
 
         for item in items:
@@ -923,6 +976,7 @@ def run_image_generation(
                     artifact.archive_post_path,
                     artifact.archive_dir / "manifest.json",
                 ])
+                lineage_modes_seen.append(artifact.lineage_mode)
                 stats.images_generated += 1
                 stats.archives_written += 1
                 if used_fallback:
@@ -939,10 +993,11 @@ def run_image_generation(
                 logger.error("Failed image/archive generation for %s: %s", item["primary_category"], exc)
 
         stats.finished_at = utc_now()
+        stats.lineage_mode = classify_lineage_mode(lineage_modes_seen)
         stats.notes = (
             "Stage 11 generated or fallback-rendered one 16:9 visual per final "
             "LinkedIn content record, updated post Markdown, and wrote archive bundles. "
-            f"image_mode={image_mode}."
+            f"image_mode={image_mode}. Stage 13 lineage_mode={stats.lineage_mode}."
         )
         record_run(connection, stats)
 
@@ -994,6 +1049,16 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional archive date folder in YYYY-MM-DD format. Defaults to today's local date.",
     )
+    parser.add_argument(
+        "--workflow-run-id",
+        default="",
+        help="Optional parent workflow run ID for Stage 13 lineage scoping.",
+    )
+    parser.add_argument(
+        "--daily-run-id",
+        default="",
+        help="Optional daily run ID for Stage 13 review lineage scoping.",
+    )
     return parser.parse_args()
 
 
@@ -1006,6 +1071,8 @@ def main() -> int:
         args.image_mode,
         max_items=args.max_items,
         archive_date=args.archive_date,
+        workflow_run_id=args.workflow_run_id,
+        daily_run_id=args.daily_run_id,
     )
 
     print("\nStage 11 image generation and archive completed")
@@ -1016,6 +1083,9 @@ def main() -> int:
     print(f"Images generated: {stats.images_generated}")
     print(f"Archive bundles written: {stats.archives_written}")
     print(f"Fallback used: {stats.fallback_used}")
+    print(f"Lineage mode: {stats.lineage_mode}")
+    print(f"Workflow run ID: {stats.workflow_run_id or 'not_set'}")
+    print(f"Daily run ID: {stats.daily_run_id or 'not_set'}")
     print(f"Errors: {stats.errors}")
     print("Output files:")
     for output_path in output_paths:

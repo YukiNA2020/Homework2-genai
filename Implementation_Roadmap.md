@@ -279,7 +279,13 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
     -> [阶段十：用LLM替换摘要、评分、分类、生成]
     -> [阶段十一：图片生成与文件归档]
     -> [阶段十二：每日定时运行与人工审核]
-    -> [阶段十三：可选增强：向量库、看板、邮件简报]
+    -> [阶段十三：Daily Run数据血缘闭环修复]
+    -> [阶段十四：Evidence Grounding与事实约束]
+    -> [阶段十五：Daily Review透明度增强]
+    -> [阶段十六：KOL Reverse Engineering修正]
+    -> [阶段十七：图片与结果包一致性修复]
+    -> [阶段十八：最终报告修订与回归验证]
+    -> [阶段十九：可选增强：向量库、看板、邮件简报]
 ```
 
 ### 10.3 阶段七：冻结当前稳定MVP
@@ -464,27 +470,237 @@ daily_outputs/YYYY-MM-DD/
 - 失败源、失败Prompt、失败图片生成均有日志。（已通过总控日志、阶段日志和每日审核日志记录）
 - 人工审核前不自动对外发布。（已通过脚本边界和审核包说明固化）
 
-### 10.9 阶段十三：可选增强能力
+### 10.9 阶段十三到十九：90+评分修正路线
 
-这些不是下一步必须做的内容，阶段七到阶段十二已稳定后再考虑。
+> 本段为2026-05-02根据评分AI反馈新增的修正路线。原“阶段十三：向量库、看板、邮件简报等可选增强”整体顺延到阶段十九。
+
+当前核心目标不是继续堆新功能，而是把已有工作流从“能跑通”提升为“数据血缘闭环、事实约束强、每日审核可解释”的90+版本。后续AI接手时应优先按阶段十三到十八修复评分扣分点，再考虑阶段十九可选增强。
+
+| 阶段 | 名称 | 核心扣分点 | 优先级 |
+|------|------|------|------|
+| 阶段十三 | Daily Run数据血缘闭环修复 | Stage 12候选内容引用历史sample而不是本次RSS run | P0 |
+| 阶段十四 | Evidence Grounding与事实约束 | LinkedIn内容出现unsupported claims、未证实数字/国家/机构 | P0 |
+| 阶段十五 | Daily Review透明度增强 | review queue未充分展示过滤项、拒绝理由和审计解释 | P1 |
+| 阶段十六 | KOL Reverse Engineering修正 | KOL分析偏静态画像，样本来源表述需更谨慎 | P1 |
+| 阶段十七 | 图片与结果包一致性修复 | 图片状态、fallback、prompt与source evidence需要更透明 | P1 |
+| 阶段十八 | 最终报告修订与回归验证 | 报告需说明data lineage、grounding、daily review修复 | P1 |
+| 阶段十九 | 可选增强 | 向量库、看板、邮件/Slack简报、多版本内容 | P2 |
+
+#### 阶段十三：Daily Run数据血缘闭环修复
+
+目标：确保 `result/YYYY-MM-DD/manifest.json`、`review_queue.md`、candidate markdown中的 `source_news_ids` 和 `source_titles` 只来自本次 daily run，不再混用历史sample data。
+
+优先修改文件：
+
+```text
+1-Workflow_Files/1_news_monitoring.py
+1-Workflow_Files/2_relevance_router.py
+1-Workflow_Files/3_information_classification.py
+1-Workflow_Files/5_linkedin_content_generation.py
+1-Workflow_Files/7_daily_run_review.py
+1-Workflow_Files/0_main_workflow.py
+1-Workflow_Files/database_config/sqlite_db_init.sql
+```
+
+实施要点：
+
+1. Stage 2 ingestion必须记录每条 `news_items` 属于哪个 `ingestion_run_id`、`workflow_run_id`、`daily_run_id`。
+2. Stage 3 relevance routing只处理本次run新增或指定的news IDs，不能默认从数据库最早记录切片。
+3. Stage 3B classification只分类本次run保留下来的items。
+4. Stage 5 content generation只基于本次workflow/daily run的classified items生成候选。
+5. Stage 12输出必须标明每篇candidate来源：`rss_current_run`、`local_sample_baseline` 或 `fallback`。
+6. 如果本次RSS没有足够相关内容，应输出 `no_candidate_generated_today`，不能回退旧样例冒充今日结果。
+7. Schema修改必须migration-safe，可优先新增关联表，例如 `run_item_lineage`，或谨慎使用可重复执行的ALTER逻辑。
+
+验收标准：
+
+- 重新运行Stage 12后，candidate source IDs全部属于本次daily run。
+- 本次RSS无相关内容时，review queue明确显示no-candidate状态。
+- sample baseline与RSS production-like path不能混用。
+
+#### 阶段十四：Evidence Grounding与事实约束
+
+目标：消除unsupported claims，禁止生成证据中没有的数字、国家、公司、机构、引用或预测区间。
+
+优先修改文件：
+
+```text
+1-Workflow_Files/5_linkedin_content_generation.py
+2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt
+2-Prompt_Design_Samples/image_generation_prompt.txt
+```
+
+实施要点：
+
+1. Prompt必须明确：`do not introduce facts not present in source_records`。
+2. LinkedIn post只能使用 `evidence_basis` 中明确出现的title、source、summary、content、published_at。
+3. 增加 `validate_post_against_evidence()` 或等价后处理：
+   - 检查unsupported numbers。
+   - 检查unsupported named entities。
+   - 检查unsupported source names。
+   - 修复 `#AInfrastructure` 为 `#AIInfrastructure`。
+4. 如果LLM输出不通过校验，应回退到更保守模板或标记 `factual_validation_failed`，不能悄悄输出。
+
+验收标准：
+
+- 两篇候选帖不得包含evidence中没有的具体数字、国家、公司、机构或引用。
+- candidate markdown和manifest中显示factual validation result。
+
+#### 阶段十五：Daily Review透明度增强
+
+目标：让老师能清楚看到系统每天抓了什么、保留什么、过滤什么、为什么过滤。
+
+优先修改文件：
+
+```text
+1-Workflow_Files/2_relevance_router.py
+1-Workflow_Files/7_daily_run_review.py
+```
+
+实施要点：
+
+1. candidate markdown中展示每条source的：
+   - relevance rationale
+   - classification rationale
+   - matched terms
+   - score breakdown
+2. review_queue.md新增 `Filtered Today` 区块，列出本次run被过滤RSS内容、filter reason和score。
+3. 对被过滤的RSS内容生成short rejection summary。
+4. review_queue.md必须包含：
+   - Daily metrics
+   - Candidate posts
+   - Source evidence
+   - Filtered/rejected items with reasons
+   - Factual validation result
+   - Manual review required policy
+
+验收标准：
+
+- 即使无候选内容，review queue也能展示当天监控和过滤链路。
+
+#### 阶段十六：KOL Reverse Engineering修正
+
+目标：让KOL研究更像真实reverse engineering，同时避免声称分析了项目中没有保存的具体帖子。
+
+优先修改文件：
+
+```text
+1-Workflow_Files/4_linkedin_analysis.py
+3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md
+2-Prompt_Design_Samples/kol_style_analysis_prompt.txt
+```
+
+实施要点：
+
+1. 明确2-5位KOL的选择理由。
+2. 每位KOL补充五项表格：
+   - hook
+   - structure
+   - credibility
+   - engagement
+   - style
+3. 如果没有真实样本文件或来源链接，统一写成：
+
+```text
+representative public style analysis based on known public writing patterns
+```
+
+4. 避免写成“分析了某篇具体帖子”。
+
+验收标准：
+
+- KOL部分更可信、更像结构化拆解，且不夸大样本来源。
+
+#### 阶段十七：图片与结果包一致性修复
+
+目标：确保图片路径、archive、candidate visual都能打开，并如实记录图片API或fallback状态。
+
+优先修改文件：
+
+```text
+1-Workflow_Files/6_image_generation.py
+1-Workflow_Files/7_daily_run_review.py
+```
+
+实施要点：
+
+1. manifest记录：
+   - `image_status`
+   - `fallback_used`
+   - `provider`
+   - `model`
+   - 脱敏 `api_error` 摘要
+2. result assets只复制本次run图片。
+3. 图片prompt必须与当前source evidence和post topic对齐，避免泛泛抽象。
+4. 保留manual review policy，不自动发布。
+
+验收标准：
+
+- `result/YYYY-MM-DD/assets/` 图片与candidate一一对应。
+- fallback时manifest如实记录。
+
+#### 阶段十八：最终报告修订与回归验证
+
+目标：把阶段十三到十七的修复写进最终交付说明，并跑一次完整验证。
+
+优先修改文件：
+
+```text
+4-Progress_Report/Progress_Report_Final.md
+STATUS.md
+Implementation_Roadmap.md
+1-Workflow_Files/workflow_architecture.md
+```
+
+实施要点：
+
+1. 报告说明已修复：
+   - data lineage
+   - evidence grounding
+   - daily review transparency
+2. 明确：
+   - offline sample = demo/sample baseline
+   - daily RSS = production-like path
+   - 两者结果不能混用
+3. 重新运行主流程和daily review。
+
+验收命令：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py --output-root result --stage2-input-mode rss --rss-limit 2 --llm-mode auto --image-mode auto --stage10-max-items 2 --stage11-max-items 2
+```
+
+成功标准：
+
+- `Overall success: True` 或合理的 `no_candidate_generated_today`。
+- candidate source IDs来自本次run。
+- no unsupported claims。
+- review queue有filtered/rejected items。
+- manifest lineage清楚。
+
+#### 阶段十九：可选增强能力
+
+原阶段十三整体顺延到阶段十九。这些不是90+修正的优先任务，只有阶段十三到十八完成并通过回归后再考虑。
 
 | 增强方向 | 价值 | 建议时机 |
 |------|------|------|
 | Chroma向量库 | 支持长期案例检索、相似事件召回 | 数据量超过100条后 |
-| Streamlit/Gradio看板 | 方便查看新闻、分类、候选帖 | 每日运行稳定后 |
+| Streamlit/Gradio看板 | 方便查看新闻、分类、候选帖 | Daily lineage修复后 |
 | 邮件/飞书/Slack简报 | 每日推送候选内容 | 人工审核流程稳定后 |
 | 来源可信度评分 | 区分官方报告、媒体、博客、社交内容 | 真实源数量增加后 |
-| 多版本内容生成 | 高管摘要版、投资人深度版、政策分析版 | LinkedIn内容质量稳定后 |
+| 多版本内容生成 | 高管摘要版、投资人深度版、政策分析版 | Evidence guard稳定后 |
 
 ### 10.10 推荐执行顺序
 
-下一步不要同时做联网、LLM、图片和定时任务。推荐按下面顺序一轮一轮推进：
+下一步不要先做可选增强。推荐按下面顺序一轮一轮推进评分修正：
 
-1. **真实RSS接入**：已完成，系统已经能吃到真实信息。
-2. **LLM客户端**：已完成统一封装和离线fallback验证。
-3. **LLM替换摘要、评分、分类和LinkedIn生成**：已完成，默认离线，支持 `auto/online`。
-4. **接图片生成**：已完成，补齐最终内容形态。
-5. **每日定时运行与人工审核**：已完成脚本化审核包；后续如需可安装本机 `cron` 或 `launchd` 定时任务。
+1. **阶段十三：Daily Run数据血缘闭环修复**。这是最严重扣分点，必须先做。
+2. **阶段十四：Evidence Grounding与事实约束**。防止unsupported claims。
+3. **阶段十五：Daily Review透明度增强**。补足过滤、拒绝和审计解释。
+4. **阶段十六：KOL Reverse Engineering修正**。提高研究可信度。
+5. **阶段十七：图片与结果包一致性修复**。确保图片、manifest和candidate一致。
+6. **阶段十八：最终报告修订与回归验证**。把修复写进最终报告并跑完整验证。
+7. **阶段十九：可选增强**。向量库、看板、邮件简报等顺延到最后。
 
 ### 10.11 阶段九完成与阶段十起点
 
@@ -517,11 +733,52 @@ daily_outputs/YYYY-MM-DD/
 
 ### 10.14 阶段十二完成与阶段十三起点
 
-阶段十二已完成以下内容；下一步可进入阶段十三可选增强，或由用户先测试当前每日审核包：
+阶段十二已完成以下内容；下一步进入阶段十三“Daily Run数据血缘闭环修复”，原可选增强顺延到阶段十九：
 
 1. **新增 `7_daily_run_review.py`**：包装 `0_main_workflow.py --include-stage11`，生成每日候选内容审核包。
 2. **新增每日输出目录**：`daily_outputs/YYYY-MM-DD/`，包含 `review_queue.md`、`review_queue.csv`、`manifest.json`、候选稿和图片资产。
 3. **扩展数据库审计**：新增 `daily_workflow_runs` 和 `review_queue_items`，候选内容默认 `pending_review`。
 4. **离线验收通过**：Daily Run ID `daily_20260502_153834_3c00c0d5`，Wrapped Workflow Run ID `run_20260502_153835_7de03b80`，错误0条，候选审核项2条。
 5. **定时边界**：已提供cron命令示例；当前阶段不静默安装后台任务，不接LinkedIn自动发布。
-6. **下一阶段边界**：阶段十三为可选增强，可考虑看板、邮件/Slack简报、向量库或多版本内容生成。
+6. **下一阶段边界**：阶段十三不做可选增强，优先修复daily run数据血缘闭环，确保候选内容来自本次RSS/daily run。
+
+### 10.15 阶段十三完成与阶段十四起点
+
+阶段十三已完成以下内容；下一步进入阶段十四“Evidence Grounding与事实约束”：
+
+1. **新增 `lineage_utils.py`**：集中处理Stage 13 schema migration、`run_item_lineage` 表和lineage mode判断。
+2. **修复Stage 2 ingestion血缘**：每条当前run看到的新闻都会写入 `run_item_lineage`；即使被 `content_hash` 去重，也会标记为 `duplicate_seen`。
+3. **修复Stage 3A/3B run-scoped处理**：`2_relevance_router.py` 与 `3_information_classification.py` 支持 `--workflow-run-id` / `--daily-run-id`，只处理本次run范围内的items。
+4. **修复Stage 5候选生成取数**：`5_linkedin_content_generation.py` 只基于本次workflow/daily run的classified items生成候选；无当前run分类结果时不回捞历史内容。
+5. **修复Stage 11图片取数**：`6_image_generation.py` 只处理本次run的content records，避免当前run无候选时复制旧图片。
+6. **修复Stage 12审核包**：`7_daily_run_review.py` 与 `0_main_workflow.py` 贯穿 `daily_run_id` / `workflow_run_id`；`manifest.json`、`review_queue.md` 和candidate markdown均展示lineage信息。
+7. **无候选成功状态**：当前run没有候选时输出 `no_candidate_generated_today`，并明确说明历史sample内容未被复用。
+
+阶段十三验证结果：
+
+```text
+Daily Run ID: daily_20260502_203904_4e5b7da4
+Wrapped Workflow Run ID: run_20260502_203905_fa433c16
+Overall success: True
+candidate_source_ids = [1, 2, 3, 4]
+daily_run_lineage_news_ids = [1, 2, 3, 4, 5, 6]
+all_candidate_ids_in_daily_lineage = True
+lineage_mode = local_sample_baseline
+```
+
+no-candidate路径已验证：
+
+```text
+Overall success: True
+Candidate posts: 0
+Review items: 0
+Lineage mode: fallback
+No-candidate reason: no_candidate_generated_today
+Historical sample content was not reused.
+```
+
+下一阶段边界：
+
+- 阶段十四只处理事实约束和evidence grounding。
+- 不在阶段十四推进向量库、看板、邮件简报等阶段十九可选增强。
+- 不读取或打印 `.env`；真实API测试仍使用脱敏命令。

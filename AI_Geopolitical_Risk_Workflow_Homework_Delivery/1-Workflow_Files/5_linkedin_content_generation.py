@@ -36,6 +36,12 @@ from llm_stage_utils import (
     prompt_version_label,
     require_online_success,
 )
+from lineage_utils import (
+    apply_schema_with_migrations,
+    classify_lineage_mode,
+    row_value,
+    source_mode_for_item,
+)
 
 
 PROMPT_VERSION_BASE = "linkedin_content_generation_v2_stage10"
@@ -73,6 +79,9 @@ class ContentGenerationStats:
     run_id: str
     started_at: str
     finished_at: str = ""
+    workflow_run_id: str = ""
+    daily_run_id: str = ""
+    lineage_mode: str = "legacy"
     categories_seen: int = 0
     posts_generated: int = 0
     outputs_written: int = 0
@@ -95,9 +104,7 @@ def parse_json_list(raw_value: str) -> list[str]:
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, schema_path)
 
 
 def setup_logger(run_id: str) -> tuple[logging.Logger, Path]:
@@ -124,10 +131,40 @@ def select_category_items(
     connection: sqlite3.Connection,
     primary_category: str,
     max_items: int,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> list[sqlite3.Row]:
     connection.row_factory = sqlite3.Row
-    cursor = connection.execute(
+    run_filters = []
+    params: list[Any] = [primary_category]
+    lineage_join = """
+        LEFT JOIN run_item_lineage
+            ON run_item_lineage.news_id = news_items.id
+           AND run_item_lineage.id = (
+                SELECT MAX(latest_lineage.id)
+                FROM run_item_lineage AS latest_lineage
+                WHERE latest_lineage.news_id = news_items.id
+           )
+    """
+    if workflow_run_id or daily_run_id:
+        lineage_join = """
+        INNER JOIN run_item_lineage
+            ON run_item_lineage.news_id = news_items.id
         """
+        if workflow_run_id:
+            run_filters.append("classification_results.workflow_run_id = ?")
+            params.append(workflow_run_id)
+            run_filters.append("run_item_lineage.workflow_run_id = ?")
+            params.append(workflow_run_id)
+        if daily_run_id:
+            run_filters.append("classification_results.daily_run_id = ?")
+            params.append(daily_run_id)
+            run_filters.append("run_item_lineage.daily_run_id = ?")
+            params.append(daily_run_id)
+    run_filter_sql = f"AND {' AND '.join(run_filters)}" if run_filters else ""
+    params.append(max_items)
+    cursor = connection.execute(
+        f"""
         SELECT
             news_items.id AS news_id,
             news_items.title,
@@ -138,6 +175,22 @@ def select_category_items(
             news_items.summary,
             news_items.cleaned_content,
             news_items.keywords,
+            news_items.ingestion_method,
+            news_items.ingestion_run_id AS first_ingestion_run_id,
+            news_items.workflow_run_id AS first_workflow_run_id,
+            news_items.daily_run_id AS first_daily_run_id,
+            COALESCE(run_item_lineage.ingestion_run_id, news_items.ingestion_run_id, '') AS current_ingestion_run_id,
+            COALESCE(run_item_lineage.workflow_run_id, news_items.workflow_run_id, '') AS current_workflow_run_id,
+            COALESCE(run_item_lineage.daily_run_id, news_items.daily_run_id, '') AS current_daily_run_id,
+            COALESCE(
+                run_item_lineage.source_mode,
+                CASE
+                    WHEN news_items.ingestion_method = 'rss' THEN 'rss_current_run'
+                    WHEN news_items.ingestion_method = 'local_sample' THEN 'local_sample_baseline'
+                    ELSE 'fallback'
+                END
+            ) AS source_mode,
+            COALESCE(run_item_lineage.lineage_status, 'legacy') AS lineage_status,
             relevance_routing_results.relevance_score,
             relevance_routing_results.rationale AS routing_rationale,
             classification_results.primary_category,
@@ -149,8 +202,10 @@ def select_category_items(
             ON news_items.id = classification_results.news_id
         INNER JOIN relevance_routing_results
             ON relevance_routing_results.news_id = news_items.id
+        {lineage_join}
         WHERE classification_results.primary_category = ?
           AND relevance_routing_results.decision = 'keep'
+          {run_filter_sql}
         ORDER BY
             relevance_routing_results.relevance_score DESC,
             classification_results.confidence DESC,
@@ -158,7 +213,7 @@ def select_category_items(
             news_items.id ASC
         LIMIT ?
         """,
-        (primary_category, max_items),
+        params,
     )
     return list(cursor.fetchall())
 
@@ -177,6 +232,11 @@ def build_evidence_basis(items: list[sqlite3.Row]) -> list[dict[str, Any]]:
                 "classification_confidence": item["classification_confidence"],
                 "auxiliary_tags": parse_json_list(item["auxiliary_tags"]),
                 "routing_rationale": item["routing_rationale"],
+                "source_mode": row_value(item, "source_mode", source_mode_for_item("", item["ingestion_method"])),
+                "lineage_status": row_value(item, "lineage_status", "legacy"),
+                "ingestion_run_id": row_value(item, "current_ingestion_run_id", ""),
+                "workflow_run_id": row_value(item, "current_workflow_run_id", ""),
+                "daily_run_id": row_value(item, "current_daily_run_id", ""),
             }
         )
     return evidence
@@ -302,6 +362,7 @@ def build_offline_category_brief(primary_category: str, items: list[sqlite3.Row]
         "visual_prompt": generate_visual_prompt(primary_category, linkedin_post),
         "quality_score_self_check": quality_self_check(primary_category, len(items)),
         "output_path": str(target["output_path"]),
+        "lineage_mode": classify_lineage_mode([row_value(item, "source_mode", "") for item in items]),
         "prompt_version": f"{PROMPT_VERSION_BASE}_offline_fallback",
         "model_provider": "offline_fallback",
     }
@@ -347,6 +408,11 @@ def build_generation_prompt_payload(primary_category: str, items: list[sqlite3.R
                 "routing_rationale": item["routing_rationale"],
                 "classification_rationale": item["classification_rationale"],
                 "auxiliary_tags": parse_json_list(item["auxiliary_tags"]),
+                "source_mode": row_value(item, "source_mode", source_mode_for_item("", item["ingestion_method"])),
+                "lineage_status": row_value(item, "lineage_status", "legacy"),
+                "ingestion_run_id": row_value(item, "current_ingestion_run_id", ""),
+                "workflow_run_id": row_value(item, "current_workflow_run_id", ""),
+                "daily_run_id": row_value(item, "current_daily_run_id", ""),
             }
         )
 
@@ -450,12 +516,12 @@ def generate_category_brief(
 
 def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> str:
     evidence_lines = [
-        "| News ID | Source type | Relevance | Classification confidence | Title |",
-        "|---:|---|---:|---:|---|",
+        "| News ID | Source mode | Source type | Relevance | Classification confidence | Title |",
+        "|---:|---|---|---:|---:|---|",
     ]
     for item in brief["evidence_basis"]:
         evidence_lines.append(
-            "| {news_id} | {source_type} | {relevance_score:.2f} | "
+            "| {news_id} | {source_mode} | {source_type} | {relevance_score:.2f} | "
             "{classification_confidence:.2f} | {title} |".format(**item)
         )
 
@@ -485,6 +551,7 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
             f"- Target audience: {brief['target_audience']}",
             f"- Tone and positioning: {brief['tone_positioning']}",
             f"- Source news IDs: {', '.join(str(item) for item in brief['source_news_ids'])}",
+            f"- Lineage mode: {brief.get('lineage_mode', 'legacy')}",
             f"- Prompt version: {brief['prompt_version']}",
             f"- Model provider: {brief['model_provider']}",
             "",
@@ -612,18 +679,30 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def upsert_content_result(connection: sqlite3.Connection, brief: dict[str, Any]) -> None:
+def upsert_content_result(
+    connection: sqlite3.Connection,
+    brief: dict[str, Any],
+    *,
+    content_run_id: str,
+    workflow_run_id: str,
+    daily_run_id: str,
+) -> None:
     now = utc_now()
     connection.execute(
         """
         INSERT INTO linkedin_content_results (
-            primary_category, target_audience, tone_positioning, source_news_ids,
+            primary_category, content_run_id, workflow_run_id, daily_run_id,
+            lineage_mode, target_audience, tone_positioning, source_news_ids,
             source_titles, evidence_basis, linkedin_post, visual_prompt,
-            quality_score_self_check, output_path, prompt_version, model_provider,
-            created_at, updated_at
+            quality_score_self_check, output_path, prompt_version,
+            model_provider, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(primary_category) DO UPDATE SET
+            content_run_id = excluded.content_run_id,
+            workflow_run_id = excluded.workflow_run_id,
+            daily_run_id = excluded.daily_run_id,
+            lineage_mode = excluded.lineage_mode,
             target_audience = excluded.target_audience,
             tone_positioning = excluded.tone_positioning,
             source_news_ids = excluded.source_news_ids,
@@ -639,6 +718,10 @@ def upsert_content_result(connection: sqlite3.Connection, brief: dict[str, Any])
         """,
         (
             brief["primary_category"],
+            content_run_id,
+            workflow_run_id,
+            daily_run_id,
+            brief.get("lineage_mode", "legacy"),
             brief["target_audience"],
             brief["tone_positioning"],
             json.dumps(brief["source_news_ids"], ensure_ascii=False),
@@ -660,15 +743,19 @@ def record_run(connection: sqlite3.Connection, stats: ContentGenerationStats) ->
     connection.execute(
         """
         INSERT INTO linkedin_content_runs (
-            run_id, started_at, finished_at, categories_seen, posts_generated,
-            outputs_written, errors, notes
+            run_id, started_at, finished_at, workflow_run_id, daily_run_id,
+            lineage_mode, categories_seen, posts_generated, outputs_written,
+            errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
             stats.started_at,
             stats.finished_at,
+            stats.workflow_run_id,
+            stats.daily_run_id,
+            stats.lineage_mode,
             stats.categories_seen,
             stats.posts_generated,
             stats.outputs_written,
@@ -684,12 +771,21 @@ def run_linkedin_content_generation(
     image_prompt_path: Path,
     max_items_per_category: int,
     llm_mode: str = "offline",
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> tuple[ContentGenerationStats, Path, list[Path]]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
-    stats = ContentGenerationStats(run_id=run_id, started_at=utc_now())
+    stats = ContentGenerationStats(
+        run_id=run_id,
+        started_at=utc_now(),
+        workflow_run_id=workflow_run_id,
+        daily_run_id=daily_run_id,
+    )
     generated_at = utc_now()
     output_paths: list[Path] = []
+    run_scoped = bool(workflow_run_id or daily_run_id)
+    lineage_modes_seen: list[str] = []
 
     logger.info("Starting Stage 5 LinkedIn content generation run: %s", run_id)
     logger.info("Target categories configured: %s", list(TARGET_CATEGORIES.keys()))
@@ -715,17 +811,34 @@ def run_linkedin_content_generation(
     with sqlite3.connect(db_path) as connection:
         for primary_category, target in TARGET_CATEGORIES.items():
             try:
-                items = select_category_items(connection, primary_category, max_items_per_category)
+                items = select_category_items(
+                    connection,
+                    primary_category,
+                    max_items_per_category,
+                    workflow_run_id,
+                    daily_run_id,
+                )
                 if not items:
-                    stats.errors += 1
-                    logger.error("No classified items found for category: %s", primary_category)
+                    message = f"No current-run classified items found for category: {primary_category}"
+                    if run_scoped:
+                        logger.warning("%s; skipping candidate generation.", message)
+                    else:
+                        stats.errors += 1
+                        logger.error("No classified items found for category: %s", primary_category)
                     continue
 
                 stats.categories_seen += 1
                 brief = generate_category_brief(primary_category, items, llm_client, require_online)
+                lineage_modes_seen.append(brief.get("lineage_mode", "legacy"))
                 output_path = Path(target["output_path"])
                 write_text(output_path, render_markdown(brief, run_id, generated_at))
-                upsert_content_result(connection, brief)
+                upsert_content_result(
+                    connection,
+                    brief,
+                    content_run_id=run_id,
+                    workflow_run_id=workflow_run_id,
+                    daily_run_id=daily_run_id,
+                )
                 output_paths.append(output_path)
                 stats.posts_generated += 1
                 stats.outputs_written += 1
@@ -751,10 +864,12 @@ def run_linkedin_content_generation(
             logger.error("Failed to write Stage 5 prompt samples: %s", exc)
 
         stats.finished_at = utc_now()
+        stats.lineage_mode = classify_lineage_mode(lineage_modes_seen)
         stats.notes = (
             "Stage 10-enabled Stage 5 content generation completed. The output uses "
             "classified SQLite records and the Stage 4 decision-brief constraints; "
-            f"LLM generation is controlled by llm_mode={llm_mode} with fallback."
+            f"LLM generation is controlled by llm_mode={llm_mode} with fallback. "
+            f"Stage 13 lineage_mode={stats.lineage_mode}."
         )
         record_run(connection, stats)
 
@@ -800,6 +915,16 @@ def parse_args() -> argparse.Namespace:
         default="offline",
         help="LLM behavior for content generation: offline, auto, or online. Default: offline.",
     )
+    parser.add_argument(
+        "--workflow-run-id",
+        default="",
+        help="Optional parent workflow run ID for Stage 13 lineage scoping.",
+    )
+    parser.add_argument(
+        "--daily-run-id",
+        default="",
+        help="Optional daily run ID for Stage 13 review lineage scoping.",
+    )
     return parser.parse_args()
 
 
@@ -811,6 +936,8 @@ def main() -> int:
         args.image_prompt_path,
         args.max_items_per_category,
         args.llm_mode,
+        args.workflow_run_id,
+        args.daily_run_id,
     )
     print("\nStage 5 LinkedIn content generation completed")
     print(f"Run ID: {stats.run_id}")
@@ -818,6 +945,9 @@ def main() -> int:
     print(f"Categories seen: {stats.categories_seen}")
     print(f"Posts generated: {stats.posts_generated}")
     print(f"Outputs written: {stats.outputs_written}")
+    print(f"Lineage mode: {stats.lineage_mode}")
+    print(f"Workflow run ID: {stats.workflow_run_id or 'not_set'}")
+    print(f"Daily run ID: {stats.daily_run_id or 'not_set'}")
     print(f"Errors: {stats.errors}")
     print("Output files:")
     for output_path in output_paths:

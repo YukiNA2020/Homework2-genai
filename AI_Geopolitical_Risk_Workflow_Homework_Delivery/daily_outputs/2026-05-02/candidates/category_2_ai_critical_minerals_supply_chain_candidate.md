@@ -5,9 +5,11 @@
 
 ## Review Metadata
 
-- Daily run ID: `daily_20260502_154949_9970b52c`
+- Daily run ID: `daily_20260502_203904_4e5b7da4`
+- Wrapped workflow run ID: `run_20260502_203905_fa433c16`
 - Run date: `2026-05-02`
 - Review status: `pending_review`
+- Lineage mode: `local_sample_baseline`
 - Primary category: AI关键矿产供应链与地缘政治
 - Target audience: AI infrastructure investors, commodity investors, and AI enterprise supply-chain leaders.
 - Tone and positioning: Deep-analysis executive brief that links mineral supply risk to AI infrastructure cost, timing, and investment decisions.
@@ -30,9 +32,9 @@
 
 ## Source Evidence
 
-| News ID | Source | Published | Relevance | Title |
-|---:|---|---|---:|---|
-| 2 | USGS-style sample mineral note | 2026-04-18 | 8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout |
+| News ID | Source mode | Source | Published | Relevance | Title |
+|---:|---|---|---|---:|---|
+| 2 | local_sample_baseline | USGS-style sample mineral note | 2026-04-18 | 8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout |
 
 ## Candidate LinkedIn Post
 
@@ -61,10 +63,10 @@ If AI demand keeps moving from model roadmaps into grid-scale construction, shou
 
 ## Candidate Visual
 
-![Candidate visual](../assets/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg)
+![Candidate visual](../assets/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg)
 
-- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg`
-- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg`
+- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg`
+- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg`
 - Image status: `offline_fallback`
 - Image provider/model: `offline_fallback` / `deterministic_svg`
 

@@ -209,6 +209,7 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily
 
 当前版本为RSS + LLM + image-archive + daily-review enabled MVP，未来可在不重做数据库结构的前提下扩展：
 
+- 在可选增强前，先完成阶段十三到十八的90+评分修正：daily run数据血缘闭环、evidence grounding、filtered review transparency、KOL reverse engineering、图片结果包一致性和最终报告回归验证。
 - 将现有 `7_daily_run_review.py` 接入本机 `cron` 或 macOS `launchd`。
 - 增加Chroma或其他向量库，用于长期检索和相似案例召回。
 - 增加仪表盘，展示分类趋势、风险信号和内容生成记录。

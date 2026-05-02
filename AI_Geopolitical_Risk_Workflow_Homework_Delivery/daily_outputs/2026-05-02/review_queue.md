@@ -7,33 +7,34 @@ Nothing in this package has been published externally; every item requires human
 
 | Metric | Value |
 |---|---:|
-| News items seen | 6 |
+| News items seen | 0 |
 | News items inserted | 0 |
-| Items kept after routing | 5 |
-| Items classified | 5 |
-| Candidate posts generated | 2 |
-| Images generated | 2 |
-| Image fallback used | 2 |
-| Review queue items | 2 |
+| Items kept after routing | 0 |
+| Items classified | 0 |
+| Candidate posts generated | 0 |
+| Images generated | 0 |
+| Image fallback used | 0 |
+| Review queue items | 0 |
 | Errors | 0 |
 
 ## Run Metadata
 
-- Stage 12 daily run ID: `daily_20260502_154949_9970b52c`
-- Wrapped workflow run ID: `run_20260502_154949_897ee7ae`
-- Stage 2 input mode: `local_sample`
+- Stage 12 daily run ID: `daily_20260502_204833_00eb267a`
+- Wrapped workflow run ID: ``
+- Stage 2 input mode: `rss`
+- Lineage mode: `fallback`
+- No-candidate reason: `no_candidate_generated_today: the current workflow/daily run did not produce classified content records for review. Historical sample content was not reused.`
 - LLM mode: `offline`
 - Image mode: `offline`
 - Workflow return code: `0`
-- Workflow log: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_154949_897ee7ae_main_workflow.log`
-- Daily review log: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_154949_9970b52c_daily_review.log`
+- Workflow log: ``
+- Daily review log: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_204833_00eb267a_daily_review.log`
 
 ## Candidate Review Items
 
-| Review | Category | Status | Image | Candidate file |
-|---|---|---|---|---|
-| Manual required | AI关键矿产供应链与地缘政治 | pending_review | offline_fallback | [category_2_ai_critical_minerals_supply_chain_candidate.md](candidates/category_2_ai_critical_minerals_supply_chain_candidate.md) |
-| Manual required | AI算力基础设施地缘风险 | pending_review | offline_fallback | [category_1_ai_infrastructure_risk_candidate.md](candidates/category_1_ai_infrastructure_risk_candidate.md) |
+| Review | Category | Lineage | Status | Image | Candidate file |
+|---|---|---|---|---|---|
+| No candidate generated today | all categories | fallback | no_candidate_generated_today | not_available | no_candidate_generated_today: the current workflow/daily run did not produce classified content records for review. Historical sample content was not reused. |
 
 ## Failure Review Pointers
 
@@ -44,60 +45,11 @@ Nothing in this package has been published externally; every item requires human
 ## Wrapped Workflow Output Tail
 
 ```text
-Stage 6 main workflow completed
-Run ID: run_20260502_154949_897ee7ae
-Overall success: True
-Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
-Stages:
-- Stage 2 news monitoring: OK (0.11s)
-- Stage 3A relevance routing: OK (0.12s)
-- Stage 3B information classification: OK (0.1s)
-- Stage 4 LinkedIn KOL analysis: OK (0.07s)
-- Stage 5 LinkedIn content generation: OK (0.1s)
-- Stage 11 image generation and archive: OK (0.11s)
-Validation:
-- news_items_at_least_6: PASS
-- routing_results_at_least_6: PASS
-- kept_items_at_least_4: PASS
-- classification_results_at_least_4: PASS
-- kol_profiles_at_least_4: PASS
-- linkedin_posts_at_least_2: PASS
-- linkedin_outputs_nonempty: PASS
-- image_generation_results_at_least_2: PASS
-- image_files_exist: PASS
-- archive_posts_exist: PASS
-Master log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_154949_897ee7ae_main_workflow.log
+(no stdout)
 ```
 
 ## Wrapped Workflow Error Tail
 
 ```text
-      }
-    ],
-    "checks": {
-      "news_items_at_least_6": true,
-      "routing_results_at_least_6": true,
-      "kept_items_at_least_4": true,
-      "classification_results_at_least_4": true,
-      "kol_profiles_at_least_4": true,
-      "linkedin_posts_at_least_2": true,
-      "linkedin_outputs_nonempty": true,
-      "image_generation_results_at_least_2": true,
-      "image_files_exist": true,
-      "archive_posts_exist": true
-    },
-    "messages": [
-      "news_items_at_least_6: PASS",
-      "routing_results_at_least_6: PASS",
-      "kept_items_at_least_4: PASS",
-      "classification_results_at_least_4: PASS",
-      "kol_profiles_at_least_4: PASS",
-      "linkedin_posts_at_least_2: PASS",
-      "linkedin_outputs_nonempty: PASS",
-      "image_generation_results_at_least_2: PASS",
-      "image_files_exist: PASS",
-      "archive_posts_exist: PASS"
-    ]
-  }
-}
+(no stderr)
 ```

@@ -26,6 +26,7 @@ from llm_stage_utils import (
     prompt_version_label,
     require_online_success,
 )
+from lineage_utils import apply_schema_with_migrations
 
 
 PROMPT_VERSION_BASE = "information_classification_v2_stage10"
@@ -116,6 +117,8 @@ class ClassificationStats:
     run_id: str
     started_at: str
     finished_at: str = ""
+    workflow_run_id: str = ""
+    daily_run_id: str = ""
     items_seen: int = 0
     items_classified: int = 0
     errors: int = 0
@@ -170,9 +173,7 @@ def find_terms(terms: list[str], text: str) -> list[str]:
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(schema_path.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, schema_path)
 
 
 def setup_logger(run_id: str) -> tuple[logging.Logger, Path]:
@@ -411,8 +412,22 @@ def classify_item(
     }
 
 
-def select_routed_items(connection: sqlite3.Connection, rerun: bool) -> list[sqlite3.Row]:
+def select_routed_items(
+    connection: sqlite3.Connection,
+    rerun: bool,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
+) -> list[sqlite3.Row]:
     connection.row_factory = sqlite3.Row
+    run_filters = []
+    params: list[Any] = []
+    if workflow_run_id:
+        run_filters.append("relevance_routing_results.workflow_run_id = ?")
+        params.append(workflow_run_id)
+    if daily_run_id:
+        run_filters.append("relevance_routing_results.daily_run_id = ?")
+        params.append(daily_run_id)
+    run_filter_sql = f"AND {' AND '.join(run_filters)}" if run_filters else ""
     base_query = """
         SELECT
             news_items.*,
@@ -425,6 +440,7 @@ def select_routed_items(connection: sqlite3.Connection, rerun: bool) -> list[sql
             ON relevance_routing_results.news_id = news_items.id
         {classification_join}
         WHERE relevance_routing_results.decision = 'keep'
+        {run_filter_sql}
         {unclassified_filter}
         ORDER BY news_items.id
     """
@@ -434,22 +450,35 @@ def select_routed_items(connection: sqlite3.Connection, rerun: bool) -> list[sql
             if rerun
             else "LEFT JOIN classification_results ON classification_results.news_id = news_items.id"
         ),
+        run_filter_sql=run_filter_sql,
         unclassified_filter="" if rerun else "AND classification_results.news_id IS NULL",
     )
-    cursor = connection.execute(query)
+    cursor = connection.execute(query, params)
     return list(cursor.fetchall())
 
 
-def upsert_classification_result(connection: sqlite3.Connection, result: dict[str, Any]) -> None:
+def upsert_classification_result(
+    connection: sqlite3.Connection,
+    result: dict[str, Any],
+    *,
+    classification_run_id: str,
+    workflow_run_id: str,
+    daily_run_id: str,
+) -> None:
     now = utc_now()
     connection.execute(
         """
         INSERT INTO classification_results (
-            news_id, primary_category, auxiliary_tags, confidence, rationale,
-            category_signal_terms, prompt_version, model_provider, created_at, updated_at
+            news_id, classification_run_id, workflow_run_id, daily_run_id,
+            primary_category, auxiliary_tags, confidence, rationale,
+            category_signal_terms, prompt_version, model_provider, created_at,
+            updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(news_id) DO UPDATE SET
+            classification_run_id = excluded.classification_run_id,
+            workflow_run_id = excluded.workflow_run_id,
+            daily_run_id = excluded.daily_run_id,
             primary_category = excluded.primary_category,
             auxiliary_tags = excluded.auxiliary_tags,
             confidence = excluded.confidence,
@@ -461,6 +490,9 @@ def upsert_classification_result(connection: sqlite3.Connection, result: dict[st
         """,
         (
             result["news_id"],
+            classification_run_id,
+            workflow_run_id,
+            daily_run_id,
             result["primary_category"],
             json.dumps(result["auxiliary_tags"], ensure_ascii=False),
             result["confidence"],
@@ -486,15 +518,17 @@ def record_run(connection: sqlite3.Connection, stats: ClassificationStats) -> No
     connection.execute(
         """
         INSERT INTO classification_runs (
-            run_id, started_at, finished_at, items_seen, items_classified,
-            errors, notes
+            run_id, started_at, finished_at, workflow_run_id, daily_run_id,
+            items_seen, items_classified, errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
             stats.started_at,
             stats.finished_at,
+            stats.workflow_run_id,
+            stats.daily_run_id,
             stats.items_seen,
             stats.items_classified,
             stats.errors,
@@ -508,10 +542,17 @@ def run_information_classification(
     rerun: bool = False,
     llm_mode: str = "offline",
     max_items: int | None = None,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
 ) -> tuple[ClassificationStats, Path]:
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger, log_path = setup_logger(run_id)
-    stats = ClassificationStats(run_id=run_id, started_at=utc_now())
+    stats = ClassificationStats(
+        run_id=run_id,
+        started_at=utc_now(),
+        workflow_run_id=workflow_run_id,
+        daily_run_id=daily_run_id,
+    )
 
     logger.info("Starting Stage 3B information classification run: %s", run_id)
     logger.info("Primary categories: %s", list(CATEGORY_RULES.keys()))
@@ -535,7 +576,7 @@ def run_information_classification(
     apply_schema(db_path, SQLITE_SCHEMA_PATH)
 
     with sqlite3.connect(db_path) as connection:
-        items = select_routed_items(connection, rerun)
+        items = select_routed_items(connection, rerun, workflow_run_id, daily_run_id)
         if max_items is not None:
             items = items[:max_items]
             logger.info("Applied Stage 10 max item limit: %s", max_items)
@@ -544,7 +585,13 @@ def run_information_classification(
         for item in items:
             try:
                 result = classify_item(item, llm_client, require_online)
-                upsert_classification_result(connection, result)
+                upsert_classification_result(
+                    connection,
+                    result,
+                    classification_run_id=run_id,
+                    workflow_run_id=workflow_run_id,
+                    daily_run_id=daily_run_id,
+                )
                 stats.items_classified += 1
                 logger.info(
                     "CLASSIFIED | %s | confidence=%.2f | %s",
@@ -603,18 +650,37 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional maximum routed items to classify, useful for small online validation runs.",
     )
+    parser.add_argument(
+        "--workflow-run-id",
+        default="",
+        help="Optional parent workflow run ID for Stage 13 lineage scoping.",
+    )
+    parser.add_argument(
+        "--daily-run-id",
+        default="",
+        help="Optional daily run ID for Stage 13 review lineage scoping.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     rerun = args.rerun or not args.only_new
-    stats, log_path = run_information_classification(args.db_path, rerun, args.llm_mode, args.max_items)
+    stats, log_path = run_information_classification(
+        args.db_path,
+        rerun,
+        args.llm_mode,
+        args.max_items,
+        args.workflow_run_id,
+        args.daily_run_id,
+    )
     print("\nStage 3B information classification completed")
     print(f"Run ID: {stats.run_id}")
     print(f"Database: {args.db_path}")
     print(f"Items seen: {stats.items_seen}")
     print(f"Classified: {stats.items_classified}")
+    print(f"Workflow run ID: {stats.workflow_run_id or 'not_set'}")
+    print(f"Daily run ID: {stats.daily_run_id or 'not_set'}")
     print(f"Errors: {stats.errors}")
     print(f"Log file: {log_path}")
     return 0 if stats.errors == 0 else 1

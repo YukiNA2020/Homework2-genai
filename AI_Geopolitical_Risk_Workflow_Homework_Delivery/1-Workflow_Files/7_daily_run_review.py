@@ -31,12 +31,16 @@ from api_config import (
     SQLITE_SCHEMA_PATH,
 )
 from llm_stage_utils import LLM_MODE_CHOICES
+from lineage_utils import (
+    apply_schema_with_migrations,
+    classify_lineage_mode,
+)
 
 
 WORKFLOW_DIR = Path(__file__).resolve().parent
 MAIN_WORKFLOW_PATH = WORKFLOW_DIR / "0_main_workflow.py"
 IMAGE_MODE_CHOICES = ("offline", "auto", "online")
-STAGE12_PROMPT_VERSION = "daily_review_queue_v1_stage12"
+STAGE12_PROMPT_VERSION = "daily_review_queue_v2_stage13_lineage"
 
 
 @dataclass
@@ -48,6 +52,8 @@ class DailyRunStats:
     stage2_input_mode: str = "rss"
     llm_mode: str = "offline"
     image_mode: str = "offline"
+    lineage_mode: str = "legacy"
+    no_candidate_reason: str = ""
     workflow_run_id: str = ""
     workflow_return_code: int = 0
     workflow_log_path: str = ""
@@ -109,9 +115,7 @@ def parse_json_any(raw_value: str, fallback: Any) -> Any:
 
 
 def apply_schema(db_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(db_path) as connection:
-        connection.executescript(SQLITE_SCHEMA_PATH.read_text(encoding="utf-8"))
+    apply_schema_with_migrations(db_path, SQLITE_SCHEMA_PATH)
 
 
 def setup_logger(run_id: str) -> tuple[logging.Logger, Path]:
@@ -147,6 +151,8 @@ def build_main_workflow_command(args: argparse.Namespace) -> list[str]:
         "--include-stage11",
         "--image-mode",
         args.image_mode,
+        "--daily-run-id",
+        getattr(args, "daily_run_id", ""),
     ]
     if args.rss_limit is not None:
         command.extend(["--rss-limit", str(args.rss_limit)])
@@ -187,8 +193,25 @@ def run_main_workflow(args: argparse.Namespace, logger: logging.Logger) -> subpr
     return completed
 
 
-def latest_run(connection: sqlite3.Connection, table_name: str) -> dict[str, Any]:
-    cursor = connection.execute(f"SELECT * FROM {table_name} ORDER BY id DESC LIMIT 1")
+def latest_run(
+    connection: sqlite3.Connection,
+    table_name: str,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
+) -> dict[str, Any]:
+    filters = []
+    params: list[Any] = []
+    if workflow_run_id:
+        filters.append("workflow_run_id = ?")
+        params.append(workflow_run_id)
+    if daily_run_id:
+        filters.append("daily_run_id = ?")
+        params.append(daily_run_id)
+    where_sql = f"WHERE {' AND '.join(filters)}" if filters else ""
+    cursor = connection.execute(
+        f"SELECT * FROM {table_name} {where_sql} ORDER BY id DESC LIMIT 1",
+        params,
+    )
     row = cursor.fetchone()
     return dict(row) if row is not None else {}
 
@@ -201,13 +224,17 @@ def int_from(mapping: dict[str, Any], key: str) -> int:
         return 0
 
 
-def collect_latest_metrics(connection: sqlite3.Connection) -> dict[str, Any]:
+def collect_latest_metrics(
+    connection: sqlite3.Connection,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
+) -> dict[str, Any]:
     connection.row_factory = sqlite3.Row
-    ingestion = latest_run(connection, "ingestion_runs")
-    routing = latest_run(connection, "routing_runs")
-    classification = latest_run(connection, "classification_runs")
-    content = latest_run(connection, "linkedin_content_runs")
-    images = latest_run(connection, "image_generation_runs")
+    ingestion = latest_run(connection, "ingestion_runs", workflow_run_id, daily_run_id)
+    routing = latest_run(connection, "routing_runs", workflow_run_id, daily_run_id)
+    classification = latest_run(connection, "classification_runs", workflow_run_id, daily_run_id)
+    content = latest_run(connection, "linkedin_content_runs", workflow_run_id, daily_run_id)
+    images = latest_run(connection, "image_generation_runs", workflow_run_id, daily_run_id)
     return {
         "latest_runs": {
             "ingestion": ingestion,
@@ -223,6 +250,11 @@ def collect_latest_metrics(connection: sqlite3.Connection) -> dict[str, Any]:
         "candidate_posts": int_from(content, "posts_generated"),
         "images_generated": int_from(images, "images_generated"),
         "fallback_used": int_from(images, "fallback_used"),
+        "lineage_mode": (
+            content.get("lineage_mode")
+            or images.get("lineage_mode")
+            or "fallback"
+        ),
         "stage_errors": (
             int_from(ingestion, "errors")
             + int_from(routing, "errors")
@@ -233,12 +265,34 @@ def collect_latest_metrics(connection: sqlite3.Connection) -> dict[str, Any]:
     }
 
 
-def select_review_candidates(connection: sqlite3.Connection) -> list[sqlite3.Row]:
+def select_review_candidates(
+    connection: sqlite3.Connection,
+    workflow_run_id: str = "",
+    daily_run_id: str = "",
+) -> list[sqlite3.Row]:
     connection.row_factory = sqlite3.Row
+    filters = []
+    params: list[Any] = []
+    image_join_filters = []
+    if workflow_run_id:
+        filters.append("linkedin_content_results.workflow_run_id = ?")
+        params.append(workflow_run_id)
+        image_join_filters.append("image_generation_results.workflow_run_id = linkedin_content_results.workflow_run_id")
+    if daily_run_id:
+        filters.append("linkedin_content_results.daily_run_id = ?")
+        params.append(daily_run_id)
+        image_join_filters.append("image_generation_results.daily_run_id = linkedin_content_results.daily_run_id")
+    where_sql = f"WHERE {' AND '.join(filters)}" if filters else ""
+    image_join_sql = ""
+    if image_join_filters:
+        image_join_sql = " AND " + " AND ".join(image_join_filters)
     cursor = connection.execute(
-        """
+        f"""
         SELECT
             linkedin_content_results.id AS source_content_id,
+            linkedin_content_results.workflow_run_id,
+            linkedin_content_results.daily_run_id,
+            linkedin_content_results.lineage_mode,
             linkedin_content_results.primary_category,
             linkedin_content_results.target_audience,
             linkedin_content_results.tone_positioning,
@@ -261,8 +315,11 @@ def select_review_candidates(connection: sqlite3.Connection) -> list[sqlite3.Row
         FROM linkedin_content_results
         LEFT JOIN image_generation_results
             ON image_generation_results.primary_category = linkedin_content_results.primary_category
+            {image_join_sql}
+        {where_sql}
         ORDER BY linkedin_content_results.primary_category ASC
-        """
+        """,
+        params,
     )
     return list(cursor.fetchall())
 
@@ -294,15 +351,16 @@ def render_evidence_table(evidence_basis: Any) -> str:
         return "_No structured evidence basis was available._"
 
     lines = [
-        "| News ID | Source | Published | Relevance | Title |",
-        "|---:|---|---|---:|---|",
+        "| News ID | Source mode | Source | Published | Relevance | Title |",
+        "|---:|---|---|---|---:|---|",
     ]
     for item in evidence_basis:
         if not isinstance(item, dict):
             continue
         lines.append(
-            "| {news_id} | {source_name} | {published_at} | {relevance_score} | {title} |".format(
+            "| {news_id} | {source_mode} | {source_name} | {published_at} | {relevance_score} | {title} |".format(
                 news_id=item.get("news_id", ""),
+                source_mode=str(item.get("source_mode", "legacy")).replace("|", "/"),
                 source_name=str(item.get("source_name", item.get("source_type", ""))).replace("|", "/"),
                 published_at=str(item.get("published_at", "")).replace("|", "/"),
                 relevance_score=item.get("relevance_score", ""),
@@ -347,8 +405,10 @@ def render_candidate_markdown(
             "## Review Metadata",
             "",
             f"- Daily run ID: `{daily_run_id}`",
+            f"- Wrapped workflow run ID: `{row['workflow_run_id'] or ''}`",
             f"- Run date: `{run_date}`",
             f"- Review status: `pending_review`",
+            f"- Lineage mode: `{row['lineage_mode'] or 'legacy'}`",
             f"- Primary category: {row['primary_category']}",
             f"- Target audience: {row['target_audience']}",
             f"- Tone and positioning: {row['tone_positioning']}",
@@ -397,8 +457,8 @@ def render_review_queue(
     workflow_stderr_tail: str,
 ) -> str:
     candidate_lines = [
-        "| Review | Category | Status | Image | Candidate file |",
-        "|---|---|---|---|---|",
+        "| Review | Category | Lineage | Status | Image | Candidate file |",
+        "|---|---|---|---|---|---|",
     ]
     for item in candidate_records:
         candidate_path = Path(item["candidate_post_path"])
@@ -406,7 +466,12 @@ def render_review_queue(
         candidate_link = candidate_path.resolve().relative_to(output_dir.resolve()).as_posix()
         image_status = item.get("image_status") or "not_available"
         candidate_lines.append(
-            f"| Manual required | {item['primary_category']} | pending_review | {image_status} | [{candidate_path.name}]({candidate_link}) |"
+            f"| Manual required | {item['primary_category']} | {item.get('lineage_mode', 'legacy')} | pending_review | {image_status} | [{candidate_path.name}]({candidate_link}) |"
+        )
+    if not candidate_records:
+        candidate_lines.append(
+            "| No candidate generated today | all categories | "
+            f"{stats.lineage_mode} | no_candidate_generated_today | not_available | {stats.no_candidate_reason or 'No current-run classified items reached content generation.'} |"
         )
 
     return "\n".join(
@@ -435,6 +500,8 @@ def render_review_queue(
             f"- Stage 12 daily run ID: `{stats.run_id}`",
             f"- Wrapped workflow run ID: `{stats.workflow_run_id}`",
             f"- Stage 2 input mode: `{stats.stage2_input_mode}`",
+            f"- Lineage mode: `{stats.lineage_mode}`",
+            f"- No-candidate reason: `{stats.no_candidate_reason or 'not_applicable'}`",
             f"- LLM mode: `{stats.llm_mode}`",
             f"- Image mode: `{stats.image_mode}`",
             f"- Workflow return code: `{stats.workflow_return_code}`",
@@ -488,6 +555,16 @@ def write_daily_outputs(
         slug = safe_slug(row["primary_category"])
         candidate_path = candidates_dir / f"{slug}_candidate.md"
         copied_image_path = copy_candidate_image(row, assets_dir, logger)
+        evidence_basis = parse_json_any(row["evidence_basis"], [])
+        source_modes = [
+            str(item.get("source_mode", row["lineage_mode"] or "legacy"))
+            for item in evidence_basis
+            if isinstance(item, dict)
+        ]
+        source_mode_counts = {
+            mode: source_modes.count(mode)
+            for mode in sorted(set(source_modes))
+        }
         candidate_path.write_text(
             render_candidate_markdown(
                 row,
@@ -502,7 +579,10 @@ def write_daily_outputs(
             {
                 "daily_run_id": stats.run_id,
                 "run_date": stats.run_date,
+                "workflow_run_id": row["workflow_run_id"] or stats.workflow_run_id,
                 "primary_category": row["primary_category"],
+                "lineage_mode": row["lineage_mode"] or classify_lineage_mode(source_modes),
+                "source_mode_counts": source_mode_counts,
                 "source_content_id": int(row["source_content_id"]),
                 "source_news_ids": parse_json_list(row["source_news_ids"]),
                 "source_titles": parse_json_list(row["source_titles"]),
@@ -521,6 +601,11 @@ def write_daily_outputs(
     stats.review_queue_path = str(output_dir / "review_queue.md")
     stats.manifest_path = str(output_dir / "manifest.json")
     stats.review_items = len(candidate_records)
+    if candidate_records:
+        stats.lineage_mode = classify_lineage_mode([item["lineage_mode"] for item in candidate_records])
+    else:
+        stats.lineage_mode = "fallback"
+        stats.no_candidate_reason = stats.no_candidate_reason or "no_candidate_generated_today"
 
     review_queue = render_review_queue(
         stats=stats,
@@ -537,7 +622,10 @@ def write_daily_outputs(
             fieldnames=[
                 "daily_run_id",
                 "run_date",
+                "workflow_run_id",
                 "primary_category",
+                "lineage_mode",
+                "source_mode_counts",
                 "source_content_id",
                 "source_news_ids",
                 "source_titles",
@@ -555,6 +643,7 @@ def write_daily_outputs(
         for item in candidate_records:
             writer.writerow({
                 **item,
+                "source_mode_counts": json.dumps(item["source_mode_counts"], ensure_ascii=False),
                 "source_news_ids": json.dumps(item["source_news_ids"], ensure_ascii=False),
                 "source_titles": json.dumps(item["source_titles"], ensure_ascii=False),
             })
@@ -570,6 +659,15 @@ def write_daily_outputs(
             "candidates_dir": str(candidates_dir),
             "assets_dir": str(assets_dir),
         },
+        "lineage_policy": {
+            "candidate_sources_must_match_daily_run": True,
+            "no_candidate_success_state": "no_candidate_generated_today",
+            "allowed_source_modes": [
+                "rss_current_run",
+                "local_sample_baseline",
+                "fallback",
+            ],
+        },
         "publishing_policy": "manual_review_required_no_auto_publish",
     }
     Path(stats.manifest_path).write_text(
@@ -584,13 +682,14 @@ def record_daily_run(connection: sqlite3.Connection, stats: DailyRunStats) -> No
         """
         INSERT INTO daily_workflow_runs (
             run_id, run_date, started_at, finished_at, stage2_input_mode,
-            llm_mode, image_mode, workflow_run_id, workflow_return_code,
-            workflow_log_path, daily_log_path, output_dir, review_queue_path,
-            manifest_path, items_seen, items_inserted, items_kept,
-            items_classified, candidate_posts, images_generated, fallback_used,
-            review_items, errors, notes
+            llm_mode, image_mode, lineage_mode, no_candidate_reason,
+            workflow_run_id, workflow_return_code, workflow_log_path,
+            daily_log_path, output_dir, review_queue_path, manifest_path,
+            items_seen, items_inserted, items_kept, items_classified,
+            candidate_posts, images_generated, fallback_used, review_items,
+            errors, notes
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             stats.run_id,
@@ -600,6 +699,8 @@ def record_daily_run(connection: sqlite3.Connection, stats: DailyRunStats) -> No
             stats.stage2_input_mode,
             stats.llm_mode,
             stats.image_mode,
+            stats.lineage_mode,
+            stats.no_candidate_reason,
             stats.workflow_run_id,
             stats.workflow_return_code,
             stats.workflow_log_path,
@@ -627,13 +728,15 @@ def upsert_review_items(connection: sqlite3.Connection, candidate_records: list[
         connection.execute(
             """
             INSERT INTO review_queue_items (
-                daily_run_id, run_date, primary_category, source_content_id,
-                source_news_ids, source_titles, candidate_post_path, image_path,
-                archive_dir, review_status, review_priority, reviewer_notes,
-                prompt_version, model_provider, created_at, updated_at
+                daily_run_id, run_date, primary_category, lineage_mode,
+                source_content_id, source_news_ids, source_titles,
+                candidate_post_path, image_path, archive_dir, review_status,
+                review_priority, reviewer_notes, prompt_version, model_provider,
+                created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(daily_run_id, primary_category) DO UPDATE SET
+                lineage_mode = excluded.lineage_mode,
                 source_content_id = excluded.source_content_id,
                 source_news_ids = excluded.source_news_ids,
                 source_titles = excluded.source_titles,
@@ -649,6 +752,7 @@ def upsert_review_items(connection: sqlite3.Connection, candidate_records: list[
                 item["daily_run_id"],
                 item["run_date"],
                 item["primary_category"],
+                item["lineage_mode"],
                 item["source_content_id"],
                 json.dumps(item["source_news_ids"], ensure_ascii=False),
                 json.dumps(item["source_titles"], ensure_ascii=False),
@@ -743,6 +847,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     run_id = f"daily_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    args.daily_run_id = run_id
     logger, daily_log_path = setup_logger(run_id)
     stats = DailyRunStats(
         run_id=run_id,
@@ -783,8 +888,8 @@ def main() -> int:
 
     with sqlite3.connect(args.db_path) as connection:
         connection.row_factory = sqlite3.Row
-        metrics = collect_latest_metrics(connection)
-        candidates = select_review_candidates(connection)
+        metrics = collect_latest_metrics(connection, stats.workflow_run_id, stats.run_id)
+        candidates = select_review_candidates(connection, stats.workflow_run_id, stats.run_id)
 
         stats.items_seen = int(metrics["items_seen"])
         stats.items_inserted = int(metrics["items_inserted"])
@@ -793,7 +898,13 @@ def main() -> int:
         stats.candidate_posts = int(metrics["candidate_posts"])
         stats.images_generated = int(metrics["images_generated"])
         stats.fallback_used = int(metrics["fallback_used"])
+        stats.lineage_mode = str(metrics.get("lineage_mode") or "fallback")
         stats.errors = int(metrics["stage_errors"]) + (0 if stats.workflow_return_code == 0 else 1)
+        if not candidates:
+            stats.no_candidate_reason = (
+                "no_candidate_generated_today: the current workflow/daily run did not produce "
+                "classified content records for review. Historical sample content was not reused."
+            )
         stats.finished_at = utc_now()
         stats.notes = (
             "Stage 12 generated a daily candidate review package and SQLite review queue. "
@@ -811,7 +922,7 @@ def main() -> int:
         record_daily_run(connection, stats)
         upsert_review_items(connection, candidate_records)
 
-    overall_success = stats.workflow_return_code == 0 and stats.review_items > 0
+    overall_success = stats.workflow_return_code == 0 and stats.errors == 0
     logger.info("Stage 12 completed. success=%s stats=%s", overall_success, asdict(stats))
 
     print("\nStage 12 daily run and human review queue completed")
@@ -826,6 +937,8 @@ def main() -> int:
     print(f"Candidate posts: {stats.candidate_posts}")
     print(f"Images generated: {stats.images_generated}")
     print(f"Review items: {stats.review_items}")
+    print(f"Lineage mode: {stats.lineage_mode}")
+    print(f"No-candidate reason: {stats.no_candidate_reason or 'not_applicable'}")
     print(f"Errors: {stats.errors}")
     print(f"Daily output dir: {stats.output_dir}")
     print(f"Review queue: {stats.review_queue_path}")
