@@ -3,6 +3,12 @@
 
 ---
 
+## Personal Information
+
+JingyangFeng1155242429
+
+---
+
 ## Project Overview | 项目概述
 
 This project is an academic assignment implementing an **AI-powered geopolitical risk monitoring and content generation pipeline** focused on AI infrastructure and critical mineral supply chains. It demonstrates an end-to-end agentic workflow covering news ingestion, relevance routing, classification, KOL analysis, LinkedIn content generation, image generation, and human review.
