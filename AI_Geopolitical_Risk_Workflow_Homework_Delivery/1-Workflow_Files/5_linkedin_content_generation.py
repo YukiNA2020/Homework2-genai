@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import sqlite3
 import textwrap
 import uuid
@@ -44,7 +45,88 @@ from lineage_utils import (
 )
 
 
-PROMPT_VERSION_BASE = "linkedin_content_generation_v2_stage10"
+PROMPT_VERSION_BASE = "linkedin_content_generation_v3_stage14_grounded"
+
+GENERIC_ALLOWED_ENTITIES = {
+    "AI",
+    "GPU",
+    "GPUs",
+    "LinkedIn",
+    "Hook",
+    "What",
+    "Why",
+    "Business",
+    "Signals",
+    "Closing",
+    "AI Infrastructure",
+    "Business Implications",
+    "Signals To Watch",
+    "AI Infrastructure Geopolitical Risk",
+    "AI Critical Mineral Supply Chain Geopolitics",
+}
+
+ENTITY_IGNORE_PREFIXES = {
+    "A",
+    "An",
+    "The",
+    "This",
+    "That",
+    "For",
+    "If",
+    "Which",
+    "What",
+    "Why",
+    "How",
+    "Business",
+    "Signals",
+    "Closing",
+    "Evidence",
+    "Updates",
+    "Further",
+    "New",
+}
+
+COUNTRY_REGION_WATCHLIST = [
+    "United States",
+    "U.S.",
+    "US",
+    "China",
+    "Chinese",
+    "European Union",
+    "EU",
+    "Taiwan",
+    "Middle East",
+    "Europe",
+    "Japan",
+    "South Korea",
+    "India",
+    "Russia",
+    "Ukraine",
+    "Chile",
+    "Peru",
+    "Australia",
+    "Canada",
+]
+
+SOURCE_ORG_WATCHLIST = [
+    "Reuters",
+    "Financial Times",
+    "The Economist",
+    "Wall Street Journal",
+    "Microsoft",
+    "Google",
+    "NVIDIA",
+    "OpenAI",
+    "IEA",
+    "USGS",
+    "CSIS",
+    "RAND",
+    "MIT Technology Review",
+    "Goldman Sachs",
+    "Morgan Stanley",
+    "McKinsey",
+    "BCG",
+]
 
 TARGET_CATEGORIES = {
     "AI算力基础设施地缘风险": {
@@ -101,6 +183,32 @@ def parse_json_list(raw_value: str) -> list[str]:
     if not isinstance(value, list):
         return []
     return [str(item) for item in value]
+
+
+def normalize_for_grounding(value: str) -> str:
+    normalized = re.sub(r"\s+", " ", value or "").strip().lower()
+    return normalized.replace("‑", "-").replace("–", "-").replace("—", "-")
+
+
+def strip_markdown_noise(post: str) -> str:
+    without_urls = re.sub(r"https?://\S+", " ", post or "")
+    without_hashtags = re.sub(r"#\w+", " ", without_urls)
+    return re.sub(r"[*_`>\[\]()]|#+", " ", without_hashtags)
+
+
+def first_sentence(value: str, max_chars: int = 260) -> str:
+    text = re.sub(r"\s+", " ", value or "").strip()
+    if not text:
+        return ""
+    match = re.search(r"(.+?[.!?])(?:\s|$)", text)
+    sentence = match.group(1) if match else text
+    if len(sentence) <= max_chars:
+        return sentence
+    return sentence[:max_chars].rsplit(" ", 1)[0].rstrip(" ,;:") + "."
+
+
+def normalize_post_typos(post: str) -> str:
+    return (post or "").replace("#AInfrastructure", "#AIInfrastructure")
 
 
 def apply_schema(db_path: Path, schema_path: Path) -> None:
@@ -228,10 +336,15 @@ def build_evidence_basis(items: list[sqlite3.Row]) -> list[dict[str, Any]]:
                 "source_name": item["source_name"],
                 "source_type": item["source_type"],
                 "published_at": item["published_at"],
+                "url": item["url"],
+                "summary": item["summary"],
+                "cleaned_content_excerpt": item["cleaned_content"][:1200],
+                "keywords": parse_json_list(item["keywords"]),
                 "relevance_score": item["relevance_score"],
                 "classification_confidence": item["classification_confidence"],
                 "auxiliary_tags": parse_json_list(item["auxiliary_tags"]),
                 "routing_rationale": item["routing_rationale"],
+                "classification_rationale": item["classification_rationale"],
                 "source_mode": row_value(item, "source_mode", source_mode_for_item("", item["ingestion_method"])),
                 "lineage_status": row_value(item, "lineage_status", "legacy"),
                 "ingestion_run_id": row_value(item, "current_ingestion_run_id", ""),
@@ -297,12 +410,12 @@ def generate_mineral_post(items: list[sqlite3.Row]) -> str:
         - Supply-chain teams should monitor regional concentration risk alongside chip and accelerator availability.
 
         Signals to watch:
-        - Permitting timelines and disruption risk in copper-producing regions.
-        - Transmission equipment lead times and grid expansion plans in data center markets.
-        - Policy signals around resource nationalism, export limits, or shipping constraints.
+        - Mine disruption, permitting delays, resource nationalism, and shipping constraints in producing regions.
+        - Power transmission and semiconductor manufacturing demand signals tied to data center buildout.
+        - Follow-up reports on whether copper availability is changing AI compute investment assumptions.
 
         Closing question:
-        If AI demand keeps moving from model roadmaps into grid-scale construction, should copper risk be treated as a core AI infrastructure KPI rather than a commodity footnote?
+        If AI demand keeps moving from model roadmaps into physical infrastructure, should copper availability be treated as a strategic input for AI compute investment?
 
         #AIInfrastructure #CriticalMinerals #SupplyChain
         """
@@ -341,6 +454,216 @@ def quality_self_check(primary_category: str, item_count: int) -> dict[str, int]
     }
     scores["total"] = sum(scores.values())
     return scores
+
+
+def build_evidence_corpus(items: list[sqlite3.Row]) -> str:
+    parts: list[str] = []
+    for item in items:
+        parts.extend(
+            [
+                item["title"],
+                item["source_name"],
+                item["source_type"],
+                item["published_at"],
+                item["url"],
+                item["summary"],
+                item["cleaned_content"],
+                item["routing_rationale"],
+                item["classification_rationale"],
+                " ".join(parse_json_list(item["keywords"])),
+                " ".join(parse_json_list(item["auxiliary_tags"])),
+            ]
+        )
+    return normalize_for_grounding(" ".join(str(part or "") for part in parts))
+
+
+def extract_numeric_claims(post: str) -> list[str]:
+    claims = re.findall(
+        r"(?<![#\w])(?:[$€£])?\d+(?:[.,]\d+)?(?:\s?(?:%|percent|percentage points?|bn|billion|m|million|gw|mw|twh|years?|months?|days?))?",
+        post,
+        flags=re.IGNORECASE,
+    )
+    return sorted({claim.strip() for claim in claims if claim.strip()})
+
+
+def extract_named_entities(post: str) -> list[str]:
+    cleaned = strip_markdown_noise(post)
+    raw_entities = re.findall(
+        r"\b(?:[A-Z]{2,}(?:-[A-Z0-9]+)?|[A-Z][A-Za-z0-9&.-]*(?:\s+[A-Z][A-Za-z0-9&.-]*)+)\b",
+        cleaned,
+    )
+    normalized: list[str] = []
+    for entity in raw_entities:
+        entity = entity.strip(" .,:;!?")
+        if not entity or entity in GENERIC_ALLOWED_ENTITIES:
+            continue
+        if entity.split(" ", 1)[0] in ENTITY_IGNORE_PREFIXES:
+            continue
+        if entity.lower() in {"what happened", "why it", "business implications", "signals to watch", "closing question"}:
+            continue
+        normalized.append(entity)
+    return sorted(set(normalized))
+
+
+def normalized_term_in_text(term: str, text: str) -> bool:
+    normalized_term = normalize_for_grounding(term)
+    if not normalized_term:
+        return False
+    if re.fullmatch(r"[a-z0-9 .-]+", normalized_term):
+        pattern = r"(?<![a-z0-9])" + re.escape(normalized_term) + r"(?![a-z0-9])"
+        return re.search(pattern, text) is not None
+    return normalized_term in text
+
+
+def term_in_text(term: str, text: str) -> bool:
+    return normalized_term_in_text(term, text)
+
+
+def find_unsupported_watchlist_terms(post: str, evidence_text: str, terms: list[str]) -> list[str]:
+    normalized_post = normalize_for_grounding(strip_markdown_noise(post))
+    unsupported = []
+    for term in terms:
+        if (
+            normalized_term_in_text(term, normalized_post)
+            and not normalized_term_in_text(term, evidence_text)
+        ):
+            unsupported.append(term)
+    return sorted(set(unsupported))
+
+
+def validate_post_against_evidence(post: str, items: list[sqlite3.Row]) -> dict[str, Any]:
+    """Check generated text for high-risk unsupported facts.
+
+    This is intentionally conservative: it does not try to verify every generic
+    analytical sentence, but it blocks the error types called out in Stage 14:
+    unsupported numbers, named entities, countries/regions, and source names.
+    """
+    evidence_text = build_evidence_corpus(items)
+    unsupported_numbers = [
+        claim
+        for claim in extract_numeric_claims(post)
+        if normalize_for_grounding(claim) not in evidence_text
+    ]
+    unsupported_named_entities = [
+        entity
+        for entity in extract_named_entities(post)
+        if not term_in_text(entity, evidence_text)
+    ]
+    unsupported_countries_or_regions = find_unsupported_watchlist_terms(
+        post,
+        evidence_text,
+        COUNTRY_REGION_WATCHLIST,
+    )
+    unsupported_source_names = find_unsupported_watchlist_terms(
+        post,
+        evidence_text,
+        SOURCE_ORG_WATCHLIST,
+    )
+    unsupported_named_entities = sorted(
+        set(unsupported_named_entities + unsupported_countries_or_regions + unsupported_source_names)
+    )
+    status = "passed"
+    if unsupported_numbers or unsupported_named_entities:
+        status = "failed"
+    return {
+        "status": status,
+        "unsupported_numbers": unsupported_numbers,
+        "unsupported_named_entities": unsupported_named_entities,
+        "unsupported_source_names": unsupported_source_names,
+        "unsupported_country_or_region_terms": unsupported_countries_or_regions,
+        "evidence_news_ids": [item["news_id"] for item in items],
+        "evidence_titles": [item["title"] for item in items],
+        "checked_claim_types": [
+            "numbers",
+            "named_entities",
+            "source_names",
+            "countries_or_regions",
+            "known_hashtag_typo",
+        ],
+    }
+
+
+def render_grounded_conservative_post(primary_category: str, items: list[sqlite3.Row]) -> str:
+    target = TARGET_CATEGORIES[primary_category]
+    evidence_lines = []
+    summary_lines = []
+    for item in items:
+        evidence_lines.append(f"- {item['source_name']} ({item['published_at']}): {item['title']}")
+        summary = first_sentence(item["summary"] or item["cleaned_content"])
+        if summary:
+            summary_lines.append(f"- {summary}")
+
+    return textwrap.dedent(
+        f"""
+        This monitored category is a decision signal, not a standalone forecast.
+
+        What happened:
+        The current evidence set contains:
+        {chr(10).join(evidence_lines)}
+
+        Evidence summary:
+        {chr(10).join(summary_lines)}
+
+        Why it matters for AI infrastructure:
+        For AI infrastructure investors and operators, the evidence should be treated as a review trigger for investment timing, site selection, supply-chain planning, and business continuity assumptions.
+
+        Business implications:
+        - Keep the source titles attached to any internal decision brief so monitored facts stay separate from analysis.
+        - Re-check exposure only against the risks described in the source summaries above.
+        - Wait for additional source confirmation before turning this signal into a high-confidence forecast.
+
+        Signals to watch:
+        - Updates from the same source names or directly related official and company materials.
+        - Further reporting that confirms whether the risks in the evidence are widening or easing.
+        - New monitored items that change the classification rationale for this category.
+
+        Closing question:
+        Which assumption in your AI infrastructure plan would you revisit first based on this evidence set?
+
+        #AIInfrastructure #Geopolitics #SupplyChain
+        """
+    ).strip()
+
+
+def attach_factual_validation(
+    brief: dict[str, Any],
+    items: list[sqlite3.Row],
+    *,
+    fallback: dict[str, Any],
+) -> dict[str, Any]:
+    brief["linkedin_post"] = normalize_post_typos(brief["linkedin_post"])
+    validation = validate_post_against_evidence(brief["linkedin_post"], items)
+    if validation["status"] == "passed":
+        return {
+            **brief,
+            "factual_validation_status": "passed",
+            "factual_validation_summary": "Passed Stage 14 evidence guard.",
+            "factual_validation_details": validation,
+        }
+
+    conservative = {
+        **fallback,
+        "linkedin_post": render_grounded_conservative_post(brief["primary_category"], items),
+        "visual_prompt": fallback["visual_prompt"],
+        "quality_score_self_check": fallback["quality_score_self_check"],
+        "prompt_version": f"{fallback['prompt_version']}_stage14_conservative_fallback",
+        "model_provider": f"{brief.get('model_provider', fallback['model_provider'])}+evidence_guard_fallback",
+    }
+    conservative_validation = validate_post_against_evidence(conservative["linkedin_post"], items)
+    status = "passed_with_conservative_fallback"
+    summary = "Original output failed Stage 14 evidence guard; conservative grounded fallback was used."
+    if conservative_validation["status"] != "passed":
+        status = "factual_validation_failed"
+        summary = "Conservative fallback still failed Stage 14 evidence guard; manual review required before use."
+    return {
+        **conservative,
+        "factual_validation_status": status,
+        "factual_validation_summary": summary,
+        "factual_validation_details": {
+            "original_validation": validation,
+            "final_validation": conservative_validation,
+        },
+    }
 
 
 def build_offline_category_brief(primary_category: str, items: list[sqlite3.Row]) -> dict[str, Any]:
@@ -433,9 +756,12 @@ def build_generation_prompt_payload(primary_category: str, items: list[sqlite3.R
             "Closing question",
         ],
         "hard_constraints": [
+            "Do not introduce facts not present in source_records.",
             "Do not invent numbers, quotes, private facts, source names, or publication dates.",
+            "Do not add countries, regions, companies, institutions, sources, citations, or forecast ranges unless they appear explicitly in source_records.",
             "Do not auto-publish or mention LinkedIn automation.",
             "Use only evidence from source_records.",
+            "If evidence is insufficient for a specific claim, write a cautious decision-review sentence instead of guessing.",
             "Include exactly three business implications.",
             "Include two or three signals to watch.",
             "Close with a specific decision question.",
@@ -468,7 +794,7 @@ def generate_category_brief(
 ) -> dict[str, Any]:
     fallback = build_offline_category_brief(primary_category, items)
     if llm_client is None:
-        return fallback
+        return attach_factual_validation(fallback, items, fallback=fallback)
 
     system_prompt = (
         "You are a strict JSON API and an AI infrastructure geopolitical risk "
@@ -491,6 +817,7 @@ def generate_category_brief(
     linkedin_post = str(data.get("linkedin_post") or fallback["linkedin_post"]).strip()
     if len(linkedin_post) < 200:
         linkedin_post = fallback["linkedin_post"]
+    linkedin_post = normalize_post_typos(linkedin_post)
 
     visual_prompt = str(data.get("visual_prompt") or fallback["visual_prompt"]).strip()
     if len(visual_prompt) < 80:
@@ -499,7 +826,7 @@ def generate_category_brief(
     target_audience = str(data.get("target_audience") or fallback["target_audience"]).strip()
     tone_positioning = str(data.get("tone_positioning") or fallback["tone_positioning"]).strip()
 
-    return {
+    candidate = {
         **fallback,
         "target_audience": target_audience or fallback["target_audience"],
         "tone_positioning": tone_positioning or fallback["tone_positioning"],
@@ -512,6 +839,7 @@ def generate_category_brief(
         "prompt_version": prompt_version_label(PROMPT_VERSION_BASE, response),
         "model_provider": model_provider_label(response),
     }
+    return attach_factual_validation(candidate, items, fallback=fallback)
 
 
 def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> str:
@@ -536,6 +864,12 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
         f"| Interaction quality | {score['interaction_quality']} |",
         f"| Total | {score['total']} |",
     ]
+    validation_details = brief.get("factual_validation_details", {})
+    if not isinstance(validation_details, dict):
+        validation_details = {}
+    final_validation = validation_details.get("final_validation", validation_details)
+    unsupported_numbers = final_validation.get("unsupported_numbers", [])
+    unsupported_entities = final_validation.get("unsupported_named_entities", [])
 
     return "\n".join(
         [
@@ -558,6 +892,13 @@ def render_markdown(brief: dict[str, Any], run_id: str, generated_at: str) -> st
             "## Source Evidence",
             "",
             "\n".join(evidence_lines),
+            "",
+            "## Factual Validation",
+            "",
+            f"- Status: `{brief.get('factual_validation_status', 'not_run')}`",
+            f"- Summary: {brief.get('factual_validation_summary', '')}",
+            f"- Unsupported numbers: {', '.join(unsupported_numbers) if unsupported_numbers else 'none'}",
+            f"- Unsupported named entities/source names: {', '.join(unsupported_entities) if unsupported_entities else 'none'}",
             "",
             "## LinkedIn Post",
             "",
@@ -612,9 +953,15 @@ def render_post_generation_prompt() -> str:
         6. Closing question
 
         Hard constraints:
+        - Do not introduce facts not present in source_records.
         - Do not auto-publish or mention LinkedIn automation.
         - Do not imitate any KOL's voice directly.
         - Do not invent numbers, quotes, private facts, or source names.
+        - Do not add countries, companies, institutions, sources, citations,
+          publication dates, or forecast ranges unless they appear explicitly in
+          source_records.
+        - If the evidence is thin, use cautious decision-review language instead
+          of adding unsupported context.
         - Do not write a generic AI news summary.
         - Keep paragraphs short and mobile-readable.
         - Include exactly three business implications.
@@ -664,6 +1011,8 @@ def render_image_generation_prompt() -> str:
         - Professional editorial business style.
         - Represent actual infrastructure, supply chain, energy, chips, minerals,
           data centers, or maps relevant to the post.
+        - Do not introduce specific countries, companies, institutions, source
+          names, logos, or data labels that are not present in the source evidence.
         - No logos, no brand marks, no text overlays, no sensational crisis imagery.
         - Avoid abstract AI brains, generic glowing robots, or decorative gradients.
 
@@ -694,10 +1043,11 @@ def upsert_content_result(
             primary_category, content_run_id, workflow_run_id, daily_run_id,
             lineage_mode, target_audience, tone_positioning, source_news_ids,
             source_titles, evidence_basis, linkedin_post, visual_prompt,
-            quality_score_self_check, output_path, prompt_version,
-            model_provider, created_at, updated_at
+            quality_score_self_check, factual_validation_status,
+            factual_validation_summary, factual_validation_details, output_path,
+            prompt_version, model_provider, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(primary_category) DO UPDATE SET
             content_run_id = excluded.content_run_id,
             workflow_run_id = excluded.workflow_run_id,
@@ -711,6 +1061,9 @@ def upsert_content_result(
             linkedin_post = excluded.linkedin_post,
             visual_prompt = excluded.visual_prompt,
             quality_score_self_check = excluded.quality_score_self_check,
+            factual_validation_status = excluded.factual_validation_status,
+            factual_validation_summary = excluded.factual_validation_summary,
+            factual_validation_details = excluded.factual_validation_details,
             output_path = excluded.output_path,
             prompt_version = excluded.prompt_version,
             model_provider = excluded.model_provider,
@@ -730,6 +1083,9 @@ def upsert_content_result(
             brief["linkedin_post"],
             brief["visual_prompt"],
             json.dumps(brief["quality_score_self_check"], ensure_ascii=False),
+            brief.get("factual_validation_status", "not_run"),
+            brief.get("factual_validation_summary", ""),
+            json.dumps(brief.get("factual_validation_details", {}), ensure_ascii=False),
             brief["output_path"],
             brief["prompt_version"],
             brief["model_provider"],
@@ -829,6 +1185,13 @@ def run_linkedin_content_generation(
 
                 stats.categories_seen += 1
                 brief = generate_category_brief(primary_category, items, llm_client, require_online)
+                if brief.get("factual_validation_status") == "factual_validation_failed":
+                    stats.errors += 1
+                    logger.error(
+                        "FACTUAL VALIDATION FAILED | %s | details=%s",
+                        primary_category,
+                        json.dumps(brief.get("factual_validation_details", {}), ensure_ascii=False),
+                    )
                 lineage_modes_seen.append(brief.get("lineage_mode", "legacy"))
                 output_path = Path(target["output_path"])
                 write_text(output_path, render_markdown(brief, run_id, generated_at))
@@ -869,7 +1232,8 @@ def run_linkedin_content_generation(
             "Stage 10-enabled Stage 5 content generation completed. The output uses "
             "classified SQLite records and the Stage 4 decision-brief constraints; "
             f"LLM generation is controlled by llm_mode={llm_mode} with fallback. "
-            f"Stage 13 lineage_mode={stats.lineage_mode}."
+            f"Stage 13 lineage_mode={stats.lineage_mode}. Stage 14 factual validation "
+            "checks generated posts against current evidence before persistence."
         )
         record_run(connection, stats)
 

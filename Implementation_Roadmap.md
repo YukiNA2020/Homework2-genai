@@ -782,3 +782,43 @@ Historical sample content was not reused.
 - 阶段十四只处理事实约束和evidence grounding。
 - 不在阶段十四推进向量库、看板、邮件简报等阶段十九可选增强。
 - 不读取或打印 `.env`；真实API测试仍使用脱敏命令。
+
+### 10.16 阶段十四完成与阶段十五后置判断
+
+阶段十四已完成以下内容；当前主产品闭环已经具备联网正常使用测试所需的核心能力：
+
+1. **新增事实约束后处理**：`5_linkedin_content_generation.py` 新增 `validate_post_against_evidence()`，生成后检查unsupported numbers、named entities、source names和countries/regions。
+2. **证据语料增强**：`evidence_basis` 除title/source/published_at外，增加summary、cleaned content excerpt、url、keywords和classification rationale。
+3. **失败不静默放行**：如果LLM或离线模板输出不通过事实校验，系统使用 conservative grounded fallback；若fallback仍失败，则标记 `factual_validation_failed` 并让Stage 5失败。
+4. **审核包透明展示**：`review_queue.md`、candidate markdown、`review_queue.csv` 和 `manifest.json` 均写入factual validation result。
+5. **总控健康检查**：`0_main_workflow.py` 新增 `stage14_factual_validation_passed`。
+6. **Prompt约束升级**：post和image prompt都明确不得引入source_records中没有的事实、国家、公司、机构、来源名、引用或数据标签。
+
+阶段十四验证结果：
+
+```text
+Daily Run ID: daily_20260502_210317_49a0162b
+Wrapped Workflow Run ID: run_20260502_210317_5f687756
+Overall success: True
+Candidate posts: 2
+Review items: 2
+stage14_factual_validation_passed: PASS
+factual_validation_status = passed for both candidates
+Errors: 0
+```
+
+no-candidate路径保持通过：
+
+```text
+Overall success: True
+Candidate posts: 0
+Review items: 0
+No-candidate reason: no_candidate_generated_today
+Historical sample content was not reused.
+```
+
+产品状态判断：
+
+- 当前系统已经具备RSS联网输入、可选在线LLM、可选在线图片、每日审核包、数据血缘和事实约束。
+- 因此若目标是“能联网跑通并满足当前主要需求”，阶段十四后可以认为主产品已可进入正常使用测试。
+- 阶段十五到十八仍有助于提高作业评分、解释透明度和最终报告质量，但不再是主流程联网可用性的阻塞项；阶段十五可以后置。

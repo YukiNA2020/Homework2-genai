@@ -1,0 +1,10 @@
+2026-05-02 21:12:35,233 | INFO | Starting Stage 3A relevance routing run: run_20260502_211235_2c25d789
+2026-05-02 21:12:35,233 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 21:12:35,233 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:12:35,233 | INFO | Stage 10 relevance LLM mode: offline | available=False | require_online=False
+2026-05-02 21:12:35,235 | INFO | Applied Stage 10 max item limit: 4
+2026-05-02 21:12:35,236 | INFO | KEEP | score=9.78 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 21:12:35,236 | INFO | KEEP | score=8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 21:12:35,237 | INFO | KEEP | score=8.88 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 21:12:35,237 | INFO | KEEP | score=7.94 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 21:12:35,237 | INFO | Completed routing. seen=4 routed=4 kept=4 filtered=0 errors=0

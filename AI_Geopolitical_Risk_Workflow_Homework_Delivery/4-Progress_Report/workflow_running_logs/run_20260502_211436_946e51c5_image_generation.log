@@ -1,0 +1,6 @@
+2026-05-02 21:14:36,595 | INFO | Starting Stage 11 image generation run: run_20260502_211436_946e51c5
+2026-05-02 21:14:36,595 | INFO | Image mode: online
+2026-05-02 21:14:36,595 | INFO | Image output dir: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images
+2026-05-02 21:14:36,595 | INFO | Archive root: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive
+2026-05-02 21:14:36,595 | INFO | Sanitized image config: {"provider": "minimax", "model": "image-01", "available": true, "reason": "online image generation configuration is available", "endpoint_configured": true, "api_key_configured": true, "aspect_ratio": "16:9", "response_format": "base64", "force_offline": false, "fallback_on_error": false}
+2026-05-02 21:14:36,598 | INFO | Completed Stage 11 image generation. items=0 images=0 archives=0 fallback=0 errors=0

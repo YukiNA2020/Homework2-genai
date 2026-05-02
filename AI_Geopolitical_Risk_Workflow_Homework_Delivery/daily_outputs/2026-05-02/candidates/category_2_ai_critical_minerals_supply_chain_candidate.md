@@ -5,8 +5,8 @@
 
 ## Review Metadata
 
-- Daily run ID: `daily_20260502_203904_4e5b7da4`
-- Wrapped workflow run ID: `run_20260502_203905_fa433c16`
+- Daily run ID: `daily_20260502_210317_49a0162b`
+- Wrapped workflow run ID: `run_20260502_210317_5f687756`
 - Run date: `2026-05-02`
 - Review status: `pending_review`
 - Lineage mode: `local_sample_baseline`
@@ -16,13 +16,16 @@
 - Source content ID: `2`
 - Source news IDs: 2
 - Source titles: Copper supply concentration creates cost risk for AI infrastructure buildout
-- Prompt version: `linkedin_content_generation_v2_stage10_offline_fallback`
+- Factual validation: `passed`
+- Factual validation summary: Passed Stage 14 evidence guard.
+- Prompt version: `linkedin_content_generation_v3_stage14_grounded_offline_fallback`
 - Model provider: `offline_fallback`
 - Original post path: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/Category_2_AI_Mineral_SupplyChain_Post.md`
 - Stage 11 archive: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain`
 
 ## Human Review Checklist
 
+- [ ] Machine factual validation status is passed or conservative fallback is acceptable.
 - [ ] Facts and source titles match the evidence table.
 - [ ] No unsupported numbers, quotes, claims, or source names were introduced.
 - [ ] Tone is suitable for AI infrastructure investors and enterprise strategy/supply-chain leaders.
@@ -35,6 +38,14 @@
 | News ID | Source mode | Source | Published | Relevance | Title |
 |---:|---|---|---|---:|---|
 | 2 | local_sample_baseline | USGS-style sample mineral note | 2026-04-18 | 8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout |
+
+## Factual Validation
+
+| Check | Result |
+|---|---|
+| Unsupported numbers | none |
+| Unsupported named entities/source names | none |
+| Evidence news IDs | 2 |
 
 ## Candidate LinkedIn Post
 
@@ -52,21 +63,21 @@ Business implications:
 - Supply-chain teams should monitor regional concentration risk alongside chip and accelerator availability.
 
 Signals to watch:
-- Permitting timelines and disruption risk in copper-producing regions.
-- Transmission equipment lead times and grid expansion plans in data center markets.
-- Policy signals around resource nationalism, export limits, or shipping constraints.
+- Mine disruption, permitting delays, resource nationalism, and shipping constraints in producing regions.
+- Power transmission and semiconductor manufacturing demand signals tied to data center buildout.
+- Follow-up reports on whether copper availability is changing AI compute investment assumptions.
 
 Closing question:
-If AI demand keeps moving from model roadmaps into grid-scale construction, should copper risk be treated as a core AI infrastructure KPI rather than a commodity footnote?
+If AI demand keeps moving from model roadmaps into physical infrastructure, should copper availability be treated as a strategic input for AI compute investment?
 
 #AIInfrastructure #CriticalMinerals #SupplyChain
 
 ## Candidate Visual
 
-![Candidate visual](../assets/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg)
+![Candidate visual](../assets/category_2_ai_critical_minerals_supply_chain_run_20260502_210317_ef0c9e4a.svg)
 
-- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg`
-- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_203905_fd2b2997.svg`
+- Copied image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/assets/category_2_ai_critical_minerals_supply_chain_run_20260502_210317_ef0c9e4a.svg`
+- Source image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_210317_ef0c9e4a.svg`
 - Image status: `offline_fallback`
 - Image provider/model: `offline_fallback` / `deterministic_svg`
 

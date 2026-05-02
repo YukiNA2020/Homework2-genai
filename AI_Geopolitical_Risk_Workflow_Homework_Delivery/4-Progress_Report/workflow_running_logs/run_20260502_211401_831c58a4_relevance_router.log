@@ -1,0 +1,8 @@
+2026-05-02 21:14:01,488 | INFO | Starting Stage 3A relevance routing run: run_20260502_211401_831c58a4
+2026-05-02 21:14:01,488 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 21:14:01,488 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:14:01,488 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 21:14:01,492 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:14:18,821 | INFO | FILTER | score=6.50 | Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models
+2026-05-02 21:14:36,334 | INFO | FILTER | score=5.97 | Cyber-Insecurity in the AI Era
+2026-05-02 21:14:36,339 | INFO | Completed routing. seen=2 routed=2 kept=0 filtered=2 errors=0

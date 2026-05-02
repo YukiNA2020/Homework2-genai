@@ -239,6 +239,17 @@ def validate_database(db_path: Path, include_stage11: bool = False) -> dict[str,
             }
             for row in cursor.fetchall()
         ]
+        try:
+            cursor = connection.execute(
+                """
+                SELECT factual_validation_status, COUNT(*)
+                FROM linkedin_content_results
+                GROUP BY factual_validation_status
+                """
+            )
+            factual_validation_statuses = {row[0] or "not_run": int(row[1]) for row in cursor.fetchall()}
+        except sqlite3.OperationalError:
+            factual_validation_statuses = {}
 
         image_outputs: list[dict[str, Any]] = []
         if include_stage11:
@@ -271,6 +282,11 @@ def validate_database(db_path: Path, include_stage11: bool = False) -> dict[str,
             item["linkedin_post_length"] > 200 and item["visual_prompt_length"] > 80
             for item in content_lengths
         ),
+        "stage14_factual_validation_passed": bool(factual_validation_statuses)
+        and not any(
+            status in {"factual_validation_failed", "not_run"}
+            for status in factual_validation_statuses
+        ),
     }
 
     if include_stage11:
@@ -294,6 +310,7 @@ def validate_database(db_path: Path, include_stage11: bool = False) -> dict[str,
         "routing_decisions": routing_decisions,
         "category_counts": category_counts,
         "content_lengths": content_lengths,
+        "factual_validation_statuses": factual_validation_statuses,
         "image_outputs": image_outputs,
         "checks": expected_checks,
         "messages": messages,

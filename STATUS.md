@@ -5,7 +5,7 @@
 **项目名称：** AI基建地缘风险洞察工作流  
 **核心定位：** AI基础设施 + 地缘政治 + 供应链/投资决策  
 **人设：** AI基建地缘风险洞察分析师 | 信息管理与信息系统专业  
-**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十三Daily Run数据血缘闭环修复；根据评分AI反馈，下一步进入阶段十四Evidence Grounding与事实约束，目标从约82/100提升到90+/100。
+**当前战略版本：** v3.0稳定MVP已完成；v4.0升级路线已完成阶段十四Evidence Grounding与事实约束。当前主流程已经具备联网RSS、可选在线LLM、可选在线图片、每日人工审核、数据血缘和事实约束能力；阶段十五以后可后置为P1/P2优化。
 
 ---
 
@@ -25,9 +25,9 @@
 | 阶段十 | LLM替换摘要、评分、分类与生成 | ✅ 已完成，离线fallback回归通过 |
 | 阶段十一 | 图片生成与内容归档 | ✅ 已完成，离线fallback与归档验证通过 |
 | 阶段十二 | 每日定时运行与人工审核 | ✅ 已完成 |
-| 阶段十三 | Daily Run数据血缘闭环修复 | ✅ 已完成，待用户测试 |
-| 阶段十四 | Evidence Grounding与事实约束 | 🔜 下一步，P0 |
-| 阶段十五 | Daily Review透明度增强 | ⏳ 后续，P1 |
+| 阶段十三 | Daily Run数据血缘闭环修复 | ✅ 已完成 |
+| 阶段十四 | Evidence Grounding与事实约束 | ✅ 已完成，待用户测试 |
+| 阶段十五 | Daily Review透明度增强 | ⏸ 可后置，P1 |
 | 阶段十六 | KOL Reverse Engineering修正 | ⏳ 后续，P1 |
 | 阶段十七 | 图片与结果包一致性修复 | ⏳ 后续，P1 |
 | 阶段十八 | 最终报告修订与回归验证 | ⏳ 后续，P1 |
@@ -100,7 +100,9 @@
 - 已新增API密钥安全规则：后续AI接手项目时不得读取或打印 `1-Workflow_Files/.env`，只能使用脱敏配置检查命令测试真实LLM。
 - 阶段十二已新增每日运行与人工审核队列。
 - 阶段十三已修复daily run数据血缘闭环：当前候选内容只从本次 `workflow_run_id` / `daily_run_id` 对应的lineage中生成；重复RSS/样例项也会记录 `run_item_lineage`；无候选时输出 `no_candidate_generated_today`，不会复用历史sample内容。
-- 评分AI指出 evidence grounding、review transparency、KOL reverse engineering 和图片/结果包一致性仍需继续修复。后续阶段十四到十八必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
+- 阶段十四已完成Evidence Grounding与事实约束：Stage 5生成后会检查unsupported numbers、named entities、source names和countries/regions；不通过则回退保守grounded模板或显式标记失败；Stage 12 candidate markdown、CSV、manifest均展示factual validation result。
+- 当前主产品闭环已经可以用于联网日常测试：RSS抓取、可选在线LLM、可选在线图片、每日审核包、数据血缘和事实约束均已接入。阶段十五以后主要是评分与可解释性增强，可按需要后置。
+- 评分AI指出 review transparency、KOL reverse engineering 和图片/结果包一致性仍可继续修复。后续阶段十五到十八必须保留当前离线fallback，确保无网络、无API key时仍可运行当前MVP。
 - 原“阶段十三：向量库、看板、邮件简报等可选增强”已顺延为阶段十九；下一步不要先做可选增强。
 
 ---
@@ -468,18 +470,78 @@ Historical sample content was not reused.
 AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_13_daily_lineage_notes.md
 ```
 
+### 阶段十四完成记录：Evidence Grounding与事实约束
+
+阶段十四已完成。当前Stage 5 LinkedIn内容生成新增事实校验关卡，候选帖在写入SQLite、最终Markdown和每日审核包前，会先根据本次source evidence检查是否引入未支持的数字、国家/地区、公司、机构、来源名或引用。
+
+优先修改文件：
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/lineage_utils.py
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/database_config/sqlite_db_init.sql
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt
+```
+
+完成内容：
+
+1. 新增 `validate_post_against_evidence()`，检查unsupported numbers、named entities、source names和countries/regions。
+2. `evidence_basis` 增加summary、cleaned content excerpt、url、keywords和classification rationale，供事实约束使用。
+3. `linkedin_content_results` 与 `review_queue_items` 新增 `factual_validation_status`、`factual_validation_summary`、`factual_validation_details`。
+4. 如果LLM或模板输出不通过，会自动使用conservative grounded fallback；如果fallback仍不通过，则标记 `factual_validation_failed` 并让Stage 5失败。
+5. `review_queue.md`、candidate markdown、`review_queue.csv` 和 `manifest.json` 均展示factual validation result。
+6. `0_main_workflow.py` 新增 `stage14_factual_validation_passed` 健康检查。
+7. 已修复 `#AInfrastructure` typo自动替换为 `#AIInfrastructure`。
+
+本地验证结果：
+
+```text
+Daily Run ID: daily_20260502_210317_49a0162b
+Wrapped Workflow Run ID: run_20260502_210317_5f687756
+Overall success: True
+Candidate posts: 2
+Review items: 2
+stage14_factual_validation_passed: PASS
+factual_validation_status = passed for both generated candidates
+Errors: 0
+```
+
+no-candidate路径已验证：
+
+```text
+Overall success: True
+Candidate posts: 0
+Review items: 0
+Lineage mode: fallback
+No-candidate reason: no_candidate_generated_today
+Historical sample content was not reused.
+```
+
+阶段十四记录文档：
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_14_evidence_grounding_notes.md
+```
+
+阶段十四完成后判断：
+
+当前产品已经可以进入主要联网使用测试：RSS输入、在线LLM、在线图片、每日审核包、数据血缘和事实约束均已具备。阶段十五“Daily Review透明度增强”对评分和可解释性有帮助，但不是主流程联网可用性的阻塞项，因此可以后置。
+
 ### 阶段十四到十九后续修正顺序
 
 | 阶段 | 目标 | 关键验收 |
 |------|------|------|
-| 阶段十四 | Evidence Grounding与事实约束 | 候选帖不得包含evidence中没有的数字、国家、公司、机构或引用 |
-| 阶段十五 | Daily Review透明度增强 | review_queue展示filtered/rejected items、原因、score和factual validation |
+| 阶段十四 | Evidence Grounding与事实约束 | ✅ 已完成：候选帖显示factual validation result |
+| 阶段十五 | Daily Review透明度增强 | 可后置：review_queue展示filtered/rejected items、原因、score和factual validation |
 | 阶段十六 | KOL Reverse Engineering修正 | KOL分析增加选择理由和五项表格，避免声称分析了不存在的具体帖子 |
 | 阶段十七 | 图片与结果包一致性修复 | result assets只包含本次run图片，manifest如实记录fallback/API状态 |
 | 阶段十八 | 最终报告修订与回归验证 | Progress_Report_Final说明lineage、grounding、review transparency修复 |
 | 阶段十九 | 可选增强 | 向量库、看板、邮件/Slack简报、多版本内容生成 |
 
-阶段十四到十八完成前，不建议推进阶段十九可选增强。
+阶段十五到十八完成前，不建议推进阶段十九可选增强；但如果当前目标是先测试主产品闭环，阶段十五可以后置。
 
 ---
 
@@ -516,6 +578,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_13_daily
 | `stage_11_image_generation_notes.md` | 阶段十一图片生成与归档记录 | ✅ 已完成 |
 | `stage_12_daily_review_notes.md` | 阶段十二每日运行与人工审核记录 | ✅ 已完成 |
 | `stage_13_daily_lineage_notes.md` | 阶段十三Daily Run数据血缘闭环修复记录 | ✅ 已完成 |
+| `stage_14_evidence_grounding_notes.md` | 阶段十四Evidence Grounding与事实约束记录 | ✅ 已完成 |
 | `images/` | 阶段十一图片输出目录 | ✅ 已生成本地16:9 fallback图片 |
 | `archive/2026-05-02/` | 阶段十一内容归档目录 | ✅ 已生成帖子、图片和manifest归档包 |
 | `daily_outputs/2026-05-02/` | 阶段十二每日人工审核包 | ✅ 已生成review queue、候选稿、manifest和图片资产 |

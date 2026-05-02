@@ -1,9 +1,10 @@
-"""Stage 13 migration helpers for daily-run data lineage.
+"""Stage 13/14 migration helpers for daily-run lineage and grounding.
 
 The existing workflow stores one latest result per news item/category. Stage 13
 adds run-scoped metadata so daily review packages can tell whether a candidate
 was produced from the current RSS run, the local sample baseline, or a fallback
-state.
+state. Stage 14 adds evidence-grounding validation metadata for generated
+LinkedIn content.
 """
 
 from __future__ import annotations
@@ -91,6 +92,9 @@ def ensure_stage13_schema(connection: sqlite3.Connection) -> None:
             "workflow_run_id": "TEXT",
             "daily_run_id": "TEXT",
             "lineage_mode": "TEXT NOT NULL DEFAULT 'legacy'",
+            "factual_validation_status": "TEXT NOT NULL DEFAULT 'not_run'",
+            "factual_validation_summary": "TEXT NOT NULL DEFAULT ''",
+            "factual_validation_details": "TEXT NOT NULL DEFAULT '{}'",
         },
     )
     ensure_columns(
@@ -134,6 +138,9 @@ def ensure_stage13_schema(connection: sqlite3.Connection) -> None:
         "review_queue_items",
         {
             "lineage_mode": "TEXT NOT NULL DEFAULT 'legacy'",
+            "factual_validation_status": "TEXT NOT NULL DEFAULT 'not_run'",
+            "factual_validation_summary": "TEXT NOT NULL DEFAULT ''",
+            "factual_validation_details": "TEXT NOT NULL DEFAULT '{}'",
         },
     )
 
@@ -195,6 +202,9 @@ def ensure_stage13_schema(connection: sqlite3.Connection) -> None:
 
         CREATE INDEX IF NOT EXISTS idx_linkedin_content_daily_run
         ON linkedin_content_results(daily_run_id);
+
+        CREATE INDEX IF NOT EXISTS idx_linkedin_content_factual_validation
+        ON linkedin_content_results(factual_validation_status);
 
         CREATE INDEX IF NOT EXISTS idx_image_generation_workflow_run
         ON image_generation_results(workflow_run_id);

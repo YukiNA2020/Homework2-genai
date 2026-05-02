@@ -1,0 +1,13 @@
+2026-05-02 21:13:31,140 | INFO | Starting Stage 2 news monitoring run: run_20260502_211331_7ccdb7f7
+2026-05-02 21:13:31,140 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:13:31,140 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True
+2026-05-02 21:13:31,142 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-02 21:13:33,399 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=2.26s
+2026-05-02 21:13:36,116 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=2.72s
+2026-05-02 21:13:36,964 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=0.85s
+2026-05-02 21:13:38,249 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.29s
+2026-05-02 21:13:41,179 | INFO | Fetched RSS source 'USGS News': parsed=30 selected=2 url=https://www.usgs.gov/news/national-news-release/feed duration=2.93s
+2026-05-02 21:13:41,179 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:13:51,595 | INFO | Duplicate skipped: Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models
+2026-05-02 21:14:01,385 | INFO | Duplicate skipped: Cyber-Insecurity in the AI Era
+2026-05-02 21:14:01,389 | INFO | Completed run. seen=2 inserted=0 duplicates=2 errors=0

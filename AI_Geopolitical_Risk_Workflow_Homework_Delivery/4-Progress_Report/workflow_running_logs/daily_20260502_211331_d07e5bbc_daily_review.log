@@ -1,0 +1,426 @@
+2026-05-02 21:13:31,014 | INFO | Starting Stage 12 daily review run: daily_20260502_211331_d07e5bbc
+2026-05-02 21:13:31,014 | INFO | Database path: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:13:31,014 | INFO | Output root: result/full_online_test
+2026-05-02 21:13:31,018 | INFO | Starting Stage 12 wrapped workflow command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3 --stage2-input-mode rss --llm-mode online --include-stage11 --image-mode online --daily-run-id daily_20260502_211331_d07e5bbc --rss-limit 2 --stage10-max-items 2 --stage11-max-items 2 --continue-on-error
+2026-05-02 21:14:36,610 | INFO | Wrapped workflow stdout:
+Stage 6 main workflow completed
+Run ID: run_20260502_211331_b88ef2be
+Overall success: True
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Stages:
+- Stage 2 news monitoring: OK (30.33s)
+- Stage 3A relevance routing: OK (34.95s)
+- Stage 3B information classification: OK (0.1s)
+- Stage 4 LinkedIn KOL analysis: OK (0.04s)
+- Stage 5 LinkedIn content generation: OK (0.06s)
+- Stage 11 image generation and archive: OK (0.06s)
+Validation:
+- news_items_at_least_6: PASS
+- routing_results_at_least_6: PASS
+- kept_items_at_least_4: PASS
+- classification_results_at_least_4: PASS
+- kol_profiles_at_least_4: PASS
+- linkedin_posts_at_least_2: PASS
+- linkedin_outputs_nonempty: PASS
+- stage14_factual_validation_passed: PASS
+- image_generation_results_at_least_2: PASS
+- image_files_exist: PASS
+- archive_posts_exist: PASS
+- stage13_daily_lineage_scope_enabled: PASS (run-scoped daily mode allows zero candidates when current-run evidence is insufficient)
+Master log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_b88ef2be_main_workflow.log
+2026-05-02 21:14:36,610 | INFO | Wrapped workflow stderr:
+2026-05-02 21:13:31,075 | INFO | Starting Stage 6 main workflow run: run_20260502_211331_b88ef2be
+2026-05-02 21:13:31,076 | INFO | Database path: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:13:31,076 | INFO | Daily run ID: daily_20260502_211331_d07e5bbc
+2026-05-02 21:13:31,076 | INFO | Starting Stage 2 news monitoring
+2026-05-02 21:13:31,076 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py --input-mode rss --llm-mode online --rss-limit 2 --max-items 2 --workflow-run-id run_20260502_211331_b88ef2be --daily-run-id daily_20260502_211331_d07e5bbc --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:01,408 | INFO | Stage 2 news monitoring stdout:
+Stage 2 news monitoring completed
+Run ID: run_20260502_211331_7ccdb7f7
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 2
+Inserted: 0
+Duplicates skipped: 2
+Workflow run ID: run_20260502_211331_b88ef2be
+Daily run ID: daily_20260502_211331_d07e5bbc
+Errors: 0
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_7ccdb7f7_news_monitoring.log
+2026-05-02 21:14:01,408 | INFO | Stage 2 news monitoring stderr:
+2026-05-02 21:13:31,140 | INFO | Starting Stage 2 news monitoring run: run_20260502_211331_7ccdb7f7
+2026-05-02 21:13:31,140 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:13:31,140 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True
+2026-05-02 21:13:31,142 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-02 21:13:33,399 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=2.26s
+2026-05-02 21:13:36,116 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=2.72s
+2026-05-02 21:13:36,964 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=0.85s
+2026-05-02 21:13:38,249 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.29s
+2026-05-02 21:13:41,179 | INFO | Fetched RSS source 'USGS News': parsed=30 selected=2 url=https://www.usgs.gov/news/national-news-release/feed duration=2.93s
+2026-05-02 21:13:41,179 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:13:51,595 | INFO | Duplicate skipped: Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models
+2026-05-02 21:14:01,385 | INFO | Duplicate skipped: Cyber-Insecurity in the AI Era
+2026-05-02 21:14:01,389 | INFO | Completed run. seen=2 inserted=0 duplicates=2 errors=0
+2026-05-02 21:14:01,409 | INFO | Completed Stage 2 news monitoring in 30.33s
+2026-05-02 21:14:01,409 | INFO | Starting Stage 3A relevance routing
+2026-05-02 21:14:01,409 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py --rerun --llm-mode online --max-items 2 --workflow-run-id run_20260502_211331_b88ef2be --daily-run-id daily_20260502_211331_d07e5bbc --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:36,354 | INFO | Stage 3A relevance routing stdout:
+Stage 3A relevance routing completed
+Run ID: run_20260502_211401_831c58a4
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 2
+Routed: 2
+Kept: 0
+Filtered: 2
+Workflow run ID: run_20260502_211331_b88ef2be
+Daily run ID: daily_20260502_211331_d07e5bbc
+Errors: 0
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211401_831c58a4_relevance_router.log
+2026-05-02 21:14:36,355 | INFO | Stage 3A relevance routing stderr:
+2026-05-02 21:14:01,488 | INFO | Starting Stage 3A relevance routing run: run_20260502_211401_831c58a4
+2026-05-02 21:14:01,488 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 21:14:01,488 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:14:01,488 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True
+2026-05-02 21:14:01,492 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:14:18,821 | INFO | FILTER | score=6.50 | Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models
+2026-05-02 21:14:36,334 | INFO | FILTER | score=5.97 | Cyber-Insecurity in the AI Era
+2026-05-02 21:14:36,339 | INFO | Completed routing. seen=2 routed=2 kept=0 filtered=2 errors=0
+2026-05-02 21:14:36,355 | INFO | Completed Stage 3A relevance routing in 34.95s
+2026-05-02 21:14:36,355 | INFO | Starting Stage 3B information classification
+2026-05-02 21:14:36,355 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py --rerun --llm-mode online --max-items 2 --workflow-run-id run_20260502_211331_b88ef2be --daily-run-id daily_20260502_211331_d07e5bbc --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:36,451 | INFO | Stage 3B information classification stdout:
+Stage 3B information classification completed
+Run ID: run_20260502_211436_e1ef520e
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Items seen: 0
+Classified: 0
+Workflow run ID: run_20260502_211331_b88ef2be
+Daily run ID: daily_20260502_211331_d07e5bbc
+Errors: 0
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_e1ef520e_information_classification.log
+2026-05-02 21:14:36,451 | INFO | Stage 3B information classification stderr:
+2026-05-02 21:14:36,443 | INFO | Starting Stage 3B information classification run: run_20260502_211436_e1ef520e
+2026-05-02 21:14:36,443 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 21:14:36,443 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:14:36,443 | INFO | Stage 10 classification LLM mode: online | available=True | require_online=True
+2026-05-02 21:14:36,446 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:14:36,446 | INFO | Completed classification. seen=0 classified=0 errors=0
+2026-05-02 21:14:36,451 | INFO | Completed Stage 3B information classification in 0.10s
+2026-05-02 21:14:36,451 | INFO | Starting Stage 4 LinkedIn KOL analysis
+2026-05-02 21:14:36,451 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:36,490 | INFO | Stage 4 LinkedIn KOL analysis stdout:
+Stage 4 LinkedIn KOL analysis completed
+Run ID: run_20260502_211436_1843967f
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Profiles analyzed: 4
+Outputs written: 3
+Errors: 0
+Checklist: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md
+Analysis prompt: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt
+Constraints prompt: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_1843967f_linkedin_analysis.log
+2026-05-02 21:14:36,490 | INFO | Stage 4 LinkedIn KOL analysis stderr:
+2026-05-02 21:14:36,483 | INFO | Starting Stage 4 LinkedIn KOL analysis run: run_20260502_211436_1843967f
+2026-05-02 21:14:36,483 | INFO | KOL profiles configured: 4
+2026-05-02 21:14:36,483 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:14:36,486 | INFO | ANALYZED | Chris Miller
+2026-05-02 21:14:36,486 | INFO | ANALYZED | Paul Triolo
+2026-05-02 21:14:36,486 | INFO | ANALYZED | Gregory C. Allen
+2026-05-02 21:14:36,486 | INFO | ANALYZED | Jordan Schneider
+2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md
+2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt
+2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt
+2026-05-02 21:14:36,487 | INFO | Completed KOL analysis. profiles=4 outputs=3 errors=0
+2026-05-02 21:14:36,490 | INFO | Completed Stage 4 LinkedIn KOL analysis in 0.04s
+2026-05-02 21:14:36,490 | INFO | Starting Stage 5 LinkedIn content generation
+2026-05-02 21:14:36,490 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py --llm-mode online --max-items-per-category 2 --workflow-run-id run_20260502_211331_b88ef2be --daily-run-id daily_20260502_211331_d07e5bbc --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:36,546 | INFO | Stage 5 LinkedIn content generation stdout:
+Stage 5 LinkedIn content generation completed
+Run ID: run_20260502_211436_3fc770e8
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Categories seen: 0
+Posts generated: 0
+Outputs written: 2
+Lineage mode: fallback
+Workflow run ID: run_20260502_211331_b88ef2be
+Daily run ID: daily_20260502_211331_d07e5bbc
+Errors: 0
+Output files:
+- /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt
+- /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_3fc770e8_linkedin_content_generation.log
+2026-05-02 21:14:36,546 | INFO | Stage 5 LinkedIn content generation stderr:
+2026-05-02 21:14:36,538 | INFO | Starting Stage 5 LinkedIn content generation run: run_20260502_211436_3fc770e8
+2026-05-02 21:14:36,538 | INFO | Target categories configured: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 21:14:36,538 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:14:36,538 | INFO | Stage 10 LinkedIn generation LLM mode: online | available=True | require_online=True
+2026-05-02 21:14:36,541 | WARNING | No current-run classified items found for category: AI算力基础设施地缘风险; skipping candidate generation.
+2026-05-02 21:14:36,541 | WARNING | No current-run classified items found for category: AI关键矿产供应链与地缘政治; skipping candidate generation.
+2026-05-02 21:14:36,541 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt
+2026-05-02 21:14:36,541 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt
+2026-05-02 21:14:36,542 | INFO | Completed content generation. categories=0 posts=0 outputs=2 errors=0
+2026-05-02 21:14:36,546 | INFO | Completed Stage 5 LinkedIn content generation in 0.06s
+2026-05-02 21:14:36,546 | INFO | Starting Stage 11 image generation and archive
+2026-05-02 21:14:36,546 | INFO | Command: /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3 /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py --image-mode online --max-items 2 --workflow-run-id run_20260502_211331_b88ef2be --daily-run-id daily_20260502_211331_d07e5bbc --db-path /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+2026-05-02 21:14:36,602 | INFO | Stage 11 image generation and archive stdout:
+Stage 11 image generation and archive completed
+Run ID: run_20260502_211436_946e51c5
+Database: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3
+Image mode: online
+Items seen: 0
+Images generated: 0
+Archive bundles written: 0
+Fallback used: 0
+Lineage mode: fallback
+Workflow run ID: run_20260502_211331_b88ef2be
+Daily run ID: daily_20260502_211331_d07e5bbc
+Errors: 0
+Output files:
+Log file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_946e51c5_image_generation.log
+2026-05-02 21:14:36,602 | INFO | Stage 11 image generation and archive stderr:
+2026-05-02 21:14:36,595 | INFO | Starting Stage 11 image generation run: run_20260502_211436_946e51c5
+2026-05-02 21:14:36,595 | INFO | Image mode: online
+2026-05-02 21:14:36,595 | INFO | Image output dir: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images
+2026-05-02 21:14:36,595 | INFO | Archive root: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive
+2026-05-02 21:14:36,595 | INFO | Sanitized image config: {"provider": "minimax", "model": "image-01", "available": true, "reason": "online image generation configuration is available", "endpoint_configured": true, "api_key_configured": true, "aspect_ratio": "16:9", "response_format": "base64", "force_offline": false, "fallback_on_error": false}
+2026-05-02 21:14:36,598 | INFO | Completed Stage 11 image generation. items=0 images=0 archives=0 fallback=0 errors=0
+2026-05-02 21:14:36,602 | INFO | Completed Stage 11 image generation and archive in 0.06s
+2026-05-02 21:14:36,604 | INFO | Stage 6 workflow summary:
+{
+  "run_id": "run_20260502_211331_b88ef2be",
+  "daily_run_id": "daily_20260502_211331_d07e5bbc",
+  "overall_success": true,
+  "database": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3",
+  "master_log": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_b88ef2be_main_workflow.log",
+  "stages": [
+    {
+      "stage_key": "stage_2_news_monitoring",
+      "label": "Stage 2 news monitoring",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/1_news_monitoring.py",
+        "--input-mode",
+        "rss",
+        "--llm-mode",
+        "online",
+        "--rss-limit",
+        "2",
+        "--max-items",
+        "2",
+        "--workflow-run-id",
+        "run_20260502_211331_b88ef2be",
+        "--daily-run-id",
+        "daily_20260502_211331_d07e5bbc",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:13:31Z",
+      "finished_at": "2026-05-02T13:14:01Z",
+      "duration_seconds": 30.33,
+      "stdout_tail": "Stage 2 news monitoring completed\nRun ID: run_20260502_211331_7ccdb7f7\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nItems seen: 2\nInserted: 0\nDuplicates skipped: 2\nWorkflow run ID: run_20260502_211331_b88ef2be\nDaily run ID: daily_20260502_211331_d07e5bbc\nErrors: 0\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_7ccdb7f7_news_monitoring.log",
+      "stderr_tail": "2026-05-02 21:13:31,140 | INFO | Starting Stage 2 news monitoring run: run_20260502_211331_7ccdb7f7\n2026-05-02 21:13:31,140 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False\n2026-05-02 21:13:31,140 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True\n2026-05-02 21:13:31,142 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.\n2026-05-02 21:13:33,399 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=2.26s\n2026-05-02 21:13:36,116 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=2.72s\n2026-05-02 21:13:36,964 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=0.85s\n2026-05-02 21:13:38,249 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.29s\n2026-05-02 21:13:41,179 | INFO | Fetched RSS source 'USGS News': parsed=30 selected=2 url=https://www.usgs.gov/news/national-news-release/feed duration=2.93s\n2026-05-02 21:13:41,179 | INFO | Applied Stage 10 max item limit: 2\n2026-05-02 21:13:51,595 | INFO | Duplicate skipped: Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models\n2026-05-02 21:14:01,385 | INFO | Duplicate skipped: Cyber-Insecurity in the AI Era\n2026-05-02 21:14:01,389 | INFO | Completed run. seen=2 inserted=0 duplicates=2 errors=0"
+    },
+    {
+      "stage_key": "stage_3a_relevance_router",
+      "label": "Stage 3A relevance routing",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/2_relevance_router.py",
+        "--rerun",
+        "--llm-mode",
+        "online",
+        "--max-items",
+        "2",
+        "--workflow-run-id",
+        "run_20260502_211331_b88ef2be",
+        "--daily-run-id",
+        "daily_20260502_211331_d07e5bbc",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:14:01Z",
+      "finished_at": "2026-05-02T13:14:36Z",
+      "duration_seconds": 34.95,
+      "stdout_tail": "Stage 3A relevance routing completed\nRun ID: run_20260502_211401_831c58a4\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nItems seen: 2\nRouted: 2\nKept: 0\nFiltered: 2\nWorkflow run ID: run_20260502_211331_b88ef2be\nDaily run ID: daily_20260502_211331_d07e5bbc\nErrors: 0\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211401_831c58a4_relevance_router.log",
+      "stderr_tail": "2026-05-02 21:14:01,488 | INFO | Starting Stage 3A relevance routing run: run_20260502_211401_831c58a4\n2026-05-02 21:14:01,488 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9\n2026-05-02 21:14:01,488 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False\n2026-05-02 21:14:01,488 | INFO | Stage 10 relevance LLM mode: online | available=True | require_online=True\n2026-05-02 21:14:01,492 | INFO | Applied Stage 10 max item limit: 2\n2026-05-02 21:14:18,821 | INFO | FILTER | score=6.50 | Musk v. Altman week 1: Elon Musk says he was duped, warns AI could kill us all, and admits that xAI distills OpenAI’s models\n2026-05-02 21:14:36,334 | INFO | FILTER | score=5.97 | Cyber-Insecurity in the AI Era\n2026-05-02 21:14:36,339 | INFO | Completed routing. seen=2 routed=2 kept=0 filtered=2 errors=0"
+    },
+    {
+      "stage_key": "stage_3b_information_classification",
+      "label": "Stage 3B information classification",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/3_information_classification.py",
+        "--rerun",
+        "--llm-mode",
+        "online",
+        "--max-items",
+        "2",
+        "--workflow-run-id",
+        "run_20260502_211331_b88ef2be",
+        "--daily-run-id",
+        "daily_20260502_211331_d07e5bbc",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:14:36Z",
+      "finished_at": "2026-05-02T13:14:36Z",
+      "duration_seconds": 0.1,
+      "stdout_tail": "Stage 3B information classification completed\nRun ID: run_20260502_211436_e1ef520e\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nItems seen: 0\nClassified: 0\nWorkflow run ID: run_20260502_211331_b88ef2be\nDaily run ID: daily_20260502_211331_d07e5bbc\nErrors: 0\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_e1ef520e_information_classification.log",
+      "stderr_tail": "2026-05-02 21:14:36,443 | INFO | Starting Stage 3B information classification run: run_20260502_211436_e1ef520e\n2026-05-02 21:14:36,443 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']\n2026-05-02 21:14:36,443 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False\n2026-05-02 21:14:36,443 | INFO | Stage 10 classification LLM mode: online | available=True | require_online=True\n2026-05-02 21:14:36,446 | INFO | Applied Stage 10 max item limit: 2\n2026-05-02 21:14:36,446 | INFO | Completed classification. seen=0 classified=0 errors=0"
+    },
+    {
+      "stage_key": "stage_4_linkedin_analysis",
+      "label": "Stage 4 LinkedIn KOL analysis",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/4_linkedin_analysis.py",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:14:36Z",
+      "finished_at": "2026-05-02T13:14:36Z",
+      "duration_seconds": 0.04,
+      "stdout_tail": "Stage 4 LinkedIn KOL analysis completed\nRun ID: run_20260502_211436_1843967f\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nProfiles analyzed: 4\nOutputs written: 3\nErrors: 0\nChecklist: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md\nAnalysis prompt: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt\nConstraints prompt: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_1843967f_linkedin_analysis.log",
+      "stderr_tail": "2026-05-02 21:14:36,483 | INFO | Starting Stage 4 LinkedIn KOL analysis run: run_20260502_211436_1843967f\n2026-05-02 21:14:36,483 | INFO | KOL profiles configured: 4\n2026-05-02 21:14:36,483 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False\n2026-05-02 21:14:36,486 | INFO | ANALYZED | Chris Miller\n2026-05-02 21:14:36,486 | INFO | ANALYZED | Paul Triolo\n2026-05-02 21:14:36,486 | INFO | ANALYZED | Gregory C. Allen\n2026-05-02 21:14:36,486 | INFO | ANALYZED | Jordan Schneider\n2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/LinkedIn_Post_Style_Anatomy_Checklist.md\n2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/kol_style_analysis_prompt.txt\n2026-05-02 21:14:36,486 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_content_constraints_prompt.txt\n2026-05-02 21:14:36,487 | INFO | Completed KOL analysis. profiles=4 outputs=3 errors=0"
+    },
+    {
+      "stage_key": "stage_5_linkedin_content_generation",
+      "label": "Stage 5 LinkedIn content generation",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py",
+        "--llm-mode",
+        "online",
+        "--max-items-per-category",
+        "2",
+        "--workflow-run-id",
+        "run_20260502_211331_b88ef2be",
+        "--daily-run-id",
+        "daily_20260502_211331_d07e5bbc",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:14:36Z",
+      "finished_at": "2026-05-02T13:14:36Z",
+      "duration_seconds": 0.06,
+      "stdout_tail": "Stage 5 LinkedIn content generation completed\nRun ID: run_20260502_211436_3fc770e8\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nCategories seen: 0\nPosts generated: 0\nOutputs written: 2\nLineage mode: fallback\nWorkflow run ID: run_20260502_211331_b88ef2be\nDaily run ID: daily_20260502_211331_d07e5bbc\nErrors: 0\nOutput files:\n- /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt\n- /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_3fc770e8_linkedin_content_generation.log",
+      "stderr_tail": "2026-05-02 21:14:36,538 | INFO | Starting Stage 5 LinkedIn content generation run: run_20260502_211436_3fc770e8\n2026-05-02 21:14:36,538 | INFO | Target categories configured: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']\n2026-05-02 21:14:36,538 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False\n2026-05-02 21:14:36,538 | INFO | Stage 10 LinkedIn generation LLM mode: online | available=True | require_online=True\n2026-05-02 21:14:36,541 | WARNING | No current-run classified items found for category: AI算力基础设施地缘风险; skipping candidate generation.\n2026-05-02 21:14:36,541 | WARNING | No current-run classified items found for category: AI关键矿产供应链与地缘政治; skipping candidate generation.\n2026-05-02 21:14:36,541 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/linkedin_post_generation_prompt.txt\n2026-05-02 21:14:36,541 | INFO | WROTE | /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/2-Prompt_Design_Samples/image_generation_prompt.txt\n2026-05-02 21:14:36,542 | INFO | Completed content generation. categories=0 posts=0 outputs=2 errors=0"
+    },
+    {
+      "stage_key": "stage_11_image_generation_archive",
+      "label": "Stage 11 image generation and archive",
+      "command": [
+        "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image_generation.py",
+        "--image-mode",
+        "online",
+        "--max-items",
+        "2",
+        "--workflow-run-id",
+        "run_20260502_211331_b88ef2be",
+        "--daily-run-id",
+        "daily_20260502_211331_d07e5bbc",
+        "--db-path",
+        "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3"
+      ],
+      "return_code": 0,
+      "started_at": "2026-05-02T13:14:36Z",
+      "finished_at": "2026-05-02T13:14:36Z",
+      "duration_seconds": 0.06,
+      "stdout_tail": "Stage 11 image generation and archive completed\nRun ID: run_20260502_211436_946e51c5\nDatabase: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/ai_geopolitical_risk_workflow.sqlite3\nImage mode: online\nItems seen: 0\nImages generated: 0\nArchive bundles written: 0\nFallback used: 0\nLineage mode: fallback\nWorkflow run ID: run_20260502_211331_b88ef2be\nDaily run ID: daily_20260502_211331_d07e5bbc\nErrors: 0\nOutput files:\nLog file: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211436_946e51c5_image_generation.log",
+      "stderr_tail": "2026-05-02 21:14:36,595 | INFO | Starting Stage 11 image generation run: run_20260502_211436_946e51c5\n2026-05-02 21:14:36,595 | INFO | Image mode: online\n2026-05-02 21:14:36,595 | INFO | Image output dir: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images\n2026-05-02 21:14:36,595 | INFO | Archive root: /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive\n2026-05-02 21:14:36,595 | INFO | Sanitized image config: {\"provider\": \"minimax\", \"model\": \"image-01\", \"available\": true, \"reason\": \"online image generation configuration is available\", \"endpoint_configured\": true, \"api_key_configured\": true, \"aspect_ratio\": \"16:9\", \"response_format\": \"base64\", \"force_offline\": false, \"fallback_on_error\": false}\n2026-05-02 21:14:36,598 | INFO | Completed Stage 11 image generation. items=0 images=0 archives=0 fallback=0 errors=0"
+    }
+  ],
+  "validation": {
+    "database_exists": true,
+    "checks_passed": true,
+    "counts": {
+      "news_items": 23,
+      "relevance_routing_results": 23,
+      "classification_results": 7,
+      "kol_analysis_results": 4,
+      "linkedin_content_results": 2,
+      "ingestion_runs": 43,
+      "routing_runs": 38,
+      "classification_runs": 38,
+      "kol_analysis_runs": 33,
+      "linkedin_content_runs": 34,
+      "image_generation_results": 2,
+      "image_generation_runs": 20
+    },
+    "routing_decisions": {
+      "filter": 18,
+      "keep": 5
+    },
+    "category_counts": {
+      "AI关键矿产供应链与地缘政治": 1,
+      "AI算力基础设施地缘风险": 6
+    },
+    "content_lengths": [
+      {
+        "primary_category": "AI算力基础设施地缘风险",
+        "linkedin_post_length": 1743,
+        "visual_prompt_length": 344
+      },
+      {
+        "primary_category": "AI关键矿产供应链与地缘政治",
+        "linkedin_post_length": 1545,
+        "visual_prompt_length": 344
+      }
+    ],
+    "factual_validation_statuses": {
+      "passed": 2
+    },
+    "image_outputs": [
+      {
+        "primary_category": "AI关键矿产供应链与地缘政治",
+        "image_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_211235_e2e5d745.svg",
+        "archive_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain/linkedin_post.md",
+        "status": "offline_fallback",
+        "image_exists": true,
+        "archive_post_exists": true
+      },
+      {
+        "primary_category": "AI算力基础设施地缘风险",
+        "image_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_1_ai_infrastructure_risk_run_20260502_211235_e2e5d745.svg",
+        "archive_post_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_1_ai_infrastructure_risk/linkedin_post.md",
+        "status": "offline_fallback",
+        "image_exists": true,
+        "archive_post_exists": true
+      }
+    ],
+    "checks": {
+      "news_items_at_least_6": true,
+      "routing_results_at_least_6": true,
+      "kept_items_at_least_4": true,
+      "classification_results_at_least_4": true,
+      "kol_profiles_at_least_4": true,
+      "linkedin_posts_at_least_2": true,
+      "linkedin_outputs_nonempty": true,
+      "stage14_factual_validation_passed": true,
+      "image_generation_results_at_least_2": true,
+      "image_files_exist": true,
+      "archive_posts_exist": true,
+      "stage13_daily_lineage_scope_enabled": true
+    },
+    "messages": [
+      "news_items_at_least_6: PASS",
+      "routing_results_at_least_6: PASS",
+      "kept_items_at_least_4: PASS",
+      "classification_results_at_least_4: PASS",
+      "kol_profiles_at_least_4: PASS",
+      "linkedin_posts_at_least_2: PASS",
+      "linkedin_outputs_nonempty: PASS",
+      "stage14_factual_validation_passed: PASS",
+      "image_generation_results_at_least_2: PASS",
+      "image_files_exist: PASS",
+      "archive_posts_exist: PASS",
+      "stage13_daily_lineage_scope_enabled: PASS (run-scoped daily mode allows zero candidates when current-run evidence is insufficient)"
+    ]
+  }
+}
+2026-05-02 21:14:36,610 | INFO | Wrapped workflow return code: 0
+2026-05-02 21:14:36,613 | INFO | Stage 12 completed. success=True stats={'run_id': 'daily_20260502_211331_d07e5bbc', 'run_date': '2026-05-02', 'started_at': '2026-05-02T13:13:31Z', 'finished_at': '2026-05-02T13:14:36Z', 'stage2_input_mode': 'rss', 'llm_mode': 'online', 'image_mode': 'online', 'lineage_mode': 'fallback', 'no_candidate_reason': 'no_candidate_generated_today: the current workflow/daily run did not produce classified content records for review. Historical sample content was not reused.', 'workflow_run_id': 'run_20260502_211331_b88ef2be', 'workflow_return_code': 0, 'workflow_log_path': '/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_b88ef2be_main_workflow.log', 'daily_log_path': '/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_211331_d07e5bbc_daily_review.log', 'output_dir': 'result/full_online_test/2026-05-02', 'review_queue_path': 'result/full_online_test/2026-05-02/review_queue.md', 'manifest_path': 'result/full_online_test/2026-05-02/manifest.json', 'items_seen': 2, 'items_inserted': 0, 'items_kept': 0, 'items_classified': 0, 'candidate_posts': 0, 'images_generated': 0, 'fallback_used': 0, 'review_items': 0, 'errors': 0, 'notes': 'Stage 12 generated a daily candidate review package and SQLite review queue. No LinkedIn publishing or external posting was performed.'}

@@ -32,9 +32,15 @@ Required structure:
 6. Closing question
 
 Hard constraints:
+- Do not introduce facts not present in source_records.
 - Do not auto-publish or mention LinkedIn automation.
 - Do not imitate any KOL's voice directly.
 - Do not invent numbers, quotes, private facts, or source names.
+- Do not add countries, companies, institutions, sources, citations,
+  publication dates, or forecast ranges unless they appear explicitly in
+  source_records.
+- If the evidence is thin, use cautious decision-review language instead
+  of adding unsupported context.
 - Do not write a generic AI news summary.
 - Keep paragraphs short and mobile-readable.
 - Include exactly three business implications.

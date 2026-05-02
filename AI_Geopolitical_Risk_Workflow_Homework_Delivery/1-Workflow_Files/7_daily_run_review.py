@@ -40,7 +40,7 @@ from lineage_utils import (
 WORKFLOW_DIR = Path(__file__).resolve().parent
 MAIN_WORKFLOW_PATH = WORKFLOW_DIR / "0_main_workflow.py"
 IMAGE_MODE_CHOICES = ("offline", "auto", "online")
-STAGE12_PROMPT_VERSION = "daily_review_queue_v2_stage13_lineage"
+STAGE12_PROMPT_VERSION = "daily_review_queue_v3_stage14_grounding"
 
 
 @dataclass
@@ -301,6 +301,9 @@ def select_review_candidates(
             linkedin_content_results.evidence_basis,
             linkedin_content_results.linkedin_post,
             linkedin_content_results.visual_prompt,
+            linkedin_content_results.factual_validation_status,
+            linkedin_content_results.factual_validation_summary,
+            linkedin_content_results.factual_validation_details,
             linkedin_content_results.output_path,
             linkedin_content_results.prompt_version,
             linkedin_content_results.model_provider,
@@ -370,6 +373,25 @@ def render_evidence_table(evidence_basis: Any) -> str:
     return "\n".join(lines)
 
 
+def render_factual_validation(details: Any) -> str:
+    if not isinstance(details, dict) or not details:
+        return "_No factual validation details were available._"
+    final_validation = details.get("final_validation", details)
+    original_validation = details.get("original_validation")
+    lines = [
+        "| Check | Result |",
+        "|---|---|",
+        f"| Unsupported numbers | {', '.join(final_validation.get('unsupported_numbers', [])) or 'none'} |",
+        f"| Unsupported named entities/source names | {', '.join(final_validation.get('unsupported_named_entities', [])) or 'none'} |",
+        f"| Evidence news IDs | {', '.join(str(item) for item in final_validation.get('evidence_news_ids', [])) or 'not_available'} |",
+    ]
+    if isinstance(original_validation, dict) and original_validation.get("status") == "failed":
+        lines.append(
+            "| Original output guard | failed; conservative grounded fallback was used |"
+        )
+    return "\n".join(lines)
+
+
 def render_candidate_markdown(
     row: sqlite3.Row,
     *,
@@ -379,6 +401,7 @@ def render_candidate_markdown(
     copied_image_path: Path | None,
 ) -> str:
     evidence_basis = parse_json_any(row["evidence_basis"], [])
+    factual_validation_details = parse_json_any(row["factual_validation_details"], {})
     source_titles = parse_json_list(row["source_titles"])
     source_news_ids = parse_json_list(row["source_news_ids"])
     if copied_image_path:
@@ -415,6 +438,8 @@ def render_candidate_markdown(
             f"- Source content ID: `{row['source_content_id']}`",
             f"- Source news IDs: {', '.join(source_news_ids)}",
             f"- Source titles: {'; '.join(source_titles)}",
+            f"- Factual validation: `{row['factual_validation_status'] or 'not_run'}`",
+            f"- Factual validation summary: {row['factual_validation_summary'] or ''}",
             f"- Prompt version: `{row['prompt_version']}`",
             f"- Model provider: `{row['model_provider']}`",
             f"- Original post path: `{row['output_path']}`",
@@ -422,6 +447,7 @@ def render_candidate_markdown(
             "",
             "## Human Review Checklist",
             "",
+            "- [ ] Machine factual validation status is passed or conservative fallback is acceptable.",
             "- [ ] Facts and source titles match the evidence table.",
             "- [ ] No unsupported numbers, quotes, claims, or source names were introduced.",
             "- [ ] Tone is suitable for AI infrastructure investors and enterprise strategy/supply-chain leaders.",
@@ -432,6 +458,10 @@ def render_candidate_markdown(
             "## Source Evidence",
             "",
             render_evidence_table(evidence_basis),
+            "",
+            "## Factual Validation",
+            "",
+            render_factual_validation(factual_validation_details),
             "",
             "## Candidate LinkedIn Post",
             "",
@@ -457,21 +487,22 @@ def render_review_queue(
     workflow_stderr_tail: str,
 ) -> str:
     candidate_lines = [
-        "| Review | Category | Lineage | Status | Image | Candidate file |",
-        "|---|---|---|---|---|---|",
+        "| Review | Category | Lineage | Factual guard | Status | Image | Candidate file |",
+        "|---|---|---|---|---|---|---|",
     ]
     for item in candidate_records:
         candidate_path = Path(item["candidate_post_path"])
         output_dir = Path(stats.output_dir)
         candidate_link = candidate_path.resolve().relative_to(output_dir.resolve()).as_posix()
         image_status = item.get("image_status") or "not_available"
+        factual_status = item.get("factual_validation_status") or "not_run"
         candidate_lines.append(
-            f"| Manual required | {item['primary_category']} | {item.get('lineage_mode', 'legacy')} | pending_review | {image_status} | [{candidate_path.name}]({candidate_link}) |"
+            f"| Manual required | {item['primary_category']} | {item.get('lineage_mode', 'legacy')} | {factual_status} | pending_review | {image_status} | [{candidate_path.name}]({candidate_link}) |"
         )
     if not candidate_records:
         candidate_lines.append(
             "| No candidate generated today | all categories | "
-            f"{stats.lineage_mode} | no_candidate_generated_today | not_available | {stats.no_candidate_reason or 'No current-run classified items reached content generation.'} |"
+            f"{stats.lineage_mode} | not_applicable | no_candidate_generated_today | not_available | {stats.no_candidate_reason or 'No current-run classified items reached content generation.'} |"
         )
 
     return "\n".join(
@@ -556,6 +587,7 @@ def write_daily_outputs(
         candidate_path = candidates_dir / f"{slug}_candidate.md"
         copied_image_path = copy_candidate_image(row, assets_dir, logger)
         evidence_basis = parse_json_any(row["evidence_basis"], [])
+        factual_validation_details = parse_json_any(row["factual_validation_details"], {})
         source_modes = [
             str(item.get("source_mode", row["lineage_mode"] or "legacy"))
             for item in evidence_basis
@@ -591,6 +623,9 @@ def write_daily_outputs(
                 "archive_dir": row["archive_dir"] or "",
                 "review_status": "pending_review",
                 "review_priority": "P1",
+                "factual_validation_status": row["factual_validation_status"] or "not_run",
+                "factual_validation_summary": row["factual_validation_summary"] or "",
+                "factual_validation_details": factual_validation_details,
                 "prompt_version": row["prompt_version"],
                 "model_provider": row["model_provider"],
                 "image_status": row["image_status"] or "",
@@ -634,6 +669,9 @@ def write_daily_outputs(
                 "archive_dir",
                 "review_status",
                 "review_priority",
+                "factual_validation_status",
+                "factual_validation_summary",
+                "factual_validation_details",
                 "prompt_version",
                 "model_provider",
                 "image_status",
@@ -646,6 +684,7 @@ def write_daily_outputs(
                 "source_mode_counts": json.dumps(item["source_mode_counts"], ensure_ascii=False),
                 "source_news_ids": json.dumps(item["source_news_ids"], ensure_ascii=False),
                 "source_titles": json.dumps(item["source_titles"], ensure_ascii=False),
+                "factual_validation_details": json.dumps(item["factual_validation_details"], ensure_ascii=False),
             })
 
     manifest = {
@@ -666,6 +705,17 @@ def write_daily_outputs(
                 "rss_current_run",
                 "local_sample_baseline",
                 "fallback",
+            ],
+        },
+        "evidence_grounding_policy": {
+            "stage14_factual_validation_required": True,
+            "candidate_manifest_includes_validation_result": True,
+            "unsupported_numbers_entities_sources_block_or_fallback": True,
+            "allowed_validation_statuses": [
+                "passed",
+                "passed_with_conservative_fallback",
+                "factual_validation_failed",
+                "not_run",
             ],
         },
         "publishing_policy": "manual_review_required_no_auto_publish",
@@ -731,10 +781,11 @@ def upsert_review_items(connection: sqlite3.Connection, candidate_records: list[
                 daily_run_id, run_date, primary_category, lineage_mode,
                 source_content_id, source_news_ids, source_titles,
                 candidate_post_path, image_path, archive_dir, review_status,
-                review_priority, reviewer_notes, prompt_version, model_provider,
-                created_at, updated_at
+                review_priority, reviewer_notes, factual_validation_status,
+                factual_validation_summary, factual_validation_details,
+                prompt_version, model_provider, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(daily_run_id, primary_category) DO UPDATE SET
                 lineage_mode = excluded.lineage_mode,
                 source_content_id = excluded.source_content_id,
@@ -744,6 +795,9 @@ def upsert_review_items(connection: sqlite3.Connection, candidate_records: list[
                 image_path = excluded.image_path,
                 archive_dir = excluded.archive_dir,
                 review_priority = excluded.review_priority,
+                factual_validation_status = excluded.factual_validation_status,
+                factual_validation_summary = excluded.factual_validation_summary,
+                factual_validation_details = excluded.factual_validation_details,
                 prompt_version = excluded.prompt_version,
                 model_provider = excluded.model_provider,
                 updated_at = excluded.updated_at
@@ -762,6 +816,9 @@ def upsert_review_items(connection: sqlite3.Connection, candidate_records: list[
                 item["review_status"],
                 item["review_priority"],
                 "",
+                item.get("factual_validation_status", "not_run"),
+                item.get("factual_validation_summary", ""),
+                json.dumps(item.get("factual_validation_details", {}), ensure_ascii=False),
                 item["prompt_version"],
                 item["model_provider"],
                 now,

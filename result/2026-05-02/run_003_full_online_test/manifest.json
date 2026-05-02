@@ -1,0 +1,60 @@
+{
+  "stage": "stage_12_daily_run_and_human_review",
+  "prompt_version": "daily_review_queue_v3_stage14_grounding",
+  "stats": {
+    "run_id": "daily_20260502_211331_d07e5bbc",
+    "run_date": "2026-05-02",
+    "started_at": "2026-05-02T13:13:31Z",
+    "finished_at": "2026-05-02T13:14:36Z",
+    "stage2_input_mode": "rss",
+    "llm_mode": "online",
+    "image_mode": "online",
+    "lineage_mode": "fallback",
+    "no_candidate_reason": "no_candidate_generated_today: the current workflow/daily run did not produce classified content records for review. Historical sample content was not reused.",
+    "workflow_run_id": "run_20260502_211331_b88ef2be",
+    "workflow_return_code": 0,
+    "workflow_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/run_20260502_211331_b88ef2be_main_workflow.log",
+    "daily_log_path": "/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/workflow_running_logs/daily_20260502_211331_d07e5bbc_daily_review.log",
+    "output_dir": "result/full_online_test/2026-05-02",
+    "review_queue_path": "result/full_online_test/2026-05-02/review_queue.md",
+    "manifest_path": "result/full_online_test/2026-05-02/manifest.json",
+    "items_seen": 2,
+    "items_inserted": 0,
+    "items_kept": 0,
+    "items_classified": 0,
+    "candidate_posts": 0,
+    "images_generated": 0,
+    "fallback_used": 0,
+    "review_items": 0,
+    "errors": 0,
+    "notes": "Stage 12 generated a daily candidate review package and SQLite review queue. No LinkedIn publishing or external posting was performed."
+  },
+  "candidate_records": [],
+  "artifacts": {
+    "review_queue": "result/full_online_test/2026-05-02/review_queue.md",
+    "review_queue_csv": "result/full_online_test/2026-05-02/review_queue.csv",
+    "candidates_dir": "result/full_online_test/2026-05-02/candidates",
+    "assets_dir": "result/full_online_test/2026-05-02/assets"
+  },
+  "lineage_policy": {
+    "candidate_sources_must_match_daily_run": true,
+    "no_candidate_success_state": "no_candidate_generated_today",
+    "allowed_source_modes": [
+      "rss_current_run",
+      "local_sample_baseline",
+      "fallback"
+    ]
+  },
+  "evidence_grounding_policy": {
+    "stage14_factual_validation_required": true,
+    "candidate_manifest_includes_validation_result": true,
+    "unsupported_numbers_entities_sources_block_or_fallback": true,
+    "allowed_validation_statuses": [
+      "passed",
+      "passed_with_conservative_fallback",
+      "factual_validation_failed",
+      "not_run"
+    ]
+  },
+  "publishing_policy": "manual_review_required_no_auto_publish"
+}

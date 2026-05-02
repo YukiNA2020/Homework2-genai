@@ -1,0 +1,8 @@
+2026-05-02 21:16:07,673 | INFO | Starting Stage 3B information classification run: run_20260502_211607_48c65da7
+2026-05-02 21:16:07,673 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 21:16:07,673 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:16:07,674 | INFO | Stage 10 classification LLM mode: online | available=True | require_online=True
+2026-05-02 21:16:07,677 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:16:14,741 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 21:16:25,815 | INFO | CLASSIFIED | AI关键矿产供应链与地缘政治 | confidence=0.86 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 21:16:25,817 | INFO | Completed classification. seen=2 classified=2 errors=0

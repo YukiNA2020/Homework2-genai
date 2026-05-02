@@ -17,6 +17,8 @@ Visual constraints:
 - Professional editorial business style.
 - Represent actual infrastructure, supply chain, energy, chips, minerals,
   data centers, or maps relevant to the post.
+- Do not introduce specific countries, companies, institutions, source
+  names, logos, or data labels that are not present in the source evidence.
 - No logos, no brand marks, no text overlays, no sensational crisis imagery.
 - Avoid abstract AI brains, generic glowing robots, or decorative gradients.
 

@@ -1,0 +1,14 @@
+2026-05-02 21:15:18,994 | INFO | Starting Stage 2 news monitoring run: run_20260502_211518_31a54d8f
+2026-05-02 21:15:18,994 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:15:18,994 | INFO | Stage 10 summarization LLM mode: online | available=True | require_online=True
+2026-05-02 21:15:19,000 | INFO | Loaded 6 local sample items from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/sample_news.json.
+2026-05-02 21:15:19,000 | INFO | Loaded 5 enabled RSS sources from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json.
+2026-05-02 21:15:20,409 | INFO | Fetched RSS source 'MIT Technology Review - Artificial Intelligence': parsed=10 selected=2 url=https://www.technologyreview.com/topic/artificial-intelligence/feed/ duration=1.41s
+2026-05-02 21:15:23,091 | INFO | Fetched RSS source 'OpenAI News': parsed=929 selected=2 url=https://openai.com/news/rss.xml duration=2.68s
+2026-05-02 21:15:23,814 | INFO | Fetched RSS source 'Microsoft Official Blog': parsed=10 selected=2 url=https://blogs.microsoft.com/feed/ duration=0.72s
+2026-05-02 21:15:25,429 | INFO | Fetched RSS source 'NVIDIA Blog': parsed=18 selected=2 url=https://blogs.nvidia.com/feed/ duration=1.61s
+2026-05-02 21:15:28,061 | INFO | Fetched RSS source 'USGS News': parsed=30 selected=2 url=https://www.usgs.gov/news/national-news-release/feed duration=2.63s
+2026-05-02 21:15:28,061 | INFO | Applied Stage 10 max item limit: 2
+2026-05-02 21:15:36,011 | INFO | Duplicate skipped: AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 21:15:42,783 | INFO | Duplicate skipped: Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 21:15:42,784 | INFO | Completed run. seen=2 inserted=0 duplicates=2 errors=0

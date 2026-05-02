@@ -1,0 +1,11 @@
+2026-05-02 21:02:16,857 | INFO | Starting Stage 2 news monitoring run: run_20260502_210216_62873fc9
+2026-05-02 21:02:16,857 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 21:02:16,857 | INFO | Stage 10 summarization LLM mode: offline | available=False | require_online=False
+2026-05-02 21:02:16,861 | INFO | Loaded 6 local sample items from /Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/sample_news.json.
+2026-05-02 21:02:16,862 | INFO | Duplicate skipped: AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 21:02:16,863 | INFO | Duplicate skipped: Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 21:02:16,863 | INFO | Duplicate skipped: Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 21:02:16,864 | INFO | Duplicate skipped: Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 21:02:16,864 | INFO | Duplicate skipped: New multimodal model feature improves creative workflows
+2026-05-02 21:02:16,864 | INFO | Duplicate skipped: General trade talks continue without direct AI infrastructure implications
+2026-05-02 21:02:16,865 | INFO | Completed run. seen=6 inserted=0 duplicates=6 errors=0

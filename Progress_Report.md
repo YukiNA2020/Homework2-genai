@@ -1478,3 +1478,121 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily
 
 **下一步：**
 用户测试阶段十三。测试通过后进入阶段十四：Evidence Grounding与事实约束，重点修复candidate post中的unsupported claims问题。
+
+---
+
+## 2026-05-02 阶段十四：Evidence Grounding与事实约束
+
+**用户需求：**
+用户要求阅读 `Homework2` 子文件夹中的项目，继续完成阶段十四，并在完成后判断阶段十四之后产品是否已经可以联网正常使用、是否能满足当前主要需求，以及阶段十五是否可以后置。
+
+**AI响应：**
+根据 `STATUS.md` 与 `Implementation_Roadmap.md` 的阶段十四定义，本轮完成P0修复：Evidence Grounding与事实约束。目标是防止候选LinkedIn帖子引入source evidence中没有的数字、国家、公司、机构、来源名、引用或预测区间。
+
+**本轮完成内容：**
+
+1. 升级 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py`：
+   - 新增 `validate_post_against_evidence()`。
+   - 检查unsupported numbers、named entities、source names、countries/regions。
+   - 自动修复 `#AInfrastructure` 为 `#AIInfrastructure`。
+   - 生成后、写库前进行factual validation。
+   - 如果输出不通过，则使用conservative grounded fallback；如果fallback仍失败，则标记 `factual_validation_failed` 并让Stage 5失败。
+
+2. 扩展 `evidence_basis`：
+   - 增加 `url`、`summary`、`cleaned_content_excerpt`、`keywords`、`classification_rationale`。
+   - 事实约束不只看标题，还会看source、summary、content、published_at、routing/classification rationale。
+
+3. 扩展SQLite schema与migration：
+   - `linkedin_content_results` 新增 `factual_validation_status`、`factual_validation_summary`、`factual_validation_details`。
+   - `review_queue_items` 同步新增上述字段。
+   - `lineage_utils.py` 负责migration-safe补列。
+
+4. 升级 `7_daily_run_review.py`：
+   - `review_queue.md` 增加 `Factual guard` 列。
+   - candidate markdown增加 `## Factual Validation` 区块。
+   - `review_queue.csv` 和 `manifest.json` 输出完整factual validation result。
+   - manifest新增 `evidence_grounding_policy`。
+
+5. 升级 `0_main_workflow.py`：
+   - 新增 `stage14_factual_validation_passed` 健康检查。
+
+6. 更新Prompt样例：
+   - `linkedin_post_generation_prompt.txt` 明确 `Do not introduce facts not present in source_records`。
+   - `image_generation_prompt.txt` 明确不得在图片prompt中引入证据中没有的国家、公司、机构、来源名、logo或数据标签。
+
+7. 新增阶段十四说明文档：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_14_evidence_grounding_notes.md`
+
+8. 更新项目状态文件：
+   - `STATUS.md`
+   - `Implementation_Roadmap.md`
+
+**测试记录：**
+
+语法检查通过：
+
+```bash
+env PYTHONPYCACHEPREFIX=/private/tmp/homework2_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/lineage_utils.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/5_linkedin_content_generation.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py
+```
+
+阶段十四离线daily run回归：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  --stage2-input-mode local_sample \
+  --llm-mode offline \
+  --image-mode offline \
+  --run-date 2026-05-02
+```
+
+结果摘要：
+
+- Daily Run ID：`daily_20260502_210317_49a0162b`
+- Wrapped Workflow Run ID：`run_20260502_210317_5f687756`
+- `Overall success: True`
+- News seen：6
+- Items kept：4
+- Items classified：4
+- Candidate posts：2
+- Images generated：2
+- Review items：2
+- `stage14_factual_validation_passed: PASS`
+- 两篇candidate的 `factual_validation_status` 均为 `passed`
+- Errors：0
+
+no-candidate路径验证：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  --stage2-input-mode local_sample \
+  --stage10-max-items 0 \
+  --llm-mode offline \
+  --image-mode offline \
+  --output-root /private/tmp/homework2_stage14_no_candidate \
+  --run-date 2026-05-02
+```
+
+结果摘要：
+
+- `Overall success: True`
+- Candidate posts：0
+- Review items：0
+- Lineage mode：`fallback`
+- No-candidate reason：`no_candidate_generated_today`
+- Historical sample content was not reused.
+
+**当前人工审核入口：**
+
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_queue.md
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/manifest.json
+```
+
+**阶段十四后的产品判断：**
+阶段十四完成后，当前产品已经具备RSS联网输入、可选在线LLM、可选在线图片、每日人工审核包、数据血缘闭环和事实约束。若当前目标是“能联网跑通、生成可人工审核的LinkedIn候选内容，并满足主要作业/产品需求”，可以认为主产品已经进入可正常使用测试状态。
+
+阶段十五“Daily Review透明度增强”仍然有价值，尤其有助于展示filtered/rejected items、score和rejection reason，提高评分与可解释性。但它不是当前主流程联网可用性的阻塞项，因此阶段十五可以往后放一放。
