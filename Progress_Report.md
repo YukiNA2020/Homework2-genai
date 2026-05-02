@@ -641,15 +641,9 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 
 ---
 
-## 经验教训
+## 代码第一阶段已完成，V3.0已开发完毕
 
-### （待项目实际执行后填充）
 
----
-
-## 未来改进机会
-
-### （待项目实际执行后填充）
 
 ---
 
@@ -693,10 +687,10 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 ### 第九轮：2026-05-01
 
 **用户需求：**
-用户要求继续读取 `Homework2` 子文件夹中的项目，并接着完成下一个阶段，也就是阶段七；完成后交给用户测试。如果需要用户填写API信息，则先中断并告知。
+用户要求继续读取 `Homework2` 子文件夹中的项目，并接着完成下一个阶段，也就是阶段七；完成后交给用户测试。
 
 **AI响应：**
-阶段七不需要接入新的API，也不需要用户填写API key。根据 `STATUS.md` 的下一步行动，本轮只做稳定MVP冻结与升级保护，不新增复杂功能。
+根据 `STATUS.md` 的下一步行动，本轮只做稳定MVP冻结与升级保护，不新增复杂功能。
 
 **本轮完成内容：**
 1. 重新运行阶段六总控脚本，验证当前离线MVP稳定基线。
@@ -736,10 +730,10 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_
 ### 第十轮：2026-05-01
 
 **用户需求：**
-用户要求阅读当前文件夹下子文件夹 `Homework2` 中的项目，然后继续完成下一个阶段，也就是阶段八；完成后交给用户测试。如果需要填写API信息，则先中断并告知。
+用户要求阅读当前文件夹下子文件夹 `Homework2` 中的项目，然后继续完成下一个阶段，也就是阶段八；完成后交给用户测试。
 
 **AI响应：**
-阶段八只接入公开RSS源，不接入LLM、图片生成或付费API，因此本轮不需要用户填写API key。实现原则是兼容式升级：保留 `local_sample` 离线入口，同时新增真实RSS抓取入口。
+阶段八只接入公开RSS源，不接入LLM、图片生成或付费API，实现原则是兼容式升级：保留 `local_sample` 离线入口，同时新增真实RSS抓取入口。
 
 **本轮完成内容：**
 1. 扩展 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/sample_data/rss_sources.json`，配置5个公开RSS源：
@@ -1151,7 +1145,7 @@ CONTENT_LLM_MODEL=deepseek-v4-pro
 ## 2026-05-02 阶段十一：图片生成与内容归档
 
 **用户需求：**
-用户要求继续完成下一个阶段，即阶段十一；如需要填写API可先中断，也可以先实现无key fallback。用户同时提醒DeepSeek V4多模态能力一般，并提供MiniMax Token Plan网页用于确认是否包含图片模型。
+用户要求继续完成下一个阶段，即阶段十一；如需要填写API可先中断，也可以先实现无key fallback。用户同时提醒DeepSeek V4多模态能力一般，并提供MiniMax网页用于图片模型的引入。
 
 **AI响应：**
 本轮选择继续采用离线fallback优先方案，不中断用户填写API。阶段十一不让DeepSeek承担图片生成任务，而是新增独立图片生成与归档脚本：无MiniMax key时生成本地16:9 SVG fallback；用户填写MiniMax key后可用 `online` 模式调用真实图片API。
@@ -1237,7 +1231,7 @@ MiniMax官方Token Plan显示其计划覆盖文本、图像、语音和视频等
 ## 2026-05-02 阶段十二：每日定时运行与人工审核
 
 **用户需求：**
-用户要求继续完成下一个阶段，即阶段十二；如果需要填写API则中断提示，否则优先完成离线fallback版本并交给用户测试。用户判断阶段十二大概率不需要填写API。
+用户要求继续完成下一个阶段，即阶段十二；如果需要填写API则中断提示，否则优先完成离线fallback版本并交给用户测试。用户判断阶段十二应该不需要填写API。
 
 **AI响应：**
 本轮选择不要求用户填写API。阶段十二新增每日运行与人工审核脚本，默认可用RSS模式运行，也支持完全离线的 `local_sample + offline LLM + offline image` 验收。该阶段只生成候选内容和审核材料，不做LinkedIn自动发布。
@@ -1304,7 +1298,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_
 ## 2026-05-02 阶段十三到十九：90+评分修正路线同步
 
 **用户需求：**
-用户提供评分AI反馈，指出当前项目约82/100，主要扣分点包括daily run数据链路不闭环、LinkedIn内容存在unsupported claims、sample/RSS结果混用、review queue透明度不足、KOL研究不够像真实reverse engineering，以及图片/结果包一致性仍需加强。用户要求先不要直接实施修复，而是把后续修改方案同步到当前项目文件中，方便后续AI和用户按计划开展工作。
+用户提供现有项目的评分AI反馈以及对应prompt，指出当前项目主要扣分点包括daily run数据链路不闭环、LinkedIn内容存在unsupported claims、sample/RSS结果混用、review queue透明度不足、KOL研究不够像真实reverse engineering，以及图片/结果包一致性仍需加强。用户要求先不要直接实施修复，而是把后续修改方案同步到当前项目文件中，方便后续AI和用户按计划开展工作。
 
 **AI响应：**
 本轮没有改业务代码，只同步后续修正路线。后续工作从阶段十三开始重新命名，原本“向量库/看板/邮件简报”等可选增强整体顺延到阶段十九。
@@ -1484,7 +1478,7 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily
 ## 2026-05-02 阶段十四：Evidence Grounding与事实约束
 
 **用户需求：**
-用户要求阅读 `Homework2` 子文件夹中的项目，继续完成阶段十四，并在完成后判断阶段十四之后产品是否已经可以联网正常使用、是否能满足当前主要需求，以及阶段十五是否可以后置。
+用户要求阅读 `Homework2` 子文件夹中的项目，继续完成阶段十四，并在完成后判断阶段十四之后产品是否已经可以联网正常使用、是否能满足当前主要需求，以及阶段十五是否可以后置于未来完成。
 
 **AI响应：**
 根据 `STATUS.md` 与 `Implementation_Roadmap.md` 的阶段十四定义，本轮完成P0修复：Evidence Grounding与事实约束。目标是防止候选LinkedIn帖子引入source evidence中没有的数字、国家、公司、机构、来源名、引用或预测区间。
