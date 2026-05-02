@@ -1,20 +1,20 @@
 # Archived LinkedIn Content Bundle
 
 - Primary category: AI算力基础设施地缘风险
-- Generated at: `2026-05-02T03:53:51Z`
+- Generated at: `2026-05-02T07:49:49Z`
 - Image status: `offline_fallback`
 - Image provider: `offline_fallback`
 - Image model: `deterministic_svg`
-- Image file: `category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg`
+- Image file: `category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg`
 
-![Archived LinkedIn visual](category_1_ai_infrastructure_risk_run_20260502_115351_b288d30f.svg)
+![Archived LinkedIn visual](category_1_ai_infrastructure_risk_run_20260502_154949_56f368eb.svg)
 
 ---
 # Category 1: AI Infrastructure Geopolitical Risk
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
-> Run ID: `run_20260502_115351_83d77933`
-> Generated at: `2026-05-02T03:53:51Z`
+> Run ID: `run_20260502_154949_44d1cd7f`
+> Generated at: `2026-05-02T07:49:49Z`
 
 ## Metadata
 

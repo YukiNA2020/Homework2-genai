@@ -1,0 +1,10 @@
+2026-05-02 15:38:35,918 | INFO | Starting Stage 3B information classification run: run_20260502_153835_fe0d4523
+2026-05-02 15:38:35,919 | INFO | Primary categories: ['AI算力基础设施地缘风险', 'AI关键矿产供应链与地缘政治']
+2026-05-02 15:38:35,919 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 15:38:35,920 | INFO | Stage 10 classification LLM mode: offline | available=False | require_online=False
+2026-05-02 15:38:35,924 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 15:38:35,925 | INFO | CLASSIFIED | AI关键矿产供应链与地缘政治 | confidence=0.95 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 15:38:35,926 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 15:38:35,926 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 15:38:35,928 | INFO | CLASSIFIED | AI算力基础设施地缘风险 | confidence=0.95 | NVIDIA Launches Nemotron 3 Nano Omni Model, Unifying Vision, Audio and Language for up to 9x More Efficient AI Agents
+2026-05-02 15:38:35,929 | INFO | Completed classification. seen=5 classified=5 errors=0

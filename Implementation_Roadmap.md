@@ -2,7 +2,7 @@
 
 > 本文档为作业专属落地执行方案的核心架构文件，定义全流程的根规则、阶段目标与交付边界。
 > 战略版本：3.0（作业交付版）/ 4.0（后续升级路线）
-> 更新日期：2026-05-01
+> 更新日期：2026-05-02
 
 ---
 
@@ -264,7 +264,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 
 现阶段的主要限制不是架构方向错误，而是后续真实自动化能力仍需继续补齐：
 
-1. **真实每日运行未自动化**：RSS、LLM接线、图片生成和归档已经接入，但每日定时运行与人工审核队列仍待阶段十二补齐。
+1. **真实每日运行已形成审核包**：RSS、LLM接线、图片生成和归档已经接入，阶段十二已补齐每日运行包装脚本与人工审核队列；后续如需可再安装系统级 `cron`/`launchd`。
 2. **真实LLM业务接线已完成但待用户API实测**：DeepSeek V4已作为默认真实LLM配置，摘要、评分、分类和内容生成已支持 `--llm-mode auto|online`，用户填写 `.env` 后再做真实API验收。
 3. **真实图片API待用户key验收**：阶段十一已保存本地fallback图片文件并预留MiniMax `online` 模式，用户填写 `.env` 后可测试真实图片生成。
 
@@ -431,9 +431,11 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive
 
 目标：把系统从“手动运行脚本”升级为“每日自动生成候选简报，但仍由人审核发布”。
 
+当前状态：已于2026-05-02完成阶段十二。新增 `7_daily_run_review.py`，可包装总控脚本生成 `daily_outputs/YYYY-MM-DD/` 审核包；SQLite新增 `daily_workflow_runs` 和 `review_queue_items`；离线验收 Run ID `daily_20260502_153834_3c00c0d5`，`Overall success: True`，生成2条 `pending_review` 候选内容。
+
 具体行动：
 
-1. 先用本地 `cron`、macOS `launchd` 或手动脚本模拟每日运行。
+1. 先用本地 `cron`、macOS `launchd` 或手动脚本模拟每日运行。（已完成脚本与cron示例，未静默安装系统级后台任务）
 2. 每日运行顺序：
 
 ```text
@@ -447,24 +449,24 @@ RSS/API抓取
 -> 人工审核
 ```
 
-3. 新增每日输出目录：
+3. 新增每日输出目录：（已完成）
 
 ```text
 daily_outputs/YYYY-MM-DD/
 ```
 
-4. 每日只生成“候选内容”，不自动发布LinkedIn。
-5. 人工审核后再复制到LinkedIn，避免事实错误、语气不当或来源不足。
+4. 每日只生成“候选内容”，不自动发布LinkedIn。（已完成）
+5. 人工审核后再复制到LinkedIn，避免事实错误、语气不当或来源不足。（已固化为审核清单与 `pending_review` 状态）
 
 验收标准：
 
-- 每天运行后能看到当天抓取数量、保留数量、分类数量、生成候选帖数量。
-- 失败源、失败Prompt、失败图片生成均有日志。
-- 人工审核前不自动对外发布。
+- 每天运行后能看到当天抓取数量、保留数量、分类数量、生成候选帖数量。（已验证）
+- 失败源、失败Prompt、失败图片生成均有日志。（已通过总控日志、阶段日志和每日审核日志记录）
+- 人工审核前不自动对外发布。（已通过脚本边界和审核包说明固化）
 
 ### 10.9 阶段十三：可选增强能力
 
-这些不是下一步必须做的内容，只有阶段七到阶段十二稳定后再考虑。
+这些不是下一步必须做的内容，阶段七到阶段十二已稳定后再考虑。
 
 | 增强方向 | 价值 | 建议时机 |
 |------|------|------|
@@ -482,7 +484,7 @@ daily_outputs/YYYY-MM-DD/
 2. **LLM客户端**：已完成统一封装和离线fallback验证。
 3. **LLM替换摘要、评分、分类和LinkedIn生成**：已完成，默认离线，支持 `auto/online`。
 4. **接图片生成**：已完成，补齐最终内容形态。
-5. **下一步做每日定时运行**：自动化必须建立在前面模块稳定的基础上。
+5. **每日定时运行与人工审核**：已完成脚本化审核包；后续如需可安装本机 `cron` 或 `launchd` 定时任务。
 
 ### 10.11 阶段九完成与阶段十起点
 
@@ -512,3 +514,14 @@ daily_outputs/YYYY-MM-DD/
 4. **升级总控脚本**：`0_main_workflow.py --include-stage11 --image-mode offline|auto|online` 可选择是否跑阶段十一。
 5. **离线集成验证通过**：Run ID `run_20260502_113929_cab3e7e7`，`Overall success: True`，图片与归档检查全部 `PASS`。
 6. **下一阶段边界**：阶段十二只做每日运行与人工审核队列，不做自动LinkedIn发布。
+
+### 10.14 阶段十二完成与阶段十三起点
+
+阶段十二已完成以下内容；下一步可进入阶段十三可选增强，或由用户先测试当前每日审核包：
+
+1. **新增 `7_daily_run_review.py`**：包装 `0_main_workflow.py --include-stage11`，生成每日候选内容审核包。
+2. **新增每日输出目录**：`daily_outputs/YYYY-MM-DD/`，包含 `review_queue.md`、`review_queue.csv`、`manifest.json`、候选稿和图片资产。
+3. **扩展数据库审计**：新增 `daily_workflow_runs` 和 `review_queue_items`，候选内容默认 `pending_review`。
+4. **离线验收通过**：Daily Run ID `daily_20260502_153834_3c00c0d5`，Wrapped Workflow Run ID `run_20260502_153835_7de03b80`，错误0条，候选审核项2条。
+5. **定时边界**：已提供cron命令示例；当前阶段不静默安装后台任务，不接LinkedIn自动发布。
+6. **下一阶段边界**：阶段十三为可选增强，可考虑看板、邮件/Slack简报、向量库或多版本内容生成。

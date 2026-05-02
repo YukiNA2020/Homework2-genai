@@ -1,0 +1,26 @@
+2026-05-02 15:49:49,325 | INFO | Starting Stage 3A relevance routing run: run_20260502_154949_172c46d9
+2026-05-02 15:49:49,325 | INFO | Rule config loaded with groups=['ai_infrastructure_supply_chain', 'geopolitical_cross_border_risk'] exclude_terms=9
+2026-05-02 15:49:49,325 | INFO | LLM provider placeholder: DeepSeek V4 | enabled=False
+2026-05-02 15:49:49,325 | INFO | Stage 10 relevance LLM mode: offline | available=False | require_online=False
+2026-05-02 15:49:49,329 | INFO | KEEP | score=9.78 | AI data center expansion raises electricity demand and grid planning risk
+2026-05-02 15:49:49,330 | INFO | KEEP | score=8.49 | Copper supply concentration creates cost risk for AI infrastructure buildout
+2026-05-02 15:49:49,330 | INFO | KEEP | score=8.88 | Cloud provider reassesses regional AI compute deployment after new export-control guidance
+2026-05-02 15:49:49,330 | INFO | KEEP | score=7.94 | Regional conflict increases shipping and energy-security concerns for data center operators
+2026-05-02 15:49:49,331 | INFO | FILTER | score=0.00 | New multimodal model feature improves creative workflows
+2026-05-02 15:49:49,331 | INFO | FILTER | score=0.00 | General trade talks continue without direct AI infrastructure implications
+2026-05-02 15:49:49,332 | INFO | FILTER | score=6.59 | A new US phone network for Christians aims to block porn and gender-related content
+2026-05-02 15:49:49,333 | INFO | FILTER | score=5.32 | This startup’s new mechanistic interpretability tool lets you debug LLMs
+2026-05-02 15:49:49,333 | INFO | FILTER | score=3.80 | Introducing Advanced Account Security
+2026-05-02 15:49:49,334 | INFO | FILTER | score=3.80 | Where the goblins came from
+2026-05-02 15:49:49,335 | INFO | FILTER | score=6.53 | Unlocking human ambition to drive business growth with AI
+2026-05-02 15:49:49,336 | INFO | FILTER | score=6.90 | Microsoft Sovereign Private Cloud scales to thousands of nodes with Azure Local
+2026-05-02 15:49:49,337 | INFO | FILTER | score=6.56 | Nemotron Labs: What OpenClaw Agents Mean for Every Organization
+2026-05-02 15:49:49,338 | INFO | FILTER | score=6.54 | It’s Gonna Be May: 16 Games Hit the Cloud This Month, With More NVIDIA GeForce RTX 5080 Power
+2026-05-02 15:49:49,339 | INFO | FILTER | score=0.00 | Lithium in Eastern States Could Replace Imports for a Century or More
+2026-05-02 15:49:49,339 | INFO | FILTER | score=4.90 | New Nationwide Tool Helps Answer: Do We Have Enough Water?
+2026-05-02 15:49:49,340 | INFO | FILTER | score=6.04 | Elon Musk and Sam Altman are going to court over OpenAI’s future
+2026-05-02 15:49:49,340 | INFO | FILTER | score=0.00 | Building the compute infrastructure for the Intelligence Age
+2026-05-02 15:49:49,340 | INFO | FILTER | score=4.87 | The next phase of the Microsoft-OpenAI partnership
+2026-05-02 15:49:49,341 | INFO | KEEP | score=7.58 | NVIDIA Launches Nemotron 3 Nano Omni Model, Unifying Vision, Audio and Language for up to 9x More Efficient AI Agents
+2026-05-02 15:49:49,341 | INFO | FILTER | score=4.90 | New research shows prehistoric lake contributed to the birth of the Grand Canyon
+2026-05-02 15:49:49,342 | INFO | Completed routing. seen=21 routed=21 kept=5 filtered=16 errors=0

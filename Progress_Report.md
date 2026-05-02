@@ -1231,3 +1231,70 @@ MiniMax官方Token Plan显示其计划覆盖文本、图像、语音和视频等
 
 **交接给用户：**
 当前阶段十一已经可以由用户直接测试。无API key时先跑 `--image-mode offline`；如要测试真实图片生成，请在本地 `.env` 填写 `MINIMAX_API_KEY` 后运行 `--image-mode online`，不要把API key发到对话里。
+
+---
+
+## 2026-05-02 阶段十二：每日定时运行与人工审核
+
+**用户需求：**
+用户要求继续完成下一个阶段，即阶段十二；如果需要填写API则中断提示，否则优先完成离线fallback版本并交给用户测试。用户判断阶段十二大概率不需要填写API。
+
+**AI响应：**
+本轮选择不要求用户填写API。阶段十二新增每日运行与人工审核脚本，默认可用RSS模式运行，也支持完全离线的 `local_sample + offline LLM + offline image` 验收。该阶段只生成候选内容和审核材料，不做LinkedIn自动发布。
+
+**本轮完成内容：**
+1. 新增 `AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py`。
+2. 新增每日输出根目录配置：`DAILY_OUTPUT_DIR = .../daily_outputs`。
+3. 扩展SQLite schema，新增：
+   - `daily_workflow_runs`
+   - `review_queue_items`
+4. 新增每日审核包输出：
+   - `daily_outputs/YYYY-MM-DD/review_queue.md`
+   - `daily_outputs/YYYY-MM-DD/review_queue.csv`
+   - `daily_outputs/YYYY-MM-DD/manifest.json`
+   - `daily_outputs/YYYY-MM-DD/candidates/*.md`
+   - `daily_outputs/YYYY-MM-DD/assets/*`
+5. 每条候选内容写入人工审核清单，状态默认 `pending_review`。
+6. 新增阶段十二说明文档：
+   - `AI_Geopolitical_Risk_Workflow_Homework_Delivery/4-Progress_Report/stage_12_daily_review_notes.md`
+7. 更新 `STATUS.md`、`Implementation_Roadmap.md`、`Plan_of_Project.md`、`Intro.md` 与 `workflow_architecture.md`。
+
+**测试记录：**
+
+语法检查通过：
+```bash
+env PYTHONPYCACHEPREFIX=/private/tmp/homework2_pycache python3 -m py_compile \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py \
+  AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/api_config.py
+```
+
+阶段十二离线验收：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py --stage2-input-mode local_sample --llm-mode offline --image-mode offline
+```
+
+结果摘要：
+- Daily Run ID：`daily_20260502_153834_3c00c0d5`
+- Wrapped Workflow Run ID：`run_20260502_153835_7de03b80`
+- `Overall success: True`
+- News seen：6
+- Items kept：5
+- Items classified：5
+- Candidate posts：2
+- Images generated：2
+- Review items：2
+- Errors：0
+
+**输出目录：**
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/
+```
+
+**核心审核入口：**
+```text
+AI_Geopolitical_Risk_Workflow_Homework_Delivery/daily_outputs/2026-05-02/review_queue.md
+```
+
+**交接给用户：**
+阶段十二已经可以由用户直接测试。无API key时运行离线验收命令；若要测试日常RSS模式，可直接运行 `7_daily_run_review.py` 默认命令；若后续希望接入真实LLM/图片，可在本地 `.env` 填写key后使用 `--llm-mode auto --image-mode auto`。仍然不要把API key发送到对话中，也不要打印 `.env` 内容。

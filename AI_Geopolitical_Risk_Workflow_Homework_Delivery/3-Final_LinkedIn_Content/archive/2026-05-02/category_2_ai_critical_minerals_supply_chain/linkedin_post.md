@@ -1,20 +1,20 @@
 # Archived LinkedIn Content Bundle
 
 - Primary category: AI关键矿产供应链与地缘政治
-- Generated at: `2026-05-02T04:15:02Z`
-- Image status: `generated`
-- Image provider: `minimax`
-- Image model: `image-01`
-- Image file: `category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg`
+- Generated at: `2026-05-02T07:49:49Z`
+- Image status: `offline_fallback`
+- Image provider: `offline_fallback`
+- Image model: `deterministic_svg`
+- Image file: `category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg`
 
-![Archived LinkedIn visual](category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg)
+![Archived LinkedIn visual](category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg)
 
 ---
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
-> Run ID: `run_20260502_115351_83d77933`
-> Generated at: `2026-05-02T03:53:51Z`
+> Run ID: `run_20260502_154949_44d1cd7f`
+> Generated at: `2026-05-02T07:49:49Z`
 
 ## Metadata
 

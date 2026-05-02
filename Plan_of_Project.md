@@ -268,6 +268,7 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 │   ├── 4_linkedin_analysis.py
 │   ├── 5_linkedin_content_generation.py
 │   ├── 6_image_generation.py
+│   ├── 7_daily_run_review.py
 │   ├── database_config
 │   │   ├── chroma_db_config.py
 │   │   └── sqlite_db_init.sql
@@ -286,10 +287,18 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 │   ├── Category_2_AI_Mineral_SupplyChain_Post.md
 │   ├── images
 │   └── archive
+├── daily_outputs
+│   └── YYYY-MM-DD
+│       ├── review_queue.md
+│       ├── review_queue.csv
+│       ├── manifest.json
+│       ├── candidates
+│       └── assets
 └── 4-Progress_Report
     ├── Progress_Report_Final.md
     ├── workflow_running_logs
     ├── stage_11_image_generation_notes.md
+    ├── stage_12_daily_review_notes.md
     └── prompt_optimization_records.md
 ```
 

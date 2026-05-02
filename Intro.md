@@ -1,7 +1,7 @@
 # AI基建地缘风险洞察工作流 作业落地总说明
 
 > 文档用途：本文件为《Homework 2 AI Content Monitoring and Generation Workflow》作业的总体说明，用于快速理解项目方向、工作流架构与交付策略。
-> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ DeepSeek V4（摘要、评分、分类、内容生成，默认 `deepseek-v4-pro`）+ SQLite（MVP信息仓库）。
+> 核心技术栈：Claude Code（代码生成/调试/架构设计）+ DeepSeek V4（摘要、评分、分类、内容生成，默认 `deepseek-v4-pro`）+ MiniMax图片接口预留/离线SVG fallback + SQLite（MVP信息仓库）。
 > 战略定位：本项目采用MVP优先策略，不追求一次性覆盖“全产业链、全自动、全信息源”，而是聚焦“AI基建地缘风险”这一更可落地的高价值场景。
 
 ---
@@ -64,6 +64,10 @@ SQLite信息仓库
     ↓
 LinkedIn决策简报生成
     ↓
+图片生成与内容归档
+    ↓
+每日候选内容输出与人工审核
+    ↓
 运行日志与进度报告
 ```
 
@@ -110,6 +114,12 @@ Closing question
 ### 4.6 总控与报告模块：`0_main_workflow.py`
 串联所有模块，记录运行日志，支撑最终进度报告。
 
+### 4.7 图片生成与归档模块：`6_image_generation.py`
+为每篇最终LinkedIn内容生成或fallback渲染16:9视觉图，并写入图片目录与按日期归档包。
+
+### 4.8 每日运行与人工审核模块：`7_daily_run_review.py`
+包装总控脚本生成 `daily_outputs/YYYY-MM-DD/` 审核包。候选内容默认 `pending_review`，人工审核前不自动发布LinkedIn。
+
 ---
 
 ## 五、最终交付物标准目录结构
@@ -123,6 +133,8 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 │   ├── 3_information_classification.py
 │   ├── 4_linkedin_analysis.py
 │   ├── 5_linkedin_content_generation.py
+│   ├── 6_image_generation.py
+│   ├── 7_daily_run_review.py
 │   ├── database_config
 │   │   ├── chroma_db_config.py
 │   │   └── sqlite_db_init.sql
@@ -138,10 +150,20 @@ AI_Geopolitical_Risk_Workflow_Homework_Delivery
 ├── 3-Final_LinkedIn_Content
 │   ├── LinkedIn_Post_Style_Anatomy_Checklist.md
 │   ├── Category_1_AI_Infrastructure_Risk_Post.md
-│   └── Category_2_AI_Mineral_SupplyChain_Post.md
+│   ├── Category_2_AI_Mineral_SupplyChain_Post.md
+│   ├── images
+│   └── archive
+├── daily_outputs
+│   └── YYYY-MM-DD
+│       ├── review_queue.md
+│       ├── review_queue.csv
+│       ├── manifest.json
+│       ├── candidates
+│       └── assets
 └── 4-Progress_Report
     ├── Progress_Report_Final.md
     ├── workflow_running_logs
+    ├── stage_12_daily_review_notes.md
     └── prompt_optimization_records.md
 ```
 

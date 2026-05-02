@@ -223,3 +223,63 @@ CREATE TABLE IF NOT EXISTS image_generation_runs (
     errors INTEGER NOT NULL,
     notes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS daily_workflow_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL UNIQUE,
+    run_date TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    stage2_input_mode TEXT NOT NULL,
+    llm_mode TEXT NOT NULL,
+    image_mode TEXT NOT NULL,
+    workflow_run_id TEXT,
+    workflow_return_code INTEGER NOT NULL,
+    workflow_log_path TEXT,
+    daily_log_path TEXT NOT NULL,
+    output_dir TEXT NOT NULL,
+    review_queue_path TEXT NOT NULL,
+    manifest_path TEXT NOT NULL,
+    items_seen INTEGER NOT NULL,
+    items_inserted INTEGER NOT NULL,
+    items_kept INTEGER NOT NULL,
+    items_classified INTEGER NOT NULL,
+    candidate_posts INTEGER NOT NULL,
+    images_generated INTEGER NOT NULL,
+    fallback_used INTEGER NOT NULL,
+    review_items INTEGER NOT NULL,
+    errors INTEGER NOT NULL,
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_workflow_runs_date
+ON daily_workflow_runs(run_date);
+
+CREATE TABLE IF NOT EXISTS review_queue_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    daily_run_id TEXT NOT NULL,
+    run_date TEXT NOT NULL,
+    primary_category TEXT NOT NULL,
+    source_content_id INTEGER,
+    source_news_ids TEXT NOT NULL,
+    source_titles TEXT NOT NULL,
+    candidate_post_path TEXT NOT NULL,
+    image_path TEXT,
+    archive_dir TEXT,
+    review_status TEXT NOT NULL DEFAULT 'pending_review',
+    review_priority TEXT NOT NULL DEFAULT 'P1',
+    reviewer_notes TEXT NOT NULL DEFAULT '',
+    prompt_version TEXT NOT NULL,
+    model_provider TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(daily_run_id, primary_category),
+    FOREIGN KEY(daily_run_id) REFERENCES daily_workflow_runs(run_id),
+    FOREIGN KEY(source_content_id) REFERENCES linkedin_content_results(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_review_queue_items_status
+ON review_queue_items(review_status);
+
+CREATE INDEX IF NOT EXISTS idx_review_queue_items_date
+ON review_queue_items(run_date);

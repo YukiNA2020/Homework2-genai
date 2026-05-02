@@ -1,8 +1,8 @@
 # Category 2: AI Critical Mineral Supply Chain Geopolitics
 
 > 使用环节：阶段五 - LinkedIn决策简报生成。
-> Run ID: `run_20260502_115351_83d77933`
-> Generated at: `2026-05-02T03:53:51Z`
+> Run ID: `run_20260502_154949_44d1cd7f`
+> Generated at: `2026-05-02T07:49:49Z`
 
 ## Metadata
 
@@ -63,16 +63,16 @@ Create a professional 16:9 LinkedIn visual for an executive brief on critical mi
 
 ## Stage 11 Generated Image
 
-![Stage 11 LinkedIn visual](images/category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg)
+![Stage 11 LinkedIn visual](images/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg)
 
-- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_121502_d90d1658.jpg`
+- Image file: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/images/category_2_ai_critical_minerals_supply_chain_run_20260502_154949_56f368eb.svg`
 - Archive directory: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain`
 - Archive post: `/Users/jing/Desktop/some_code/GenAI_Coding/Homework2/Homework2/AI_Geopolitical_Risk_Workflow_Homework_Delivery/3-Final_LinkedIn_Content/archive/2026-05-02/category_2_ai_critical_minerals_supply_chain/linkedin_post.md`
-- Generated at: `2026-05-02T04:15:02Z`
-- Image mode: `online`
-- Image provider: `minimax`
-- Image model: `image-01`
-- Status: `generated`
+- Generated at: `2026-05-02T07:49:49Z`
+- Image mode: `offline`
+- Image provider: `offline_fallback`
+- Image model: `deterministic_svg`
+- Status: `offline_fallback`
 - Prompt version: `image_generation_archive_v1_stage11`
 
 ### Final Image Prompt

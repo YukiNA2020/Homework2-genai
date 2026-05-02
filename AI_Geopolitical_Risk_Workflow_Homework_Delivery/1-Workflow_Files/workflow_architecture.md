@@ -1,7 +1,7 @@
 # AI基建地缘风险洞察工作流架构说明
 
-> 使用环节：阶段六/阶段八/阶段十一 - 工作流、真实RSS接入、图片生成与归档说明。  
-> 版本：v1.2 image-archive enabled MVP  
+> 使用环节：阶段六/阶段八/阶段十一/阶段十二 - 工作流、真实RSS接入、图片生成归档与每日人工审核说明。
+> 版本：v1.3 daily-review enabled MVP
 > 更新日期：2026-05-02
 
 ## 1. 设计目标
@@ -17,6 +17,7 @@
     -> KOL风格约束
     -> LinkedIn决策简报生成
     -> 图片生成与内容归档
+    -> 每日候选内容输出与人工审核队列
     -> 运行日志与最终报告
 ```
 
@@ -35,6 +36,7 @@
 | 阶段五 | `5_linkedin_content_generation.py` | 分类结果、内容约束 | `linkedin_content_results`、两篇最终帖子、配图Prompt | 为两个主线分类各生成1篇决策简报式帖子 |
 | 阶段十一 | `6_image_generation.py` | `linkedin_content_results`、配图Prompt | `image_generation_results`、图片文件、归档包 | 为最终帖子生成或fallback渲染16:9视觉图，并归档Markdown、图片和manifest |
 | 阶段六/十一 | `0_main_workflow.py` | 全部阶段脚本 | 主控日志、最终报告支撑数据 | 一键串联阶段二到阶段五，可选 `--include-stage11` 跑图片生成与归档 |
+| 阶段十二 | `7_daily_run_review.py` | `0_main_workflow.py`、SQLite结果、图片归档 | `daily_outputs/YYYY-MM-DD/`、`daily_workflow_runs`、`review_queue_items` | 每日生成候选内容审核包，人工审核前不自动发布 |
 
 ## 3. 数据库设计逻辑
 
@@ -46,6 +48,7 @@ SQLite作为MVP信息仓库，核心表分为四类：
 | 路由与分类结果 | `relevance_routing_results`、`classification_results` | 保存规则命中、评分、分类、标签和判断理由 |
 | 内容研究与生成 | `kol_analysis_results`、`linkedin_content_results` | 保存KOL风格拆解和最终LinkedIn内容 |
 | 图片与归档 | `image_generation_results` | 保存每个分类最新图片、归档路径、模型、状态和元数据 |
+| 每日审核 | `daily_workflow_runs`、`review_queue_items` | 保存每日运行指标、候选内容路径、审核状态和人工审核队列 |
 | 审计运行记录 | `ingestion_runs`、`routing_runs`、`classification_runs`、`kol_analysis_runs`、`linkedin_content_runs`、`image_generation_runs` | 保存每次运行的数量统计、错误数与运行ID |
 
 这种结构保证每个阶段既可以单独测试，也可以通过总控脚本串联运行。
@@ -120,7 +123,42 @@ linkedin_content_results
 - 生成的图片文件。
 - `manifest.json`。
 
-## 8. 一键运行方式
+## 8. 每日运行与人工审核设计
+
+阶段十二不自动发布LinkedIn，只把完整工作流包装成每日候选内容生产和审核队列：
+
+```text
+0_main_workflow.py --include-stage11
+    -> 读取最新运行指标
+    -> 写入 daily_outputs/YYYY-MM-DD/
+    -> 生成 review_queue.md / review_queue.csv / manifest.json
+    -> 生成 candidates/*.md 人工审核稿
+    -> 记录 daily_workflow_runs 和 review_queue_items
+```
+
+默认日常命令使用RSS输入，但文本LLM和图片都保持离线fallback：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py
+```
+
+无网络或课堂演示时使用完全离线验收：
+
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py --stage2-input-mode local_sample --llm-mode offline --image-mode offline
+```
+
+每日审核包固定包含：
+
+- `review_queue.md`：每日指标、日志路径、候选内容列表。
+- `review_queue.csv`：表格化候选队列。
+- `manifest.json`：结构化交接清单。
+- `candidates/*.md`：每条候选帖的来源证据、正文、图片与审核清单。
+- `assets/`：审核包内复制的候选图片。
+
+所有候选内容默认状态为 `pending_review`。人工审核前不对外发布，也不接LinkedIn OAuth或浏览器自动发帖。
+
+## 9. 一键运行方式
 
 在项目根目录 `Homework2` 下运行：
 
@@ -161,10 +199,16 @@ python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/6_image
 python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/0_main_workflow.py --include-stage11 --image-mode offline
 ```
 
-## 9. 扩展接口
+阶段十二每日审核包生成：
 
-当前版本为RSS + LLM + image-archive enabled MVP，未来可在不重做数据库结构的前提下扩展：
+```bash
+python3 AI_Geopolitical_Risk_Workflow_Homework_Delivery/1-Workflow_Files/7_daily_run_review.py --stage2-input-mode local_sample --llm-mode offline --image-mode offline
+```
 
-- 增加定时任务，实现每日监控。
+## 10. 扩展接口
+
+当前版本为RSS + LLM + image-archive + daily-review enabled MVP，未来可在不重做数据库结构的前提下扩展：
+
+- 将现有 `7_daily_run_review.py` 接入本机 `cron` 或 macOS `launchd`。
 - 增加Chroma或其他向量库，用于长期检索和相似案例召回。
 - 增加仪表盘，展示分类趋势、风险信号和内容生成记录。
